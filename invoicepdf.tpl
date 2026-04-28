@@ -21,28 +21,179 @@
 // PAGE SETUP AND INITIALIZATION
 // ========================================================================
 
-// Helper function for currency formatting with fallback values
+// Helper: parse a (possibly formatted) amount string to float.
+//
+// Inline `floatval(preg_replace('/[^\d.-]/', '', $x))` mishandles thousands
+// and decimal separators across locales:
+//   "1,234.56" → 1.23456 (US, comma stripped, two dots collapsed)
+//   "1.234,56" → 1.23456 (EU, comma stripped, dot kept as decimal)
+// This helper uses WHMCS's $currencyformat (tblcurrencies.format: 1..4)
+// when set, and a "rightmost separator wins" heuristic otherwise.
+if (!function_exists('parseAmount')) {
+    function parseAmount($value) {
+        if (is_numeric($value)) {
+            return (float) $value;
+        }
+        if (!is_string($value)) {
+            return 0.0;
+        }
+        // Strip everything except digits, dot, comma, hyphen.
+        $clean = preg_replace('/[^\d.,\-]/u', '', $value);
+        if ($clean === '' || $clean === null) {
+            return 0.0;
+        }
+
+        // Explicit format from WHMCS template global takes precedence.
+        if (isset($GLOBALS['currencyformat'])) {
+            switch ((int) $GLOBALS['currencyformat']) {
+                case 2: // EU: 1.234,56 — strip dots, swap comma→dot
+                    return (float) str_replace(array('.', ','), array('', '.'), $clean);
+                case 3: // French: 1 234.56 — already stripped spaces; commas (if any) are spurious
+                case 4: // Plain: 1234.56 — no thousands
+                case 1: // US: 1,234.56 — strip commas
+                default:
+                    return (float) str_replace(',', '', $clean);
+            }
+        }
+
+        // Heuristic when format isn't known — the rightmost separator is
+        // the decimal separator; the other (if any) is the thousands separator.
+        $last_dot = strrpos($clean, '.');
+        $last_comma = strrpos($clean, ',');
+
+        if ($last_dot === false && $last_comma === false) {
+            return (float) $clean;
+        }
+        if ($last_dot === false) {
+            // Only commas. Single comma with ≤2 trailing digits → decimal.
+            if (substr_count($clean, ',') === 1 && (strlen($clean) - $last_comma - 1) <= 2) {
+                return (float) str_replace(',', '.', $clean);
+            }
+            return (float) str_replace(',', '', $clean); // thousands
+        }
+        if ($last_comma === false) {
+            // Only dots. Multiple dots → thousands separators.
+            if (substr_count($clean, '.') > 1) {
+                return (float) str_replace('.', '', $clean);
+            }
+            return (float) $clean;
+        }
+        // Both present — last one is decimal.
+        if ($last_dot > $last_comma) {
+            return (float) str_replace(',', '', $clean);
+        }
+        return (float) str_replace(array('.', ','), array('', '.'), $clean);
+    }
+}
+
+// Helper: classify an invoice line item.
+//
+// WHMCS sets $item['type'] to 'LateFee' for items inserted by the
+// AddLateFees cron (vendor/.../lib/Cron/Task/AddLateFees.php). For gateway
+// /processing fees there is no authoritative type — addons inject them as
+// 'Item' or with empty type — so we use a conservative explicit-phrase match
+// on the description. Returns one of: 'late_fee' | 'gateway_fee' | 'regular'.
+if (!function_exists('classifyInvoiceItem')) {
+    function classifyInvoiceItem($item) {
+        $type = isset($item['type']) ? (string) $item['type'] : '';
+        if ($type === 'LateFee') {
+            return 'late_fee';
+        }
+
+        $desc = isset($item['description']) ? strtolower((string) $item['description']) : '';
+
+        // Late fee fallback for legacy invoices / non-LateFee-typed inserts.
+        // Kept intentionally narrow to avoid false-positives on service names
+        // that happen to contain these words.
+        $late_fee_phrases = array(
+            'late fee', 'late charge', 'overdue fee', 'late payment fee',
+            'late payment charge', 'late-payment fee',
+        );
+        foreach ($late_fee_phrases as $phrase) {
+            if (strpos($desc, $phrase) !== false) {
+                return 'late_fee';
+            }
+        }
+
+        // Gateway / processing fee — explicit phrases only. Each phrase pairs
+        // a payment-context word with a fee/charge/surcharge word so generic
+        // service names like "Payment Gateway Integration" do not match.
+        $gateway_fee_phrases = array(
+            'payment gateway fee', 'gateway fee', 'gateway charge',
+            'payment processing fee', 'processing fee', 'transaction fee',
+            'convenience fee', 'card surcharge', 'card fee',
+            'online payment charge', 'online payment fee',
+            'pg fee', 'pg charge', 'pg charges',
+            'razorpay fee', 'stripe fee', 'paypal fee', 'payu fee',
+        );
+        foreach ($gateway_fee_phrases as $phrase) {
+            if (strpos($desc, $phrase) !== false) {
+                return 'gateway_fee';
+            }
+        }
+
+        return 'regular';
+    }
+}
+
+// Helper function for currency formatting that honors WHMCS standards:
+//   - decimal places vary by currency code (most → 2, JPY/KRW/etc → 0,
+//     KWD/BHD/etc → 3 per ISO 4217)
+//   - thousands/decimal separators driven by $currencyformat (WHMCS
+//     tblcurrencies.format: 1=US "1,234.56", 2=EU "1.234,56",
+//     3=French "1 234.56", 4=plain "1234.56")
+// Loaded only when WHMCS hasn't already exposed its own formatCurrency()
+// (in that case PHP routes calls there; extra args are silently ignored).
 if (!function_exists('formatCurrency')) {
-    function formatCurrency($amount, $currencyprefix, $currencysuffix) {
+    function formatCurrency($amount, $currencyprefix = '', $currencysuffix = '') {
         // Set default currency values if not provided
         if (empty($currencyprefix) && empty($currencysuffix)) {
-            // Try to get client's preferred currency
             if (isset($clientsdetails['currency']) && !empty($clientsdetails['currency'])) {
-                // Use client's currency preference
                 $currencyprefix = '';
                 $currencysuffix = $clientsdetails['currency'];
             } else {
-                // Fallback to WHMCS default currency
                 $currencyprefix = '₹';
                 $currencysuffix = 'INR';
             }
         }
-        
+
+        // Decimal places per ISO 4217 conventions.
+        $code = strtoupper((string) $currencysuffix);
+        $zero_decimal_codes = array(
+            'JPY', 'KRW', 'CLP', 'VND', 'IDR', 'KMF', 'PYG',
+            'RWF', 'UGX', 'XAF', 'XOF', 'XPF', 'BIF', 'DJF',
+            'GNF', 'ISK', 'MGA', 'VUV',
+        );
+        $three_decimal_codes = array('BHD', 'IQD', 'JOD', 'KWD', 'OMR', 'TND', 'LYD');
+        if (in_array($code, $zero_decimal_codes, true)) {
+            $decimals = 0;
+        } elseif (in_array($code, $three_decimal_codes, true)) {
+            $decimals = 3;
+        } else {
+            $decimals = 2;
+        }
+
+        // Separators per WHMCS $currencyformat. Read from the template global
+        // when present; default to format 1 (US) when not.
+        $thousands_sep = ',';
+        $decimal_sep = '.';
+        if (isset($GLOBALS['currencyformat'])) {
+            switch ((int) $GLOBALS['currencyformat']) {
+                case 2: $thousands_sep = '.'; $decimal_sep = ','; break;
+                case 3: $thousands_sep = ' '; $decimal_sep = '.'; break;
+                case 4: $thousands_sep = '';  $decimal_sep = '.'; break;
+                case 1:
+                default:
+                    // US/UK style — already set above.
+                    break;
+            }
+        }
+
         $formatted = '';
         if (!empty($currencyprefix)) {
             $formatted .= $currencyprefix . ' ';
         }
-        $formatted .= number_format($amount, 2);
+        $formatted .= number_format((float) $amount, $decimals, $decimal_sep, $thousands_sep);
         if (!empty($currencysuffix)) {
             $formatted .= ' ' . $currencysuffix;
         }
@@ -50,103 +201,117 @@ if (!function_exists('formatCurrency')) {
     }
 }
 
-// Set page margins and orientation - very small margins
-$pdf->SetMargins(8, 8, 8);
-$pdf->SetAutoPageBreak(true, 25); // Increased bottom margin for footer space
+// ========================================================================
+// SECURIACE CONFIG BLOCK — edit only this section for company/bank/UPI
+// ========================================================================
 
-// --- Enhancement: Status-based Invoice Styling ---
-if ($ENH['show_status_ribbon'] && isset($status)) {
-    // Apply subtle status-based styling to the entire invoice
-    switch (strtolower($status)) {
-        case 'paid':
-            // Paid invoices get a subtle green accent
-            define('STATUS_ACCENT_COLOR', array(151, 223, 74));
-            define('STATUS_BORDER_COLOR', array(110, 192, 70));
-            break;
-        case 'overdue':
-            // Overdue invoices get a subtle red accent
-            define('STATUS_ACCENT_COLOR', array(223, 85, 74));
-            define('STATUS_BORDER_COLOR', array(171, 49, 43));
-            break;
-        case 'cancelled':
-        case 'refunded':
-            // Cancelled/Refunded invoices get a subtle gray accent
-            define('STATUS_ACCENT_COLOR', array(200, 200, 200));
-            define('STATUS_BORDER_COLOR', array(140, 140, 140));
-            break;
-        default:
-            // Default styling for other statuses
-            define('STATUS_ACCENT_COLOR', array(75, 0, 130));
-            define('STATUS_BORDER_COLOR', array(75, 0, 130));
-            break;
-    }
-} else {
-    // Default styling when status ribbon is disabled
-    define('STATUS_ACCENT_COLOR', array(75, 0, 130));
-    define('STATUS_BORDER_COLOR', array(75, 0, 130));
-}
+// Company details not available as dedicated WHMCS template variables.
+// Phone, email, PAN, MSME go here; address/GSTIN come from WHMCS settings.
+// WHMCS: Admin → Setup → General Settings → General → Address (each line = one array element in $companyaddress)
+// WHMCS: Admin → Setup → General Settings → Invoices → Tax ID Label / Tax ID Number → $taxIdLabel / $taxCode
+$SC_COMPANY_PHONE  = '+91 88888 88888';
+$SC_COMPANY_EMAIL  = 'helpdesk@securiace.com';
+$SC_COMPANY_PAN    = 'AWZPK7069G';
+$SC_COMPANY_MSME   = 'UDYAM-MH-21-0014457';
 
-// Define exact colors from screenshot
-define('COLOR_DARK_GREY', array(64, 64, 64));     // Dark grey for main text
-define('COLOR_LIGHT_GREY', array(245, 245, 245)); // Light grey for backgrounds
-define('COLOR_PURPLE', array(75, 0, 130));        // Purple for section headers
-define('COLOR_WHITE', array(255, 255, 255));      // White background
-define('COLOR_BLACK', array(0, 0, 0));            // Black for borders
+// Bank details (shown in payment section)
+$SC_BANK_NAME      = 'IDBI Bank';
+$SC_BANK_NUMBER    = '500102000004909';
+$SC_BANK_IFSC      = 'IBKL0000500';
+$SC_BANK_TYPE      = 'Current';
+
+// UPI ID — used in QR code and display text (one place only)
+$SC_UPI_ID         = 'securiace.com@idbi';
+
+// Verification salt — change periodically, keep private
+$SC_VERIFY_SALT    = 'SECURIACE_INV_' . date('Y') . '_V2';
+
+// Legal jurisdiction in payment terms
+$SC_JURISDICTION   = 'Pune, Maharashtra';
 
 // ========================================================================
-// ENHANCEMENT CONFIGURATION
+// ENHANCEMENT CONFIGURATION — feature flags
 // ========================================================================
 $ENH = array(
     // Core Status Features
-    'show_status_ribbon' => true,
-    'show_auth_seal' => true,
-    'show_verification_badge' => true, // Enhanced digital verification badge
-    'verification_badge_position' => 'after_status', // Position: 'after_status', 'after_invoice_details', 'bottom_right'
-    
+    'show_status_ribbon'         => true,
+    'show_auth_seal'             => true,
+    'show_verification_badge'    => true,
+    'verification_badge_position'=> 'after_status',
+
     // Proforma & Invoice Management
-    'proforma_enabled' => true,
-    'show_original_proforma' => true,
-    
+    'proforma_enabled'           => true,
+    'show_original_proforma'     => true,
+
     // Payment & Transactions
-    'show_transactions' => true,
-    'show_payment_ui' => true,
-    
+    'show_transactions'          => true,
+    'show_payment_ui'            => true,
+
     // Compliance & Legal
-    'official_auth_seal' => true,
-    'show_fx' => false, // Foreign exchange - default off; when on, mark "reference only"
-    
+    'official_auth_seal'         => true,
+    'show_fx'                    => false,
+
     // Tax & Compliance
-    'show_tax_details' => true,
-    'show_client_tax_id' => true,
-    'show_company_tax_id' => true,
-    
+    'show_tax_details'           => true,
+    'show_client_tax_id'         => true,
+    'show_company_tax_id'        => true,
+
     // Overdue Management
-    'show_overdue_details' => true,
-    'late_fee_policy' => '', // Config string for late fee policy
-    
+    'show_overdue_details'       => true,
+    'late_fee_policy'            => '',
+
     // MSME & Business Details
-    'show_msme_details' => true,
-    'show_udyam_number' => true,
-    
+    'show_msme_details'          => true,
+    'show_udyam_number'          => true,
+
     // Debug & Development
-    'show_debug_section' => false, // Set to true to enable debug information display
-    'debug_level' => 'full', // Options: 'minimal', 'standard', 'full', 'development'
-    'debug_include_sensitive' => false, // Set to true to include sensitive data in debug
-    'debug_show_calculations' => true, // Show detailed calculation breakdowns
-    'debug_show_variables' => true, // Show all available WHMCS variables
-    'debug_show_performance' => false // Show performance metrics (development only)
-    
-    /*
-     * DEBUG LEVELS EXPLANATION:
-     * - minimal: Basic invoice information only
-     * - standard: Basic + Financial + Payment information
-     * - full: Standard + Client + Credit information
-     * - development: All information + Development metrics
-     * 
-     * TO ENABLE DEBUG: Change 'show_debug_section' => true above
-     * TO DISABLE DEBUG: Change 'show_debug_section' => false above
-     */
+    'show_debug_section'         => false,
+    'debug_level'                => 'full',
+    'debug_include_sensitive'    => false,
+    'debug_show_calculations'    => true,
+    'debug_show_variables'       => true,
+    'debug_show_performance'     => false,
 );
+
+// ========================================================================
+// COLOR VARIABLES — plain variables, safe for batch PDF rendering
+// (define() would fatal on second invoice in the same PHP process)
+// ========================================================================
+$COLOR_DARK_GREY  = array(64, 64, 64);
+$COLOR_LIGHT_GREY = array(245, 245, 245);
+$COLOR_PURPLE     = array(75, 0, 130);
+$COLOR_WHITE      = array(255, 255, 255);
+$COLOR_BLACK      = array(0, 0, 0);
+
+// Status-based accent colors — initialised AFTER $ENH so the flag is readable
+$_status_key = strtolower(trim(isset($status) ? $status : 'draft'));
+if ($ENH['show_status_ribbon']) {
+    switch ($_status_key) {
+        case 'paid':
+            $STATUS_ACCENT_COLOR = array(151, 223, 74);
+            $STATUS_BORDER_COLOR = array(110, 192, 70);
+            break;
+        case 'overdue':
+            $STATUS_ACCENT_COLOR = array(223, 85, 74);
+            $STATUS_BORDER_COLOR = array(171, 49, 43);
+            break;
+        case 'cancelled':
+        case 'refunded':
+            $STATUS_ACCENT_COLOR = array(200, 200, 200);
+            $STATUS_BORDER_COLOR = array(140, 140, 140);
+            break;
+        default:
+            $STATUS_ACCENT_COLOR = array(75, 0, 130);
+            $STATUS_BORDER_COLOR = array(75, 0, 130);
+    }
+} else {
+    $STATUS_ACCENT_COLOR = array(75, 0, 130);
+    $STATUS_BORDER_COLOR = array(75, 0, 130);
+}
+
+// Page setup
+$pdf->SetMargins(8, 8, 8);
+$pdf->SetAutoPageBreak(true, 25);
 
 // ========================================================================
 // PROFORMA DETECTION & STATUS LOGIC (WHMCS-COMPLIANT)
@@ -266,7 +431,7 @@ if ($ENH['show_verification_badge'] && $normalized_status === 'paid') {
     // Enhanced hash generation with multiple security layers
     $invoice_id = isset($invoiceid) ? $invoiceid : 0;
     $invoice_number = isset($invoicenum) ? $invoicenum : (isset($invoicenumber) ? $invoicenumber : $invoiceid);
-    $invoice_total = isset($total) ? floatval(preg_replace('/[^\d.-]/', '', $total)) : 0;
+    $invoice_total = isset($total) ? parseAmount($total) : 0;
     $invoice_date = isset($datecreated) ? $datecreated : date('Y-m-d');
     $invoice_due_date = isset($duedate) ? $duedate : '';
     $company_name = isset($companyname) ? $companyname : 'Securiace Technologies';
@@ -721,33 +886,33 @@ $table_y_start = $billed_y_start + 60;
 $has_item_discounts = false;
 $has_total_discount = false;
 
-// Check for late fee items and separate them
+// Classify items into late-fee / gateway-fee / regular buckets. Authority:
+// $item['type'] for late fees (set by WHMCS core); explicit description
+// phrases for gateway fees (no canonical type). See classifyInvoiceItem().
 $late_fee_items = array();
+$gateway_fee_items = array();
 $regular_items = array();
 $late_fee_total = 0;
+$gateway_fee_total = 0;
 
 foreach ($invoiceitems AS $item) {
-    $description = isset($item['description']) ? strtolower(trim($item['description'])) : '';
-    
-    // Detect late fee items by common patterns
-    $is_late_fee = false;
-    if (strpos($description, 'late fee') !== false || 
-        strpos($description, 'late charge') !== false ||
-        strpos($description, 'overdue fee') !== false ||
-        strpos($description, 'penalty') !== false ||
-        strpos($description, 'late payment') !== false) {
-        $is_late_fee = true;
+    $item_qty = isset($item['qty']) && $item['qty'] > 0 ? $item['qty'] : 1;
+    $item_amount = parseAmount($item['amount']);
+
+    switch (classifyInvoiceItem($item)) {
+        case 'late_fee':
+            $late_fee_items[] = $item;
+            $late_fee_total += $item_amount * $item_qty;
+            break;
+        case 'gateway_fee':
+            $gateway_fee_items[] = $item;
+            $gateway_fee_total += $item_amount * $item_qty;
+            break;
+        default:
+            $regular_items[] = $item;
+            break;
     }
-    
-    if ($is_late_fee) {
-        $late_fee_items[] = $item;
-        $item_qty = isset($item['qty']) && $item['qty'] > 0 ? $item['qty'] : 1;
-        $item_amount = is_numeric($item['amount']) ? $item['amount'] : floatval(preg_replace('/[^\d.-]/', '', $item['amount']));
-        $late_fee_total += $item_amount * $item_qty;
-    } else {
-        $regular_items[] = $item;
-    }
-    
+
     // Check for item discounts
     $item_discount = isset($item['discount']) ? floatval($item['discount']) : 0;
     if ($item_discount > 0) {
@@ -974,7 +1139,7 @@ foreach ($regular_items AS $item) {
     $pdf->SetFillColor($row_bg_color[0], $row_bg_color[1], $row_bg_color[2]);
     $pdf->SetFont('dejavusans', '', 8);
     $pdf->SetXY($rate_x, $current_y);
-    $amount_value = is_numeric($item['amount']) ? $item['amount'] : floatval(preg_replace('/[^\d.-]/', '', $item['amount']));
+    $amount_value = parseAmount($item['amount']);
     $rate_display = formatCurrency($amount_value, $currencyprefix, $currencysuffix);
     $pdf->Cell($rate_width, $row_height, $rate_display, 1, 0, 'R', true);
     
@@ -1144,36 +1309,57 @@ foreach ($regular_items AS $item) {
 $calculated_subtotal = 0;
 foreach ($regular_items AS $item) {
     $item_qty = isset($item['qty']) && $item['qty'] > 0 ? $item['qty'] : 1;
-    $item_amount = is_numeric($item['amount']) ? $item['amount'] : floatval(preg_replace('/[^\d.-]/', '', $item['amount']));
+    $item_amount = parseAmount($item['amount']);
     $calculated_subtotal += $item_amount * $item_qty;
 }
 
-// Add late fees to subtotal calculation
-$calculated_subtotal += $late_fee_total;
+// $calculated_subtotal so far is the sum of $regular_items only. Add the
+// extracted fee buckets so this fallback matches WHMCS's $subtotal shape
+// (which is the sum of ALL invoice line items).
+$calculated_subtotal += $late_fee_total + $gateway_fee_total;
 
 // Use WHMCS provided variables - extract numeric values with proper object handling
-$subtotal = isset($subtotal) ? (is_numeric($subtotal) ? $subtotal : floatval(preg_replace('/[^\d.-]/', '', $subtotal))) : $calculated_subtotal;
-$tax = isset($tax) ? (is_numeric($tax) ? $tax : floatval(preg_replace('/[^\d.-]/', '', $tax))) : 0;
-$tax2 = isset($tax2) ? (is_numeric($tax2) ? $tax2 : floatval(preg_replace('/[^\d.-]/', '', $tax2))) : 0;
-$credit = isset($credit) ? (is_numeric($credit) ? $credit : floatval(preg_replace('/[^\d.-]/', '', $credit))) : 0;
-$discount = isset($discount) ? (is_numeric($discount) ? $discount : floatval(preg_replace('/[^\d.-]/', '', $discount))) : 0;
+$subtotal = isset($subtotal) ? parseAmount($subtotal) : $calculated_subtotal;
+$tax = isset($tax) ? parseAmount($tax) : 0;
+$tax2 = isset($tax2) ? parseAmount($tax2) : 0;
+$credit = isset($credit) ? parseAmount($credit) : 0;
+$discount = isset($discount) ? parseAmount($discount) : 0;
 
-// Fix $total object issue - ensure it's properly extracted as numeric
-$whmcs_total = 0;
+// WHMCS $subtotal is the SUM of all invoice line items, including late-fee
+// and gateway-fee items. Render those as separate rows after Subtotal so the
+// math the customer sees adds up:
+//   Subtotal − Discount + LateFee + GatewayFee + Tax + Tax2 − Credit = Total
+$subtotal_for_display = $subtotal - $late_fee_total - $gateway_fee_total;
+if ($subtotal_for_display < 0) {
+    $subtotal_for_display = $subtotal; // defensive: unexpected fee > subtotal
+}
+
+// Extract $total as numeric. Use null sentinel for "not usable" so we can
+// distinguish a legitimate zero total (refunded / fully-credit-applied
+// invoices) from "fall back to recomputation". Previously this gate was
+// `> 0` which mis-routed zero totals into the calculated path.
+$whmcs_total = null;
 if (isset($total)) {
     if (is_numeric($total)) {
         $whmcs_total = floatval($total);
     } elseif (is_object($total)) {
-        // If $total is an object, try to extract numeric value from it
-        $whmcs_total = 0; // Set to 0 and calculate from other values
+        // Money / Decimal value objects typically expose __toString.
+        // If they don't, leave null and fall back to recomputation.
+        if (method_exists($total, '__toString')) {
+            $whmcs_total = parseAmount((string) $total);
+        }
     } else {
-        $whmcs_total = floatval(preg_replace('/[^\d.-]/', '', $total));
+        $whmcs_total = parseAmount($total);
     }
 }
 
-// Calculate final total properly including late fees
-$calculated_total = $subtotal - $discount + $tax + $tax2 - $credit;
-$final_total = ($whmcs_total > 0) ? $whmcs_total : $calculated_total;
+// Fallback total when WHMCS does not supply $total. Match WHMCS's canonical
+// formula: tblinvoices.total = subtotal − discount + tax + tax2. Credit is
+// NOT part of `total` in WHMCS — credit is recorded as a payment in
+// tblaccounts and reduces `balance`, not `total`. The template renders the
+// CREDIT row separately and shows BALANCE DUE / AMOUNT PAID downstream.
+$calculated_total = $subtotal - $discount + $tax + $tax2;
+$final_total = ($whmcs_total !== null) ? $whmcs_total : $calculated_total;
 
 // Initialize currency variables with fallback values
 if (empty($currencyprefix)) {
@@ -1198,27 +1384,6 @@ $pdf->SetTextColor(128, 128, 128);
 $pdf->SetFont('dejavusans', 'B', 9);
 $pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]);
 
-// Late Fee Row (if late fees exist) - Display before subtotal
-if (!empty($late_fee_items) && $late_fee_total > 0) {
-    // Late Fee Row with Professional Styling - Red background for late fees
-    $pdf->SetFillColor(220, 53, 69); // Red background for late fees
-    $pdf->SetTextColor(255, 255, 255); // White text
-    $pdf->SetFont('dejavusans', 'B', 9); // Bold font
-    $pdf->SetXY($item_x, $current_y);
-    $pdf->Cell($item_width, 8, 'LATE FEE', 1, 0, 'R', true);
-    $pdf->Cell($qty_width, 8, '', 1, 0, 'C', true);
-    $pdf->Cell($rate_width, 8, '', 1, 0, 'C', true);
-    
-    // Conditionally show discount column in late fee row
-    if ($show_discount_column) {
-        $pdf->Cell($discount_width, 8, '', 1, 0, 'C', true);
-    }
-    
-    $late_fee_display = formatCurrency($late_fee_total, $currencyprefix, $currencysuffix);
-    $pdf->Cell($amount_width, 8, $late_fee_display, 1, 1, 'R', true);
-    $current_y += 8; // Move to next row
-}
-
 // Enhanced Subtotal Row with Professional Styling
 $pdf->SetFillColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]); // Dark background
 $pdf->SetTextColor(255, 255, 255); // White text
@@ -1233,7 +1398,9 @@ if ($show_discount_column) {
     $pdf->Cell($discount_width, 8, '', 1, 0, 'C', true);
 }
 
-$subtotal_display = formatCurrency($subtotal, $currencyprefix, $currencysuffix);
+// Display services-only subtotal — late-fee and gateway-fee items render as
+// their own rows below so the running math adds up to the printed total.
+$subtotal_display = formatCurrency($subtotal_for_display, $currencyprefix, $currencysuffix);
 $pdf->Cell($amount_width, 8, $subtotal_display, 1, 1, 'R', true);
 // Debug output removed to prevent page breaks
 
@@ -1295,6 +1462,43 @@ if ($discount > 0) {
     
     $discount_display = '(' . formatCurrency($discount, $currencyprefix, $currencysuffix) . ')';
     $pdf->Cell($amount_width, 8, $discount_display, 1, 1, 'R', true);
+    $current_y += 8;
+}
+
+// Late Fee Row (after subtotal/discount, before tax) — extracted from
+// itemized table by classifyInvoiceItem(); subtotal_for_display already
+// excludes this amount, so adding it back here is a real addition.
+if (!empty($late_fee_items) && $late_fee_total > 0) {
+    $pdf->SetFillColor(220, 53, 69); // Red background for late fees
+    $pdf->SetTextColor(255, 255, 255);
+    $pdf->SetFont('dejavusans', 'B', 9);
+    $pdf->SetXY($item_x, $current_y);
+    $pdf->Cell($item_width, 8, 'LATE FEE', 1, 0, 'R', true);
+    $pdf->Cell($qty_width, 8, '', 1, 0, 'C', true);
+    $pdf->Cell($rate_width, 8, '', 1, 0, 'C', true);
+    if ($show_discount_column) {
+        $pdf->Cell($discount_width, 8, '', 1, 0, 'C', true);
+    }
+    $late_fee_display = formatCurrency($late_fee_total, $currencyprefix, $currencysuffix);
+    $pdf->Cell($amount_width, 8, $late_fee_display, 1, 1, 'R', true);
+    $current_y += 8;
+}
+
+// Gateway / Payment Processing Fee Row — separated from services so the
+// charge is unambiguous on the customer's invoice.
+if (!empty($gateway_fee_items) && $gateway_fee_total > 0) {
+    $pdf->SetFillColor(108, 117, 125); // Slate gray — distinct from late-fee red
+    $pdf->SetTextColor(255, 255, 255);
+    $pdf->SetFont('dejavusans', 'B', 9);
+    $pdf->SetXY($item_x, $current_y);
+    $pdf->Cell($item_width, 8, 'PAYMENT GATEWAY FEE', 1, 0, 'R', true);
+    $pdf->Cell($qty_width, 8, '', 1, 0, 'C', true);
+    $pdf->Cell($rate_width, 8, '', 1, 0, 'C', true);
+    if ($show_discount_column) {
+        $pdf->Cell($discount_width, 8, '', 1, 0, 'C', true);
+    }
+    $gateway_fee_display = formatCurrency($gateway_fee_total, $currencyprefix, $currencysuffix);
+    $pdf->Cell($amount_width, 8, $gateway_fee_display, 1, 1, 'R', true);
     $current_y += 8;
 }
 
@@ -1415,8 +1619,12 @@ if ($normalized_status === 'paid') {
         $transaction_total = 0;
         if (isset($transactions) && is_array($transactions)) {
             foreach ($transactions as $transaction) {
-                $trans_amount = isset($transaction['amount']) ? floatval($transaction['amount']) : 0;
-                $transaction_total += $trans_amount;
+                // WHMCS Invoice::getTransactions() exposes 'amount' as a
+                // locale-formatted currency string ("₹1,000.00 INR",
+                // "1.234,56 EUR", etc). parseAmount() handles all four
+                // WHMCS $currencyformat styles + heuristic fallback.
+                $trans_amount_raw = isset($transaction['amount']) ? $transaction['amount'] : 0;
+                $transaction_total += parseAmount($trans_amount_raw);
             }
         }
         
@@ -2315,9 +2523,10 @@ if ($show_renewal_section || $show_transaction_section || $show_debug_section) {
         $trans_method_raw = isset($transaction['gateway']) ? $transaction['gateway'] : (isset($transaction['paymentmethod']) ? $transaction['paymentmethod'] : 'Unknown');
         $trans_id = isset($transaction['transid']) ? $transaction['transid'] : 'N/A';
         
-        // FIXED: Proper amount calculation with currency formatting
+        // Locale-aware parse — handles ₹/€/$ prefixes and US/EU/FR/plain
+        // separator styles via $currencyformat (see parseAmount() helper).
         $trans_amount_raw = isset($transaction['amount']) ? $transaction['amount'] : 0;
-        $trans_amount = is_numeric($trans_amount_raw) ? floatval($trans_amount_raw) : floatval(preg_replace('/[^\d.-]/', '', $trans_amount_raw));
+        $trans_amount = parseAmount($trans_amount_raw);
         $trans_status = isset($transaction['status']) ? $transaction['status'] : 'Completed';
         
         // Add to total with proper calculation
