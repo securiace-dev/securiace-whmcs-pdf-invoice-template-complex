@@ -19,6 +19,7 @@
       <div class="state-switch" role="group" aria-label="Invoice state">
         <button type="button" data-state-button="paid" aria-pressed="true">Paid</button>
         <button type="button" data-state-button="unpaid" aria-pressed="false">Unpaid</button>
+        <button type="button" data-state-button="overdue" aria-pressed="false">Overdue</button>
       </div>
       <button class="print-button" type="button" data-print>Print preview</button>
     </div>
@@ -37,8 +38,8 @@
           <span class="brand-name"><strong>Securiace</strong><span>technologies</span></span>
         </div>
         <div class="document-heading">
-          <p class="eyebrow">Tax invoice</p>
-          <h2 id="document-title">Invoice</h2>
+          <p class="eyebrow" data-bind="documentKicker">Invoice</p>
+          <h2 id="document-title" data-bind="documentTitle">Invoice</h2>
           <span class="status-pill" data-bind="status">Paid</span>
         </div>
       </header>
@@ -46,18 +47,18 @@
       <section class="document-strip" aria-label="Invoice identity and status">
         <dl class="document-meta">
           <div>
-            <dt>Invoice number</dt>
-            <dd data-bind="invoiceNumber">INV-2026-00482</dd>
+            <dt data-bind="documentNumberLabel">Invoice number</dt>
+            <dd data-bind="invoiceNumber">ST/2070</dd>
           </div>
           <div>
             <dt>Invoice date</dt>
             <dd data-bind="invoiceDate">5 Aug 2026</dd>
           </div>
           <div data-paid-only>
-            <dt>Original reference</dt>
-            <dd data-bind="proformaNumber">PF-2026-00461</dd>
+            <dt>Original proforma reference</dt>
+            <dd data-bind="proformaNumber">PI/300000461</dd>
           </div>
-          <div data-unpaid-only hidden>
+          <div data-outstanding-only hidden>
             <dt>Due date</dt>
             <dd data-bind="dueDate">18 Aug 2026</dd>
           </div>
@@ -74,10 +75,10 @@
           </span>
         </div>
 
-        <div class="due-panel" data-unpaid-only hidden>
-          <span class="due-label">Balance due</span>
+        <div class="due-panel" data-outstanding-only hidden>
+          <span class="due-label" data-bind="duePanelLabel">Balance due</span>
           <strong data-bind="balance">₹9,990.00 INR</strong>
-          <small>Pay by <span data-bind="dueDate">18 Aug 2026</span></small>
+          <small data-bind="dueMessage">Pay by 18 Aug 2026</small>
         </div>
       </section>
 
@@ -159,30 +160,26 @@
           </div>
         </div>
 
-        <div class="payment-callout" data-unpaid-only hidden>
-          <p class="section-label">Payment required</p>
-          <h3><span data-bind="balance">₹9,990.00 INR</span> is due</h3>
-          <p>Use the invoice number as the transfer reference. The UPI code below is tied to this invoice and outstanding amount.</p>
+        <div class="payment-callout" data-outstanding-only hidden>
+          <p class="section-label" data-bind="paymentCalloutLabel">Payment required</p>
+          <h3 data-bind="paymentHeading">₹9,990.00 INR is due</h3>
+          <p data-bind="paymentCopy">Use the proforma reference for payment.</p>
         </div>
 
         <dl class="totals-card">
           <div><dt>Subtotal</dt><dd data-bind="subtotal">₹7,750.00</dd></div>
-          <div data-tax-row><dt data-bind="taxLabel">GST · 18%</dt><dd data-bind="tax">₹0.00</dd></div>
+          <div data-tax-row hidden><dt data-bind="taxLabel">Tax</dt><dd data-bind="tax">₹0.00</dd></div>
           <div data-credit-row><dt>Credit applied</dt><dd data-bind="credit">− ₹0.00</dd></div>
           <div class="grand-total"><dt>Grand total</dt><dd data-bind="total">₹7,750.00 INR</dd></div>
           <div class="state-total"><dt data-bind="stateTotalLabel">Amount paid</dt><dd data-bind="stateTotal">₹7,750.00 INR</dd></div>
         </dl>
       </section>
 
-      <section class="support-grid" aria-label="Payment and invoice notes">
+      <section class="support-grid" aria-label="Payment and invoice notes" data-outstanding-only hidden>
         <article class="support-card terms-card">
           <p class="section-label">Payment terms and notes</p>
-          <div data-paid-only>
-            <p><strong>Purchase order:</strong> PO-DEMO-2026-118</p>
-            <p>This receipt records the completed settlement. Quote the invoice number for any account query.</p>
-          </div>
-          <ol data-unpaid-only hidden>
-            <li>Payment is due by <span data-bind="dueDate">18 Aug 2026</span>.</li>
+          <ol>
+            <li data-bind="termsDueText">Payment is due by 18 Aug 2026.</li>
             <li>Overdue interest may apply at 18% p.a.</li>
             <li>Provide Form 16A when TDS is deducted under Section 194J.</li>
             <li>Disputes are subject to Pune, Maharashtra jurisdiction.</li>
@@ -200,12 +197,12 @@
           </dl>
         </article>
 
-        <article class="support-card payment-card" data-unpaid-only hidden>
+        <article class="support-card payment-card">
           <div>
             <p class="section-label">UPI payment</p>
             <strong>Scan to pay</strong>
             <small>billing@example</small>
-            <small>Ref · <span data-bind="invoiceNumber">INV-2026-00483</span></small>
+            <small>Ref · <span data-bind="invoiceNumber">PI/300000483</span></small>
           </div>
           <svg class="qr-preview" width="62" height="62" viewBox="0 0 29 29" role="img" aria-label="Preview QR position; WHMCS generates the live scannable UPI code">
             <rect width="29" height="29" fill="#fff"/>
@@ -214,11 +211,6 @@
           </svg>
         </article>
 
-        <article class="support-card settled-card" data-paid-only>
-          <p class="section-label">Settlement</p>
-          <strong>No payment action required</strong>
-          <p>Keep this document with the transaction reference as proof of payment.</p>
-        </article>
       </section>
 
       <section class="records-grid" aria-label="Renewal and transaction records">
@@ -262,7 +254,7 @@
               </tr>
             </tbody>
           </table>
-          <p class="empty-record" data-unpaid-only hidden>No payment transactions recorded yet.</p>
+          <p class="empty-record" data-outstanding-only hidden>No payment transactions recorded yet.</p>
         </article>
       </section>
 
