@@ -1,6 +1,6 @@
 # Invoice UI/UX and Runtime Audit
 
-Date: 2026-08-05  
+Date: 2026-08-05
 Scope: the supplied paid and unpaid invoice screenshots, the repaired legacy
 `invoicepdf.tpl`, the browser preview, and the implemented
 `invoicepdf-modern.tpl`.

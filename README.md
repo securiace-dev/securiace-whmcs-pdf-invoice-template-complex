@@ -115,6 +115,9 @@ php scripts/repair-whmcs-invoice-template.php /absolute/path/invoicepdf.tpl
 php tests/whmcs_invoice_template_repair_test.php
 ```
 
+The repair command creates a timestamped rollback copy beside the target before
+atomically replacing it. Its JSON output includes the exact backup path.
+
 Render the modern template against a real WHMCS TCPDF installation:
 
 ```bash
