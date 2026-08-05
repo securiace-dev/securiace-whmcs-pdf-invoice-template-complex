@@ -23,7 +23,7 @@ from WHMCS configuration or protected deployment assets.
 | Severity | Finding | Customer/operational impact | Redesign response |
 | --- | --- | --- | --- |
 | Critical | Paid line items and transaction history show zero while Grand Total and Amount Paid show a non-zero value. | The document contradicts itself and cannot be reconciled by a customer or accountant. | Use one source of truth for line totals, invoice total, balance, and transaction total; surface a reconciliation failure during testing instead of silently inventing an amount paid. |
-| Critical | A paid invoice includes a prominent `UPI - Scan to Pay` action. | Creates a duplicate-payment risk. | Keep bank/payment information on the single customer invoice, but replace the QR call-to-action with a non-actionable payment receipt and reference on paid invoices. Show the amount-bound QR only for an exact Unpaid, non-proforma, INR invoice with positive balance. |
+| Critical | A paid invoice includes a prominent `UPI - Scan to Pay` action. | Creates a duplicate-payment risk. | Remove remittance instructions from paid output and keep payment receipt plus transaction evidence. Show the amount-bound QR only for a payable INR invoice/proforma, including an overdue document that remains unpaid. |
 | High | The verification badge is compressed into a small, heavily bordered box and its timestamp collides visually with the border. | Verification is hard to read and looks less trustworthy despite being an important paid-invoice feature. | Use a quiet verification panel with a stable verification ID, explicit status, and generation metadata on separate lines. Preserve the verified state. |
 | High | Paid and unpaid invoices use unrelated accent systems (lime green versus purple) and every totals row is a saturated banner. | Status colors compete with amounts and make the document look inconsistent across its lifecycle. | Keep aubergine as the brand accent; reserve green/amber/red for semantic status and balance information. |
 | High | A single renewal and one transaction are forced onto a sparse second page. | Wastes paper and separates supporting evidence from the financial summary. | Fit short renewal and transaction records on page one; paginate only when content length requires it. |
@@ -83,8 +83,8 @@ from WHMCS configuration or protected deployment assets.
 | --- | --- | --- |
 | Status | `Unpaid` or `Overdue`, with due date and positive balance | `Paid`, with paid date and zero balance |
 | Primary financial emphasis | Balance due | Payment received |
-| UPI QR | Visible only for exact Unpaid, non-proforma INR invoices; amount-bound and invoice-referenced | Hidden to prevent duplicate payment |
-| Bank details | Visible as an alternate payment route | Visible as remittance reference, not a call-to-action |
+| UPI QR | Visible only for payable INR invoices/proformas; amount-bound and reference-bound | Hidden to prevent duplicate payment |
+| Bank details | Visible as an alternate payment route | Hidden because settlement evidence replaces remittance instructions |
 | Verification | Not shown as completed | Visible with stable verification ID |
 | Signature/stamp | Omitted unless business policy explicitly signs proforma/unpaid documents | Visible using protected production assets |
 | Transactions | Empty state or partial-payment records | Full payment records |
