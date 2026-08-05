@@ -22,6 +22,10 @@ $requiredContracts = array(
     'UPI payment',
     '$securiaceModernDrawTransactionHeading',
     'Transaction history',
+    "\$securiaceModernStatusKey === 'unpaid'",
+    '!$securiaceModernIsProforma',
+    "\$securiaceModernBatchScript === 'csvdownload.php'",
+    "\$securiaceModernBatchRequestType === 'pdfbatch'",
 );
 
 foreach ($requiredContracts as $requiredContract) {
@@ -34,6 +38,7 @@ $forbiddenContracts = array(
     '$securiaceModernItemsHtml',
     'DIGITALLY VERIFIED',
     'IT Act 2000 compliant',
+    'Invoice QR record',
 );
 foreach ($forbiddenContracts as $forbiddenContract) {
     if (stripos($template, $forbiddenContract) !== false) {
