@@ -618,14 +618,27 @@ $securiaceModernPageWidth = $pdf->getPageWidth();
 $securiaceModernPageHeight = $pdf->getPageHeight();
 $securiaceModernUsableWidth = $securiaceModernPageWidth - ($securiaceModernMargin * 2);
 
+$securiaceModernPaintPage = static function () use (
+    $pdf,
+    $securiaceModernPageWidth,
+    $securiaceModernPageHeight,
+    $securiaceModernPaper
+) {
+    $pdf->SetFillColor($securiaceModernPaper[0], $securiaceModernPaper[1], $securiaceModernPaper[2]);
+    $pdf->Rect(0, 0, $securiaceModernPageWidth, $securiaceModernPageHeight, 'F');
+};
+$securiaceModernPaintPage();
+
 $securiaceModernEnsureSpace = static function ($height) use (
     $pdf,
     $securiaceModernPageHeight,
     $securiaceModernBottomMargin,
-    $securiaceModernTopMargin
+    $securiaceModernTopMargin,
+    $securiaceModernPaintPage
 ) {
     if ($pdf->GetY() + $height > $securiaceModernPageHeight - $securiaceModernBottomMargin) {
         $pdf->AddPage();
+        $securiaceModernPaintPage();
         $pdf->SetY($securiaceModernTopMargin);
         return true;
     }
@@ -643,11 +656,24 @@ $securiaceModernDrawLabel = static function ($label, $x, $y, $width) use (
     $pdf->Cell($width, 3.5, strtoupper((string) $label), 0, 0, 'L');
 };
 
-$securiaceModernDrawCard = static function ($x, $y, $width, $height, $fill, $line) use ($pdf) {
+$securiaceModernDrawCard = static function (
+    $x,
+    $y,
+    $width,
+    $height,
+    $fill,
+    $line,
+    $radius = 2.65,
+    $corners = '1111'
+) use ($pdf) {
     $pdf->SetFillColor($fill[0], $fill[1], $fill[2]);
     $pdf->SetDrawColor($line[0], $line[1], $line[2]);
     $pdf->SetLineWidth(0.25);
-    $pdf->Rect($x, $y, $width, $height, 'DF');
+    if (method_exists($pdf, 'RoundedRect')) {
+        $pdf->RoundedRect($x, $y, $width, $height, min($radius, $height / 2), $corners, 'DF');
+    } else {
+        $pdf->Rect($x, $y, $width, $height, 'DF');
+    }
 };
 
 // -------------------------------------------------------------------------
@@ -684,11 +710,18 @@ $pdf->SetTextColor($securiaceModernInk[0], $securiaceModernInk[1], $securiaceMod
 $pdf->SetX($securiaceModernPageWidth - $securiaceModernMargin - 66);
 $pdf->Cell(66, 8, $securiaceModernDocumentTitle, 0, 1, 'R');
 
-$securiaceModernStatusWidth = max(28, min(52, strlen($securiaceModernStatusDisplay) * 2.2 + 12));
+$securiaceModernStatusLength = function_exists('mb_strlen')
+    ? mb_strlen($securiaceModernStatusDisplay, 'UTF-8')
+    : strlen($securiaceModernStatusDisplay);
+$securiaceModernStatusWidth = max(28, min(52, $securiaceModernStatusLength * 2.2 + 12));
 $securiaceModernStatusX = $securiaceModernPageWidth - $securiaceModernMargin - $securiaceModernStatusWidth;
 $pdf->SetFillColor($securiaceModernStatusSoft[0], $securiaceModernStatusSoft[1], $securiaceModernStatusSoft[2]);
 $pdf->SetDrawColor($securiaceModernStatusLine[0], $securiaceModernStatusLine[1], $securiaceModernStatusLine[2]);
-$pdf->Rect($securiaceModernStatusX, $securiaceModernHeaderY + 14, $securiaceModernStatusWidth, 7, 'DF');
+if (method_exists($pdf, 'RoundedRect')) {
+    $pdf->RoundedRect($securiaceModernStatusX, $securiaceModernHeaderY + 14, $securiaceModernStatusWidth, 7, 3.5, '1111', 'DF');
+} else {
+    $pdf->Rect($securiaceModernStatusX, $securiaceModernHeaderY + 14, $securiaceModernStatusWidth, 7, 'DF');
+}
 $pdf->SetFont($securiaceModernFont, 'B', 7);
 $pdf->SetTextColor($securiaceModernStatusInk[0], $securiaceModernStatusInk[1], $securiaceModernStatusInk[2]);
 $pdf->SetXY($securiaceModernStatusX, $securiaceModernHeaderY + 15.3);
@@ -799,7 +832,7 @@ $securiaceModernDrawCard(
     $securiaceModernLine
 );
 $pdf->SetFillColor($securiaceModernBrand[0], $securiaceModernBrand[1], $securiaceModernBrand[2]);
-$pdf->Rect($securiaceModernMargin, $securiaceModernPartyY, $securiaceModernPartyWidth, 0.8, 'F');
+$pdf->RoundedRect($securiaceModernMargin + 2.65, $securiaceModernPartyY, $securiaceModernPartyWidth - 5.3, 0.8, 0.4, '1111', 'F');
 
 $securiaceModernPartyColumns = array(
     array('Billed to', $securiaceModernClientName, $securiaceModernClientText, $securiaceModernMargin),
@@ -887,67 +920,219 @@ $securiaceModernAmountWidth = $securiaceModernUsableWidth
     - $securiaceModernQtyWidth
     - $securiaceModernRateWidth;
 
-$securiaceModernItemsHtml = '<table width="100%" border="0" cellspacing="0" cellpadding="5">'
-    . '<thead><tr bgcolor="#4F0B70" color="#FFFFFF" style="font-size:7px;font-weight:bold;">'
-    . '<th width="' . round(($securiaceModernDescriptionWidth / $securiaceModernUsableWidth) * 100, 2) . '%" align="left">DESCRIPTION</th>';
-if ($securiaceModernHasExplicitQuantity) {
-    $securiaceModernItemsHtml .= '<th width="9%" align="right">QTY</th>'
-        . '<th width="15%" align="right">RATE</th>';
-}
-$securiaceModernItemsHtml .= '<th width="' . round(($securiaceModernAmountWidth / $securiaceModernUsableWidth) * 100, 2) . '%" align="right">AMOUNT</th>'
-    . '</tr></thead><tbody>';
+$securiaceModernDrawItemsHeader = static function () use (
+    $pdf,
+    $securiaceModernFont,
+    $securiaceModernMargin,
+    $securiaceModernUsableWidth,
+    $securiaceModernDescriptionWidth,
+    $securiaceModernQtyWidth,
+    $securiaceModernRateWidth,
+    $securiaceModernAmountWidth,
+    $securiaceModernHasExplicitQuantity,
+    $securiaceModernBrand,
+    $securiaceModernDrawCard
+) {
+    $headerY = $pdf->GetY();
+    $securiaceModernDrawCard(
+        $securiaceModernMargin,
+        $headerY,
+        $securiaceModernUsableWidth,
+        7,
+        $securiaceModernBrand,
+        $securiaceModernBrand,
+        2.65,
+        '1001'
+    );
+    $pdf->SetFont($securiaceModernFont, 'B', 6.5);
+    $pdf->SetTextColor(255, 255, 255);
+    $pdf->SetXY($securiaceModernMargin + 3, $headerY + 1.4);
+    $pdf->Cell($securiaceModernDescriptionWidth - 3, 4, 'DESCRIPTION', 0, 0, 'L');
+    if ($securiaceModernHasExplicitQuantity) {
+        $pdf->Cell($securiaceModernQtyWidth, 4, 'QTY', 0, 0, 'R');
+        $pdf->Cell($securiaceModernRateWidth, 4, 'RATE', 0, 0, 'R');
+    }
+    $pdf->Cell($securiaceModernAmountWidth - 3, 4, 'AMOUNT', 0, 1, 'R');
+    $pdf->SetY($headerY + 7);
+};
 
-if (empty($securiaceModernItems)) {
-    $securiaceModernItemsHtml .= '<tr bgcolor="#FFFefd"><td colspan="4" align="center" color="#6D6672">No line items found.</td></tr>';
-} else {
-    $securiaceModernRenderedItemDescriptions = array();
-    foreach ($securiaceModernItems as $securiaceModernItemIndex => $securiaceModernItem) {
-        $securiaceModernItemDescription = isset($securiaceModernItem['description'])
-            ? $securiaceModernPlainMultiline($securiaceModernItem['description'])
-            : 'Invoice item';
-        $securiaceModernRenderedItemDescriptions[] = $securiaceModernItemDescription;
-        $securiaceModernItemAmountRaw = isset($securiaceModernItem['amount'])
-            ? $securiaceModernItem['amount']
-            : 0;
-        $securiaceModernItemAmountNumeric = $securiaceModernMoneyToFloat($securiaceModernItemAmountRaw);
-        $securiaceModernItemAmountDisplay = $securiaceModernDisplay(
-            $securiaceModernItemAmountRaw,
-            $securiaceModernItemAmountNumeric
-        );
-        $securiaceModernRowColor = $securiaceModernItemIndex % 2 === 0 ? '#FFFEFD' : '#F8F6F8';
-        $securiaceModernItemsHtml .= '<tr bgcolor="' . $securiaceModernRowColor . '" style="font-size:8px;">'
-            . '<td width="' . round(($securiaceModernDescriptionWidth / $securiaceModernUsableWidth) * 100, 2) . '%" align="left">'
-            . nl2br($securiaceModernEscape($securiaceModernItemDescription)) . '</td>';
-        if ($securiaceModernHasExplicitQuantity) {
-            $securiaceModernItemHasQuantity = isset($securiaceModernItem['qty'])
-                && is_numeric($securiaceModernItem['qty'])
-                && (float) $securiaceModernItem['qty'] > 0;
-            $securiaceModernQuantity = $securiaceModernItemHasQuantity
-                ? (float) $securiaceModernItem['qty']
-                : 0;
-            $securiaceModernRate = $securiaceModernItemHasQuantity
-                ? $securiaceModernItemAmountNumeric / $securiaceModernQuantity
-                : 0;
-            $securiaceModernQuantityDisplay = $securiaceModernItemHasQuantity
-                ? (floor($securiaceModernQuantity) == $securiaceModernQuantity
-                    ? (string) (int) $securiaceModernQuantity
-                    : rtrim(rtrim(number_format($securiaceModernQuantity, 3, '.', ''), '0'), '.'))
-                : '—';
-            $securiaceModernRateDisplay = $securiaceModernItemHasQuantity
-                ? $securiaceModernFormatMoney($securiaceModernRate)
-                : '—';
-            $securiaceModernItemsHtml .= '<td width="9%" align="right">' . $securiaceModernEscape($securiaceModernQuantityDisplay) . '</td>'
-                . '<td width="15%" align="right">' . $securiaceModernEscape($securiaceModernRateDisplay) . '</td>';
+$securiaceModernAddItemsContinuationPage = static function () use (
+    $pdf,
+    $securiaceModernPaintPage,
+    $securiaceModernTopMargin,
+    $securiaceModernMargin,
+    $securiaceModernUsableWidth,
+    $securiaceModernDrawLabel,
+    $securiaceModernFont,
+    $securiaceModernInk,
+    $securiaceModernMuted,
+    $securiaceModernCurrencyCode,
+    $securiaceModernDrawItemsHeader
+) {
+    $pdf->AddPage();
+    $securiaceModernPaintPage();
+    $pdf->SetY($securiaceModernTopMargin);
+    $securiaceModernDrawLabel('Charges · continued', $securiaceModernMargin, $pdf->GetY(), $securiaceModernUsableWidth);
+    $pdf->SetFont($securiaceModernFont, 'B', 9);
+    $pdf->SetTextColor($securiaceModernInk[0], $securiaceModernInk[1], $securiaceModernInk[2]);
+    $pdf->SetXY($securiaceModernMargin, $pdf->GetY() + 3.5);
+    $pdf->Cell($securiaceModernUsableWidth - 40, 4.5, 'Services and billing period', 0, 0, 'L');
+    $pdf->SetFont($securiaceModernFont, 'B', 6);
+    $pdf->SetTextColor($securiaceModernMuted[0], $securiaceModernMuted[1], $securiaceModernMuted[2]);
+    $pdf->Cell(40, 4.5, 'Currency · ' . ($securiaceModernCurrencyCode !== '' ? $securiaceModernCurrencyCode : '—'), 0, 1, 'R');
+    $pdf->Ln(1.5);
+    $securiaceModernDrawItemsHeader();
+};
+
+$securiaceModernSplitTextForHeight = static function ($text, $width, $height) use ($pdf) {
+    $text = trim((string) $text);
+    if ($text === '' || $pdf->getStringHeight($width, $text) <= $height) {
+        return array($text, '');
+    }
+    $length = function_exists('mb_strlen') ? mb_strlen($text, 'UTF-8') : strlen($text);
+    $slice = static function ($value, $start, $size = null) {
+        if (function_exists('mb_substr')) {
+            return $size === null
+                ? mb_substr($value, $start, null, 'UTF-8')
+                : mb_substr($value, $start, $size, 'UTF-8');
         }
-        $securiaceModernItemsHtml .= '<td width="' . round(($securiaceModernAmountWidth / $securiaceModernUsableWidth) * 100, 2) . '%" align="right"><b>'
-            . $securiaceModernEscape($securiaceModernItemAmountDisplay) . '</b></td></tr>';
+        return $size === null ? substr($value, $start) : substr($value, $start, $size);
+    };
+    $low = 1;
+    $high = $length;
+    $best = 1;
+    while ($low <= $high) {
+        $middle = (int) floor(($low + $high) / 2);
+        $candidate = $slice($text, 0, $middle);
+        if ($pdf->getStringHeight($width, $candidate) <= $height) {
+            $best = $middle;
+            $low = $middle + 1;
+        } else {
+            $high = $middle - 1;
+        }
+    }
+    $candidate = $slice($text, 0, $best);
+    if ($best < $length && preg_match('/^(.{1,' . max(1, $best) . '})[\s\n]/us', $text, $match)) {
+        $breakLength = function_exists('mb_strlen') ? mb_strlen($match[1], 'UTF-8') : strlen($match[1]);
+        if ($breakLength >= (int) floor($best * 0.55)) {
+            $best = $breakLength;
+            $candidate = $slice($text, 0, $best);
+        }
+    }
+    return array(trim($candidate), ltrim($slice($text, $best)));
+};
+
+$securiaceModernRenderedItemDescriptions = array();
+$securiaceModernPreparedItems = array();
+foreach ($securiaceModernItems as $securiaceModernItem) {
+    $itemDescription = isset($securiaceModernItem['description'])
+        ? $securiaceModernPlainMultiline($securiaceModernItem['description'])
+        : 'Invoice item';
+    $securiaceModernRenderedItemDescriptions[] = $itemDescription;
+    $descriptionParts = explode("\n", $itemDescription, 2);
+    $itemAmountRaw = isset($securiaceModernItem['amount']) ? $securiaceModernItem['amount'] : 0;
+    $itemAmountNumeric = $securiaceModernMoneyToFloat($itemAmountRaw);
+    $itemHasQuantity = isset($securiaceModernItem['qty'])
+        && is_numeric($securiaceModernItem['qty'])
+        && (float) $securiaceModernItem['qty'] > 0;
+    $quantity = $itemHasQuantity ? (float) $securiaceModernItem['qty'] : 0;
+    $securiaceModernPreparedItems[] = array(
+        'title' => $descriptionParts[0] !== '' ? $descriptionParts[0] : 'Invoice item',
+        'detail' => isset($descriptionParts[1]) ? $descriptionParts[1] : '',
+        'amount' => $securiaceModernDisplay($itemAmountRaw, $itemAmountNumeric),
+        'quantity' => $itemHasQuantity
+            ? (floor($quantity) == $quantity
+                ? (string) (int) $quantity
+                : rtrim(rtrim(number_format($quantity, 3, '.', ''), '0'), '.'))
+            : '—',
+        'rate' => $itemHasQuantity ? $securiaceModernFormatMoney($itemAmountNumeric / $quantity) : '—',
+    );
+}
+
+$securiaceModernDrawItemsHeader();
+if (empty($securiaceModernPreparedItems)) {
+    $emptyY = $pdf->GetY();
+    $securiaceModernDrawCard(
+        $securiaceModernMargin,
+        $emptyY,
+        $securiaceModernUsableWidth,
+        10,
+        $securiaceModernPaper,
+        $securiaceModernLine,
+        2.65,
+        '0110'
+    );
+    $pdf->SetFont($securiaceModernFont, '', 7);
+    $pdf->SetTextColor($securiaceModernMuted[0], $securiaceModernMuted[1], $securiaceModernMuted[2]);
+    $pdf->SetXY($securiaceModernMargin, $emptyY + 2.3);
+    $pdf->Cell($securiaceModernUsableWidth, 4, 'No line items found.', 0, 1, 'C');
+    $pdf->SetY($emptyY + 10);
+} else {
+    foreach ($securiaceModernPreparedItems as $itemIndex => $preparedItem) {
+        $remainingDetail = $preparedItem['detail'];
+        $firstSegment = true;
+        do {
+            if ($pdf->GetY() + 11 > $securiaceModernPageHeight - $securiaceModernBottomMargin) {
+                $securiaceModernAddItemsContinuationPage();
+            }
+            $rowY = $pdf->GetY();
+            $availableTextHeight = $securiaceModernPageHeight - $securiaceModernBottomMargin - $rowY - 4;
+            $title = $firstSegment ? $preparedItem['title'] : $preparedItem['title'] . ' · continued';
+            $pdf->SetFont($securiaceModernFont, 'B', 7.2);
+            $titleHeight = max(3.5, $pdf->getStringHeight($securiaceModernDescriptionWidth - 6, $title));
+            $detailHeightLimit = max(3.5, $availableTextHeight - $titleHeight);
+            $pdf->SetFont($securiaceModernFont, '', 6.5);
+            list($detailSegment, $remainingDetail) = $securiaceModernSplitTextForHeight(
+                $remainingDetail,
+                $securiaceModernDescriptionWidth - 6,
+                $detailHeightLimit
+            );
+            $detailHeight = $detailSegment !== ''
+                ? $pdf->getStringHeight($securiaceModernDescriptionWidth - 6, $detailSegment)
+                : 0;
+            $rowHeight = max(10, $titleHeight + $detailHeight + 4);
+            $isFinalSegment = $remainingDetail === '';
+            $isFinalRow = $isFinalSegment && $itemIndex === count($securiaceModernPreparedItems) - 1;
+            $rowFill = $itemIndex % 2 === 0 ? $securiaceModernPaper : $securiaceModernSurface;
+            $securiaceModernDrawCard(
+                $securiaceModernMargin,
+                $rowY,
+                $securiaceModernUsableWidth,
+                $rowHeight,
+                $rowFill,
+                $securiaceModernLine,
+                2.65,
+                $isFinalRow ? '0110' : '0000'
+            );
+            $pdf->SetFont($securiaceModernFont, 'B', 7.2);
+            $pdf->SetTextColor($securiaceModernInk[0], $securiaceModernInk[1], $securiaceModernInk[2]);
+            $pdf->SetXY($securiaceModernMargin + 3, $rowY + 2);
+            $pdf->MultiCell($securiaceModernDescriptionWidth - 6, 3.5, $title, 0, 'L');
+            if ($detailSegment !== '') {
+                $pdf->SetFont($securiaceModernFont, '', 6.5);
+                $pdf->SetTextColor($securiaceModernMuted[0], $securiaceModernMuted[1], $securiaceModernMuted[2]);
+                $pdf->SetXY($securiaceModernMargin + 3, $rowY + 2 + $titleHeight);
+                $pdf->MultiCell($securiaceModernDescriptionWidth - 6, 3.3, $detailSegment, 0, 'L');
+            }
+            $valueX = $securiaceModernMargin + $securiaceModernDescriptionWidth;
+            $pdf->SetFont($securiaceModernFont, '', 6.8);
+            $pdf->SetTextColor($securiaceModernInk[0], $securiaceModernInk[1], $securiaceModernInk[2]);
+            $pdf->SetXY($valueX, $rowY + 2.3);
+            if ($securiaceModernHasExplicitQuantity) {
+                $pdf->Cell($securiaceModernQtyWidth, 4, $isFinalSegment ? $preparedItem['quantity'] : '—', 0, 0, 'R');
+                $pdf->Cell($securiaceModernRateWidth, 4, $isFinalSegment ? $preparedItem['rate'] : '—', 0, 0, 'R');
+            }
+            $pdf->SetFont($securiaceModernFont, 'B', 7);
+            $pdf->Cell($securiaceModernAmountWidth - 3, 4, $isFinalSegment ? $preparedItem['amount'] : '—', 0, 1, 'R');
+            $pdf->SetY($rowY + $rowHeight);
+            $firstSegment = false;
+            if (!$isFinalSegment) {
+                $securiaceModernAddItemsContinuationPage();
+            }
+        } while (!$isFinalSegment);
     }
 }
-$securiaceModernItemsHtml .= '</tbody></table>';
-
-$pdf->SetFont($securiaceModernFont, '', 8);
-$pdf->writeHTML($securiaceModernItemsHtml, true, false, true, false, '');
-$pdf->Ln(2);
+$pdf->Ln(3);
 
 // -------------------------------------------------------------------------
 // Reconciliation and state-aware settlement
@@ -1027,6 +1212,9 @@ if ($securiaceModernIsPaid) {
     $securiaceModernSettlementBody = 'Settled'
         . (!empty($datepaid) ? ' on ' . $datepaid : '')
         . (!empty($securiaceModernTransactions[0]['gateway']) ? ' · ' . $securiaceModernTransactions[0]['gateway'] : '');
+    if ($securiaceModernSettlementMismatch) {
+        $securiaceModernSettlementBody .= "\nIncludes account credit or an administrative adjustment.";
+    }
 } elseif ($securiaceModernIsPayable) {
     $securiaceModernSettlementHeading = $securiaceModernBalanceDisplay . ' is due';
     $securiaceModernSettlementBody = 'Use invoice ' . $securiaceModernInvoiceNumber . ' as the payment reference.';
@@ -1038,24 +1226,59 @@ if ($securiaceModernIsPaid) {
     $securiaceModernSettlementBody = 'No payment action is available for this document state.';
 }
 
-$pdf->MultiCell($securiaceModernSettlementWidth - 8, 5, $securiaceModernSettlementHeading, 0, 'L');
+$securiaceModernReceiptCopyWidth = $securiaceModernIsPaid
+    ? max(48, $securiaceModernSettlementWidth - 48)
+    : $securiaceModernSettlementWidth - 8;
+$pdf->MultiCell($securiaceModernReceiptCopyWidth, 5, $securiaceModernSettlementHeading, 0, 'L');
 $pdf->SetFont($securiaceModernFont, '', 7);
 $pdf->SetTextColor($securiaceModernMuted[0], $securiaceModernMuted[1], $securiaceModernMuted[2]);
 $pdf->SetX($securiaceModernMargin + 4);
-$pdf->MultiCell($securiaceModernSettlementWidth - 8, 4, $securiaceModernSettlementBody, 0, 'L');
-if ($securiaceModernSettlementMismatch) {
-    $pdf->SetFont($securiaceModernFont, '', 6.5);
-    $pdf->SetTextColor($securiaceModernStatusInk[0], $securiaceModernStatusInk[1], $securiaceModernStatusInk[2]);
+$pdf->MultiCell($securiaceModernReceiptCopyWidth, 4, $securiaceModernSettlementBody, 0, 'L');
+if ($securiaceModernIsPaid) {
+    $securiaceModernReceiptReference = !empty($securiaceModernTransactions[0]['reference'])
+        ? $securiaceModernTransactions[0]['reference']
+        : '—';
+    $securiaceModernReceiptMetaY = min(
+        $securiaceModernTotalsY + $securiaceModernTotalsHeight - 8,
+        max($pdf->GetY() + 1, $securiaceModernTotalsY + 20)
+    );
+    $pdf->SetFont($securiaceModernFont, '', 5.8);
+    $pdf->SetTextColor($securiaceModernMuted[0], $securiaceModernMuted[1], $securiaceModernMuted[2]);
+    $pdf->SetXY($securiaceModernMargin + 4, $securiaceModernReceiptMetaY);
+    $securiaceModernReceiptReferenceWidth = ($securiaceModernReceiptCopyWidth * 0.62) - 2;
+    $securiaceModernReceiptBalanceWidth = ($securiaceModernReceiptCopyWidth * 0.38);
+    $pdf->Cell($securiaceModernReceiptReferenceWidth, 3, 'REFERENCE', 0, 0, 'L');
+    $pdf->Cell(2, 3, '', 0, 0, 'L');
+    $pdf->Cell($securiaceModernReceiptBalanceWidth, 3, 'BALANCE', 0, 1, 'L');
+    $pdf->SetFont($securiaceModernFont, 'B', 5.8);
+    $pdf->SetTextColor($securiaceModernInk[0], $securiaceModernInk[1], $securiaceModernInk[2]);
     $pdf->SetX($securiaceModernMargin + 4);
-    $pdf->MultiCell(
-        $securiaceModernSettlementWidth - 8,
+    $pdf->Cell(
+        $securiaceModernReceiptReferenceWidth,
         3.5,
-        'Settlement includes account credit or an administrative adjustment.',
+        $securiaceModernTruncate($securiaceModernReceiptReference, 17),
+        0,
         0,
         'L'
     );
-}
+    $pdf->Cell(2, 3.5, '', 0, 0, 'L');
+    $pdf->Cell($securiaceModernReceiptBalanceWidth, 3.5, $securiaceModernBalanceDisplay, 0, 1, 'L');
 
+    $securiaceModernStampPath = defined('ROOTDIR') ? ROOTDIR . '/assets/img/stamp.png' : '';
+    $securiaceModernSignaturePath = defined('ROOTDIR') ? ROOTDIR . '/assets/img/sign.png' : '';
+    $securiaceModernAuthorizationX = $securiaceModernMargin + $securiaceModernSettlementWidth - 42;
+    $securiaceModernAuthorizationY = $securiaceModernTotalsY + 9;
+    if ($securiaceModernIsUsableImage($securiaceModernStampPath)) {
+        $pdf->Image($securiaceModernStampPath, $securiaceModernAuthorizationX, $securiaceModernAuthorizationY, 16, 16, '', '', '', false, 300);
+    }
+    if ($securiaceModernIsUsableImage($securiaceModernSignaturePath)) {
+        $pdf->Image($securiaceModernSignaturePath, $securiaceModernAuthorizationX + 16, $securiaceModernAuthorizationY + 2, 22, 10, '', '', '', false, 300);
+    }
+    $pdf->SetFont($securiaceModernFont, '', 5.5);
+    $pdf->SetTextColor($securiaceModernMuted[0], $securiaceModernMuted[1], $securiaceModernMuted[2]);
+    $pdf->SetXY($securiaceModernAuthorizationX + 14, $securiaceModernAuthorizationY + 14);
+    $pdf->Cell(25, 3, 'Authorized signature', 0, 1, 'R');
+}
 $securiaceModernTotalsX = $securiaceModernMargin + $securiaceModernSettlementWidth + 4;
 $securiaceModernDrawCard(
     $securiaceModernTotalsX,
@@ -1089,7 +1312,11 @@ foreach ($securiaceModernTotalRows as $securiaceModernTotalRow) {
 
 $securiaceModernStateBarY = $securiaceModernTotalsY + $securiaceModernTotalsHeight - 7;
 $pdf->SetFillColor($securiaceModernStatusInk[0], $securiaceModernStatusInk[1], $securiaceModernStatusInk[2]);
-$pdf->Rect($securiaceModernTotalsX, $securiaceModernStateBarY, $securiaceModernTotalsWidth, 7, 'F');
+if (method_exists($pdf, 'RoundedRect')) {
+    $pdf->RoundedRect($securiaceModernTotalsX, $securiaceModernStateBarY, $securiaceModernTotalsWidth, 7, 2.65, '0110', 'F');
+} else {
+    $pdf->Rect($securiaceModernTotalsX, $securiaceModernStateBarY, $securiaceModernTotalsWidth, 7, 'F');
+}
 $pdf->SetFont($securiaceModernFont, 'B', 7);
 $pdf->SetTextColor(255, 255, 255);
 $pdf->SetXY($securiaceModernTotalsX + 3, $securiaceModernStateBarY + 1.3);
@@ -1236,24 +1463,21 @@ if ($securiaceModernCanUseUpi && method_exists($pdf, 'write2DBarcode')) {
         'L'
     );
 } elseif ($securiaceModernIsPaid || $securiaceModernIsRefunded) {
-    $securiaceModernDrawLabel('Authorization', $securiaceModernActionX + 3, $securiaceModernSupportY + 3, $securiaceModernActionWidth - 6);
-    $securiaceModernStampPath = defined('ROOTDIR') ? ROOTDIR . '/assets/img/stamp.png' : '';
-    $securiaceModernSignaturePath = defined('ROOTDIR') ? ROOTDIR . '/assets/img/sign.png' : '';
-    $securiaceModernAuthY = $securiaceModernSupportY + 9;
-    if ($securiaceModernIsUsableImage($securiaceModernStampPath)) {
-        $pdf->Image($securiaceModernStampPath, $securiaceModernActionX + 3, $securiaceModernAuthY, 17, 17, '', '', '', false, 300);
-    }
-    if ($securiaceModernIsUsableImage($securiaceModernSignaturePath)) {
-        $pdf->Image($securiaceModernSignaturePath, $securiaceModernActionX + 20, $securiaceModernAuthY, $securiaceModernActionWidth - 23, 14, '', '', '', false, 300);
-    }
-    $pdf->SetFont($securiaceModernFont, 'B', 6);
+    $securiaceModernDrawLabel('Settlement', $securiaceModernActionX + 3, $securiaceModernSupportY + 3, $securiaceModernActionWidth - 6);
+    $pdf->SetFont($securiaceModernFont, 'B', 7.5);
     $pdf->SetTextColor($securiaceModernInk[0], $securiaceModernInk[1], $securiaceModernInk[2]);
-    $pdf->SetXY($securiaceModernActionX + 2, $securiaceModernSupportY + 29);
-    $pdf->Cell($securiaceModernActionWidth - 4, 4, 'Authorized signature', 0, 1, 'C');
-    $pdf->SetFont($securiaceModernFont, '', 5.8);
+    $pdf->SetXY($securiaceModernActionX + 3, $securiaceModernSupportY + 9);
+    $pdf->MultiCell($securiaceModernActionWidth - 6, 4, 'No payment action required', 0, 'L');
+    $pdf->SetFont($securiaceModernFont, '', 6.2);
     $pdf->SetTextColor($securiaceModernMuted[0], $securiaceModernMuted[1], $securiaceModernMuted[2]);
-    $pdf->SetX($securiaceModernActionX + 2);
-    $pdf->MultiCell($securiaceModernActionWidth - 4, 3, 'No payment action required.', 0, 'C');
+    $pdf->SetX($securiaceModernActionX + 3);
+    $pdf->MultiCell(
+        $securiaceModernActionWidth - 6,
+        3.4,
+        'Keep this document with its transaction reference as proof of payment.',
+        0,
+        'L'
+    );
 } else {
     $securiaceModernDrawLabel('Payment status', $securiaceModernActionX + 3, $securiaceModernSupportY + 3, $securiaceModernActionWidth - 6);
     $pdf->SetFont($securiaceModernFont, 'B', 8);
@@ -1269,24 +1493,44 @@ $pdf->SetY($securiaceModernSupportY + $securiaceModernSupportHeight + 4);
 // -------------------------------------------------------------------------
 
 if ($securiaceModernIsPaid && !empty($securiaceModernRenewals)) {
-    $securiaceModernEnsureSpace(16 + (count($securiaceModernRenewals) * 6));
+    $securiaceModernEnsureSpace(16 + (count($securiaceModernRenewals) * 13));
     $securiaceModernDrawLabel('Upcoming renewals', $securiaceModernMargin, $pdf->GetY(), $securiaceModernUsableWidth);
     $pdf->SetY($pdf->GetY() + 4);
-    foreach ($securiaceModernRenewals as $securiaceModernRenewal) {
-        $pdf->SetFont($securiaceModernFont, 'B', 7);
+    foreach ($securiaceModernRenewals as $securiaceModernRenewalIndex => $securiaceModernRenewal) {
+        $renewalY = $pdf->GetY();
+        $renewalFill = $securiaceModernRenewalIndex % 2 === 0 ? $securiaceModernPaper : $securiaceModernSurface;
+        $securiaceModernDrawCard(
+            $securiaceModernMargin,
+            $renewalY,
+            $securiaceModernUsableWidth,
+            10,
+            $renewalFill,
+            $securiaceModernLine,
+            2.2
+        );
+        $pdf->SetFont($securiaceModernFont, 'B', 6.8);
         $pdf->SetTextColor($securiaceModernInk[0], $securiaceModernInk[1], $securiaceModernInk[2]);
-        $pdf->SetX($securiaceModernMargin);
-        $pdf->Cell($securiaceModernUsableWidth - 35, 5, $securiaceModernRenewal['description'], 'B', 0, 'L');
+        $pdf->SetXY($securiaceModernMargin + 3, $renewalY + 1.8);
+        $pdf->Cell(
+            $securiaceModernUsableWidth - 50,
+            3.5,
+            $securiaceModernTruncate($securiaceModernRenewal['description'], 82),
+            0,
+            0,
+            'L'
+        );
         $pdf->SetTextColor($securiaceModernBrand[0], $securiaceModernBrand[1], $securiaceModernBrand[2]);
-        $pdf->Cell(35, 5, $securiaceModernRenewal['date'], 'B', 1, 'R');
+        $pdf->Cell(44, 3.5, $securiaceModernRenewal['date'], 0, 1, 'R');
+        $pdf->SetFont($securiaceModernFont, '', 5.8);
+        $pdf->SetTextColor($securiaceModernMuted[0], $securiaceModernMuted[1], $securiaceModernMuted[2]);
+        $pdf->SetXY($securiaceModernMargin + 3, $renewalY + 5.3);
+        $pdf->Cell($securiaceModernUsableWidth - 50, 3, 'Service renewal schedule', 0, 0, 'L');
+        $pdf->Cell(44, 3, 'Scheduled', 0, 1, 'R');
+        $pdf->SetY($renewalY + 12);
     }
-    $pdf->Ln(3);
 }
 
-$securiaceModernEnsureSpace(22 + (count($securiaceModernTransactions) * 7));
-$securiaceModernDrawLabel('Payment transactions', $securiaceModernMargin, $pdf->GetY(), $securiaceModernUsableWidth);
-$pdf->SetY($pdf->GetY() + 4);
-
+$securiaceModernEnsureSpace(22 + (count($securiaceModernTransactions) * 11));
 $securiaceModernTransactionColumns = $securiaceModernHasTransactionStatus
     ? array(0.16, 0.20, 0.27, 0.22, 0.15)
     : array(0.18, 0.23, 0.31, 0.28);
@@ -1294,95 +1538,145 @@ $securiaceModernTransactionHeaders = $securiaceModernHasTransactionStatus
     ? array('Date', 'Method', 'Reference', 'Amount', 'Status')
     : array('Date', 'Method', 'Reference', 'Amount');
 
-$pdf->SetFillColor($securiaceModernBrand[0], $securiaceModernBrand[1], $securiaceModernBrand[2]);
-$pdf->SetTextColor(255, 255, 255);
-$pdf->SetFont($securiaceModernFont, 'B', 6.5);
-$securiaceModernDrawTransactionHeader = static function () use (
+$securiaceModernDrawTransactionHeading = static function ($continued = false) use (
     $pdf,
-    $securiaceModernFont,
-    $securiaceModernBrand,
+    $securiaceModernDrawLabel,
+    $securiaceModernMargin,
     $securiaceModernUsableWidth,
+    $securiaceModernFont,
+    $securiaceModernInk,
+    $securiaceModernMuted,
+    $securiaceModernTransactionHeaders,
     $securiaceModernTransactionColumns,
-    $securiaceModernTransactionHeaders
+    $securiaceModernTransactions
 ) {
-    $pdf->SetFillColor($securiaceModernBrand[0], $securiaceModernBrand[1], $securiaceModernBrand[2]);
-    $pdf->SetTextColor(255, 255, 255);
-    $pdf->SetFont($securiaceModernFont, 'B', 6.5);
+    $headingY = $pdf->GetY();
+    $securiaceModernDrawLabel(
+        $continued ? 'Payment transactions · continued' : 'Payment transactions',
+        $securiaceModernMargin,
+        $headingY,
+        $securiaceModernUsableWidth
+    );
+    $pdf->SetFont($securiaceModernFont, 'B', 9);
+    $pdf->SetTextColor($securiaceModernInk[0], $securiaceModernInk[1], $securiaceModernInk[2]);
+    $pdf->SetXY($securiaceModernMargin, $headingY + 3.5);
+    $pdf->Cell($securiaceModernUsableWidth * 0.7, 4.5, 'Transaction history', 0, 0, 'L');
+    $pdf->SetFont($securiaceModernFont, 'B', 6);
+    $pdf->SetTextColor($securiaceModernMuted[0], $securiaceModernMuted[1], $securiaceModernMuted[2]);
+    $recordLabel = count($securiaceModernTransactions) . (count($securiaceModernTransactions) === 1 ? ' record' : ' records');
+    $pdf->Cell($securiaceModernUsableWidth * 0.3, 4.5, $recordLabel, 0, 1, 'R');
+    $pdf->SetY($headingY + 9);
+    $pdf->SetFont($securiaceModernFont, 'B', 5.7);
+    $pdf->SetTextColor($securiaceModernMuted[0], $securiaceModernMuted[1], $securiaceModernMuted[2]);
     foreach ($securiaceModernTransactionHeaders as $headerIndex => $transactionHeader) {
         $headerWidth = $securiaceModernUsableWidth * $securiaceModernTransactionColumns[$headerIndex];
         $pdf->Cell(
             $headerWidth,
-            6,
+            4,
             strtoupper($transactionHeader),
             0,
             $headerIndex === count($securiaceModernTransactionHeaders) - 1 ? 1 : 0,
-            $transactionHeader === 'Amount' ? 'R' : 'L',
-            true
+            $transactionHeader === 'Amount' ? 'R' : 'L'
         );
     }
 };
-$securiaceModernDrawTransactionHeader();
+$securiaceModernDrawTransactionHeading();
 
 if (empty($securiaceModernTransactions)) {
+    $emptyTransactionY = $pdf->GetY();
+    $securiaceModernDrawCard(
+        $securiaceModernMargin,
+        $emptyTransactionY,
+        $securiaceModernUsableWidth,
+        10,
+        $securiaceModernSurface,
+        $securiaceModernLine
+    );
     $pdf->SetFont($securiaceModernFont, '', 7);
     $pdf->SetTextColor($securiaceModernMuted[0], $securiaceModernMuted[1], $securiaceModernMuted[2]);
-    $pdf->Cell($securiaceModernUsableWidth, 8, 'No payment transactions recorded.', 1, 1, 'C');
+    $pdf->SetXY($securiaceModernMargin + 3, $emptyTransactionY + 2.4);
+    $pdf->Cell($securiaceModernUsableWidth - 6, 4, 'No payment transactions recorded yet.', 0, 1, 'L');
+    $pdf->SetY($emptyTransactionY + 10);
 } else {
     foreach ($securiaceModernTransactions as $securiaceModernTransactionIndex => $securiaceModernTransaction) {
-        if ($pdf->GetY() + 8 > $securiaceModernPageHeight - $securiaceModernBottomMargin) {
+        if ($pdf->GetY() + 12 > $securiaceModernPageHeight - $securiaceModernBottomMargin) {
             $pdf->AddPage();
+            $securiaceModernPaintPage();
             $pdf->SetY($securiaceModernTopMargin);
-            $securiaceModernDrawTransactionHeader();
+            $securiaceModernDrawTransactionHeading(true);
         }
-        $securiaceModernTransactionValues = array(
+        $transactionValues = array(
             isset($securiaceModernTransaction['date']) ? $securiaceModernTransaction['date'] : '—',
-            isset($securiaceModernTransaction['gateway']) ? $securiaceModernTransaction['gateway'] : (isset($securiaceModernTransaction['paymentmethod']) ? $securiaceModernTransaction['paymentmethod'] : '—'),
+            isset($securiaceModernTransaction['gateway']) && trim((string) $securiaceModernTransaction['gateway']) !== '' ? $securiaceModernTransaction['gateway'] : '—',
             isset($securiaceModernTransaction['reference']) && trim((string) $securiaceModernTransaction['reference']) !== '' ? $securiaceModernTransaction['reference'] : '—',
             isset($securiaceModernTransaction['amount']) ? $securiaceModernTransaction['amount'] : $securiaceModernFormatMoney(0),
         );
         if ($securiaceModernHasTransactionStatus) {
-            $securiaceModernTransactionValues[] = isset($securiaceModernTransaction['status']) ? $securiaceModernTransaction['status'] : '—';
+            $transactionValues[] = isset($securiaceModernTransaction['status']) && trim((string) $securiaceModernTransaction['status']) !== ''
+                ? $securiaceModernTransaction['status']
+                : '—';
         }
-        $securiaceModernRowFill = $securiaceModernTransactionIndex % 2 === 0 ? $securiaceModernPaper : $securiaceModernSurface;
-        $pdf->SetFillColor($securiaceModernRowFill[0], $securiaceModernRowFill[1], $securiaceModernRowFill[2]);
-        $pdf->SetDrawColor($securiaceModernLine[0], $securiaceModernLine[1], $securiaceModernLine[2]);
-        $pdf->SetFont($securiaceModernFont, '', 6.5);
+        $transactionY = $pdf->GetY();
+        $transactionFill = $securiaceModernTransactionIndex % 2 === 0 ? $securiaceModernPaper : $securiaceModernSurface;
+        $securiaceModernDrawCard(
+            $securiaceModernMargin,
+            $transactionY,
+            $securiaceModernUsableWidth,
+            10,
+            $transactionFill,
+            $securiaceModernLine,
+            2.2
+        );
+        $pdf->SetFont($securiaceModernFont, '', 6.3);
         $pdf->SetTextColor($securiaceModernInk[0], $securiaceModernInk[1], $securiaceModernInk[2]);
-        foreach ($securiaceModernTransactionValues as $securiaceModernValueIndex => $securiaceModernTransactionValue) {
-            $securiaceModernValueWidth = $securiaceModernUsableWidth * $securiaceModernTransactionColumns[$securiaceModernValueIndex];
-            $securiaceModernValueText = (string) $securiaceModernTransactionValue;
-            $securiaceModernTransactionMaxLengths = array(18, 24, 30, 24, 16);
-            $securiaceModernValueText = $securiaceModernTruncate(
-                $securiaceModernValueText,
-                $securiaceModernTransactionMaxLengths[$securiaceModernValueIndex]
-            );
+        $pdf->SetXY($securiaceModernMargin + 2.5, $transactionY + 2.8);
+        foreach ($transactionValues as $valueIndex => $transactionValue) {
+            $valueWidth = $securiaceModernUsableWidth * $securiaceModernTransactionColumns[$valueIndex];
+            $maxLengths = array(18, 24, 30, 24, 16);
+            $valueText = $securiaceModernTruncate((string) $transactionValue, $maxLengths[$valueIndex]);
+            $rightPadding = $valueIndex === count($transactionValues) - 1 ? 5 : 0;
             $pdf->Cell(
-                $securiaceModernValueWidth,
-                7,
-                $securiaceModernValueText,
-                1,
-                $securiaceModernValueIndex === count($securiaceModernTransactionValues) - 1 ? 1 : 0,
-                $securiaceModernValueIndex === 3 ? 'R' : 'L',
-                true
+                $valueWidth - $rightPadding,
+                4,
+                $valueText,
+                0,
+                $valueIndex === count($transactionValues) - 1 ? 1 : 0,
+                $valueIndex === 3 ? 'R' : 'L'
             );
         }
+        $pdf->SetY($transactionY + 12);
     }
 
-    $pdf->SetFillColor($securiaceModernSurface[0], $securiaceModernSurface[1], $securiaceModernSurface[2]);
-    $pdf->SetFont($securiaceModernFont, 'B', 7);
+    $pdf->SetFont($securiaceModernFont, 'B', 6.6);
+    $pdf->SetTextColor($securiaceModernMuted[0], $securiaceModernMuted[1], $securiaceModernMuted[2]);
+    $pdf->Cell($securiaceModernUsableWidth * 0.72, 5, 'Recorded transaction total', 0, 0, 'R');
     $pdf->SetTextColor($securiaceModernInk[0], $securiaceModernInk[1], $securiaceModernInk[2]);
-    $pdf->Cell($securiaceModernUsableWidth * 0.72, 7, 'Recorded transaction total', 1, 0, 'R', true);
-    $pdf->Cell($securiaceModernUsableWidth * 0.28, 7, $securiaceModernFormatMoney($securiaceModernTransactionTotal), 1, 1, 'R', true);
+    $pdf->Cell($securiaceModernUsableWidth * 0.28, 5, $securiaceModernFormatMoney($securiaceModernTransactionTotal), 0, 1, 'R');
 }
 
 if ($securiaceModernNotesText !== '' && !$securiaceModernNotesRenderedInTerms) {
-    $securiaceModernEnsureSpace(18);
+    $pdf->SetFont($securiaceModernFont, '', 7);
+    $securiaceModernNotesHeight = max(
+        14,
+        $pdf->getStringHeight($securiaceModernUsableWidth - 8, $securiaceModernNotesText) + 10
+    );
+    $securiaceModernEnsureSpace($securiaceModernNotesHeight + 4);
     $pdf->Ln(3);
-    $securiaceModernDrawLabel('Invoice notes', $securiaceModernMargin, $pdf->GetY(), $securiaceModernUsableWidth);
-    $pdf->SetY($pdf->GetY() + 4);
+    $securiaceModernNotesY = $pdf->GetY();
+    $securiaceModernDrawCard(
+        $securiaceModernMargin,
+        $securiaceModernNotesY,
+        $securiaceModernUsableWidth,
+        $securiaceModernNotesHeight,
+        $securiaceModernSurface,
+        $securiaceModernLine
+    );
+    $securiaceModernDrawLabel('Invoice notes', $securiaceModernMargin + 4, $securiaceModernNotesY + 3, $securiaceModernUsableWidth - 8);
     $pdf->SetFont($securiaceModernFont, '', 7);
     $pdf->SetTextColor($securiaceModernMuted[0], $securiaceModernMuted[1], $securiaceModernMuted[2]);
-    $pdf->MultiCell($securiaceModernUsableWidth, 4, $securiaceModernNotesText, 1, 'L', false, 1, '', '', true, 0, false, true);
+    $pdf->SetXY($securiaceModernMargin + 4, $securiaceModernNotesY + 8);
+    $pdf->MultiCell($securiaceModernUsableWidth - 8, 4, $securiaceModernNotesText, 0, 'L', false, 1, '', '', true, 0, false, true);
+    $pdf->SetY($securiaceModernNotesY + $securiaceModernNotesHeight);
 }
 
 // -------------------------------------------------------------------------
