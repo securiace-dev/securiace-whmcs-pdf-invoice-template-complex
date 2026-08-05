@@ -23,7 +23,7 @@ from WHMCS configuration or protected deployment assets.
 | Severity | Finding | Customer/operational impact | Redesign response |
 | --- | --- | --- | --- |
 | Critical | Paid line items and transaction history show zero while Grand Total and Amount Paid show a non-zero value. | The document contradicts itself and cannot be reconciled by a customer or accountant. | Use one source of truth for line totals, invoice total, balance, and transaction total; surface a reconciliation failure during testing instead of silently inventing an amount paid. |
-| Critical | A paid invoice includes a prominent `UPI - Scan to Pay` action. | Creates a duplicate-payment risk. | Keep bank/payment information, but replace the QR call-to-action with a non-actionable payment receipt and reference on paid invoices. Show the amount-bound QR only when a positive balance is payable. |
+| Critical | A paid invoice includes a prominent `UPI - Scan to Pay` action. | Creates a duplicate-payment risk. | Keep bank/payment information on the single customer invoice, but replace the QR call-to-action with a non-actionable payment receipt and reference on paid invoices. Show the amount-bound QR only for an exact Unpaid, non-proforma, INR invoice with positive balance. |
 | High | The verification badge is compressed into a small, heavily bordered box and its timestamp collides visually with the border. | Verification is hard to read and looks less trustworthy despite being an important paid-invoice feature. | Use a quiet verification panel with a stable verification ID, explicit status, and generation metadata on separate lines. Preserve the verified state. |
 | High | Paid and unpaid invoices use unrelated accent systems (lime green versus purple) and every totals row is a saturated banner. | Status colors compete with amounts and make the document look inconsistent across its lifecycle. | Keep aubergine as the brand accent; reserve green/amber/red for semantic status and balance information. |
 | High | A single renewal and one transaction are forced onto a sparse second page. | Wastes paper and separates supporting evidence from the financial summary. | Fit short renewal and transaction records on page one; paginate only when content length requires it. |
@@ -83,7 +83,7 @@ from WHMCS configuration or protected deployment assets.
 | --- | --- | --- |
 | Status | `Unpaid` or `Overdue`, with due date and positive balance | `Paid`, with paid date and zero balance |
 | Primary financial emphasis | Balance due | Payment received |
-| UPI QR | Visible, amount-bound, invoice-referenced | Hidden to prevent duplicate payment |
+| UPI QR | Visible only for exact Unpaid, non-proforma INR invoices; amount-bound and invoice-referenced | Hidden to prevent duplicate payment |
 | Bank details | Visible as an alternate payment route | Visible as remittance reference, not a call-to-action |
 | Verification | Not shown as completed | Visible with stable verification ID |
 | Signature/stamp | Omitted unless business policy explicitly signs proforma/unpaid documents | Visible using protected production assets |
@@ -169,6 +169,21 @@ in the browser prototype:
    IT Act compliance. The implementation accurately labels it an authenticated
    invoice record and electronic-record identifier. It does not claim to apply
    a cryptographic PDF signature or certify legal compliance.
+8. WHMCS 8 and 9 do not pass the same transaction contract. The renderer now
+   normalizes WHMCS 8 `transid` and WHMCS 9 `referenceId`, `typeLabel`, and
+   credit/debit-note fields before presentation.
+9. WHMCS admin batch export reuses one TCPDF object. Footer stamping is now scoped
+   to the current invoice's page range, preventing a later invoice from rewriting
+   earlier footer context.
+10. Currency and proforma state now come from the invoice model when available.
+    Unknown currency no longer defaults to INR, and therefore cannot expose a UPI
+    action accidentally.
+11. The PDF drawing layer now mirrors the approved preview with native rounded
+    cards, a rounded commercial table, receipt-integrated authorization assets,
+    quiet transaction/renewal records, and a painted paper background.
+12. Admin batch PDFs now use a lean accounting profile. They retain financial and
+    transaction evidence but omit bank/UPI/QR data, notes, renewals, verification
+    artwork, settlement callouts, and authorization images.
 
 The integration renderer covers paid, unpaid, partial, overdue, refunded,
 cancelled, collections, draft, zero-total, proforma, paid-with-adjustment,
@@ -191,8 +206,9 @@ remains two pages and the unpaid layout one page as a rollback-only baseline.
 
 ## Production acceptance boundary
 
-The repository implementation is complete and locally rendered. Production
-activation still requires an operator-controlled deployment of the protected
-configuration and assets, followed by paid and unpaid invoice download plus
-email-attachment checks inside the target WHMCS instance. No production secret
-or customer data belongs in this repository.
+The repository implementation is locally rendered against WHMCS 8.12.1 and 9.0
+TCPDF. Production activation remains gated on a green reviewed PR, release-branch
+promotion, protected configuration/assets, and paid/unpaid/partial download plus
+email-attachment checks inside the target WHMCS instance. No production secret or
+customer data belongs in this repository. Quote and full-suite findings are in
+`docs/PDF-SUITE-COMPATIBILITY.md`.
