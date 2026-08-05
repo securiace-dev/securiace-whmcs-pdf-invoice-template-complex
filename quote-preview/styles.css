@@ -35,8 +35,7 @@
 }
 
 .proposal-summary,
-.acceptance-card,
-.quote-notes {
+.acceptance-card {
   border: 1px solid var(--line);
   border-radius: var(--radius);
 }
@@ -122,22 +121,11 @@
   font-size: 13pt;
 }
 
-.acceptance-card p:last-child,
-.quote-notes p:last-child {
+.acceptance-card p:last-child {
   margin: 0;
   color: var(--muted);
   font-size: 8pt;
   line-height: 1.45;
-}
-
-.quote-notes {
-  margin-top: 4mm;
-  padding: 4mm;
-  background: var(--surface);
-}
-
-.quote-notes .section-label {
-  margin-bottom: 5px;
 }
 
 @media print {

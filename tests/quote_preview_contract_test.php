@@ -28,7 +28,7 @@ foreach ($requiredHtml as $required) {
     }
 }
 
-foreach (array('UPI payment', 'Payment transactions', 'Amount paid', 'Authenticated invoice record') as $invoiceOnlyText) {
+foreach (array('UPI payment', 'Payment transactions', 'Amount paid', 'Authenticated invoice record', 'Client notes') as $invoiceOnlyText) {
     if (stripos($html, $invoiceOnlyText) !== false) {
         throw new RuntimeException('Quote preview contains invoice-only content: ' . $invoiceOnlyText);
     }

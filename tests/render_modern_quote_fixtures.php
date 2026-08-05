@@ -202,6 +202,7 @@ function renderQuoteFixture(string $templatePath, string $outputDirectory, strin
             ? $securiaceQuoteNormalizedDescriptions[0]
             : null,
         'item_count' => count($preparedQuoteItems),
+        'rendered_notes' => $securiaceQuoteRenderedNotes,
         'stamped_pages' => $securiaceQuoteStampedPages,
         'output' => $outputPath,
     );
@@ -281,7 +282,7 @@ $fixtures = array(
 );
 
 $expectations = array(
-    'standard' => array('number' => 'Q-2026-00218', 'currency_code' => 'INR', 'item_count' => 2),
+    'standard' => array('number' => 'Q-2026-00218', 'currency_code' => 'INR', 'item_count' => 2, 'rendered_notes' => false),
     'guest' => array('number' => 'Q-2026-00219', 'currency_code' => 'INR', 'item_count' => 1),
     'sanitized-rich-content' => array('number' => 'Q-2026-00220', 'currency_code' => 'INR', 'item_count' => 2),
     'entity-description' => array('number' => 'Q-2026-00221', 'currency_code' => 'INR', 'item_count' => 1, 'first_description' => "Security R&D <managed>\nDiscovery and implementation"),

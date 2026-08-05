@@ -435,6 +435,31 @@ $securiaceModernNoPaymentStatuses = array('paid', 'cancelled', 'collections', 'd
 $securiaceModernIsPayable = $securiaceModernBalanceNumeric > 0.00001
     && !in_array($securiaceModernStatusKey, $securiaceModernNoPaymentStatuses, true);
 
+// Standard WHMCS admin batch export runs through admin/csvdownload.php with
+// type=pdfbatch but does not pass a template flag. Detect that exact request;
+// tests/integrations may inject the same explicit profile without spoofing HTTP.
+$securiaceModernRequestedProfile = isset($securiaceInvoiceRenderProfile)
+    ? strtolower(trim((string) $securiaceInvoiceRenderProfile))
+    : '';
+$securiaceModernBatchRequestType = isset($GLOBALS['type'])
+    ? strtolower(trim((string) $GLOBALS['type']))
+    : (isset($_REQUEST['type']) ? strtolower(trim((string) $_REQUEST['type'])) : '');
+$securiaceModernBatchScript = isset($_SERVER['SCRIPT_NAME'])
+    ? strtolower(basename((string) $_SERVER['SCRIPT_NAME']))
+    : '';
+$securiaceModernIsBatch = $securiaceModernRequestedProfile === 'batch'
+    || (defined('ADMINAREA')
+        && ADMINAREA
+        && $securiaceModernBatchRequestType === 'pdfbatch'
+        && $securiaceModernBatchScript === 'csvdownload.php');
+$securiaceModernRenderedCoreQr = false;
+$securiaceModernRenderedSupport = false;
+$securiaceModernRenderedRenewals = false;
+$securiaceModernRenderedNotes = false;
+$securiaceModernRenderedAuthorization = false;
+$securiaceModernRenderedUpi = false;
+$securiaceModernRenderedSettlement = false;
+
 $securiaceModernStatusPalette = array(
     'paid' => array('ink' => '#0B7542', 'soft' => '#EAF6EF', 'line' => '#B8DDC8'),
     'unpaid' => array('ink' => '#9A5700', 'soft' => '#FFF5E5', 'line' => '#EFD4A3'),
@@ -775,7 +800,15 @@ $pdf->SetFont($securiaceModernFont, 'B', 7.5);
 $pdf->SetTextColor($securiaceModernStatusInk[0], $securiaceModernStatusInk[1], $securiaceModernStatusInk[2]);
 $pdf->SetXY($securiaceModernStatePanelX + 4, $securiaceModernStatePanelY + 2);
 
-if ($securiaceModernIsPaid) {
+if ($securiaceModernIsBatch) {
+    $pdf->Cell(60, 4, 'Batch accounting copy', 0, 1, 'L');
+    $pdf->SetFont($securiaceModernFont, 'B', 8.5);
+    $pdf->SetX($securiaceModernStatePanelX + 4);
+    $pdf->Cell(60, 4.5, $securiaceModernStatusDisplay, 0, 1, 'L');
+    $pdf->SetFont($securiaceModernFont, '', 6);
+    $pdf->SetX($securiaceModernStatePanelX + 4);
+    $pdf->Cell(60, 3.5, 'Invoice ' . $securiaceModernInvoiceNumber, 0, 1, 'L');
+} elseif ($securiaceModernIsPaid) {
     $pdf->Cell(60, 4, $securiaceModernHasAuthenticatedVerification ? 'Authenticated invoice record' : 'Invoice checksum', 0, 1, 'L');
     $pdf->SetFont($securiaceModernFont, '', 6);
     $pdf->SetX($securiaceModernStatePanelX + 4);
@@ -857,36 +890,9 @@ foreach ($securiaceModernPartyColumns as $securiaceModernPartyColumn) {
 }
 $pdf->SetY($securiaceModernPartyY + $securiaceModernPartyHeight + 5);
 
-// WHMCS 9 can provide a core-generated invoice QR block. Preserve it as a
-// distinct system record; it is not the same thing as the optional INR UPI QR.
-if ($securiaceModernCoreQrHtml !== '') {
-    $securiaceModernEnsureSpace(28);
-    $securiaceModernCoreQrY = $pdf->GetY();
-    $securiaceModernDrawCard(
-        $securiaceModernMargin,
-        $securiaceModernCoreQrY,
-        $securiaceModernUsableWidth,
-        24,
-        $securiaceModernSurface,
-        $securiaceModernLine
-    );
-    $securiaceModernDrawLabel('Invoice QR record', $securiaceModernMargin + 4, $securiaceModernCoreQrY + 3, 45);
-    $pdf->SetXY($securiaceModernMargin + 48, $securiaceModernCoreQrY + 2);
-    $pdf->writeHTMLCell(
-        $securiaceModernUsableWidth - 52,
-        20,
-        '',
-        '',
-        $securiaceModernCoreQrHtml,
-        0,
-        0,
-        false,
-        true,
-        'R',
-        true
-    );
-    $pdf->SetY($securiaceModernCoreQrY + 29);
-}
+// WHMCS 9 may supply a core QR block, but its payload is outside this template's
+// payment controls. It is intentionally suppressed. The only rendered QR is the
+// amount-bound UPI payload below, for an INR invoice in exact Unpaid state.
 
 // -------------------------------------------------------------------------
 // Line items — use WHMCS line totals as line totals; quantity is conditional.
@@ -1189,6 +1195,8 @@ $securiaceModernTotalsY = $pdf->GetY();
 $securiaceModernTotalsWidth = min(82, $securiaceModernUsableWidth * 0.42);
 $securiaceModernSettlementWidth = $securiaceModernUsableWidth - $securiaceModernTotalsWidth - 4;
 
+if (!$securiaceModernIsBatch) {
+$securiaceModernRenderedSettlement = true;
 $securiaceModernDrawCard(
     $securiaceModernMargin,
     $securiaceModernTotalsY,
@@ -1226,7 +1234,7 @@ if ($securiaceModernIsPaid) {
     $securiaceModernSettlementBody = 'No payment action is available for this document state.';
 }
 
-$securiaceModernReceiptCopyWidth = $securiaceModernIsPaid
+$securiaceModernReceiptCopyWidth = $securiaceModernIsPaid && !$securiaceModernIsBatch
     ? max(48, $securiaceModernSettlementWidth - 48)
     : $securiaceModernSettlementWidth - 8;
 $pdf->MultiCell($securiaceModernReceiptCopyWidth, 5, $securiaceModernSettlementHeading, 0, 'L');
@@ -1264,22 +1272,28 @@ if ($securiaceModernIsPaid) {
     $pdf->Cell(2, 3.5, '', 0, 0, 'L');
     $pdf->Cell($securiaceModernReceiptBalanceWidth, 3.5, $securiaceModernBalanceDisplay, 0, 1, 'L');
 
-    $securiaceModernStampPath = defined('ROOTDIR') ? ROOTDIR . '/assets/img/stamp.png' : '';
-    $securiaceModernSignaturePath = defined('ROOTDIR') ? ROOTDIR . '/assets/img/sign.png' : '';
-    $securiaceModernAuthorizationX = $securiaceModernMargin + $securiaceModernSettlementWidth - 42;
-    $securiaceModernAuthorizationY = $securiaceModernTotalsY + 9;
-    if ($securiaceModernIsUsableImage($securiaceModernStampPath)) {
-        $pdf->Image($securiaceModernStampPath, $securiaceModernAuthorizationX, $securiaceModernAuthorizationY, 16, 16, '', '', '', false, 300);
+    if (!$securiaceModernIsBatch) {
+        $securiaceModernRenderedAuthorization = true;
+        $securiaceModernStampPath = defined('ROOTDIR') ? ROOTDIR . '/assets/img/stamp.png' : '';
+        $securiaceModernSignaturePath = defined('ROOTDIR') ? ROOTDIR . '/assets/img/sign.png' : '';
+        $securiaceModernAuthorizationX = $securiaceModernMargin + $securiaceModernSettlementWidth - 42;
+        $securiaceModernAuthorizationY = $securiaceModernTotalsY + 9;
+        if ($securiaceModernIsUsableImage($securiaceModernStampPath)) {
+            $pdf->Image($securiaceModernStampPath, $securiaceModernAuthorizationX, $securiaceModernAuthorizationY, 16, 16, '', '', '', false, 300);
+        }
+        if ($securiaceModernIsUsableImage($securiaceModernSignaturePath)) {
+            $pdf->Image($securiaceModernSignaturePath, $securiaceModernAuthorizationX + 16, $securiaceModernAuthorizationY + 2, 22, 10, '', '', '', false, 300);
+        }
+        $pdf->SetFont($securiaceModernFont, '', 5.5);
+        $pdf->SetTextColor($securiaceModernMuted[0], $securiaceModernMuted[1], $securiaceModernMuted[2]);
+        $pdf->SetXY($securiaceModernAuthorizationX + 14, $securiaceModernAuthorizationY + 14);
+        $pdf->Cell(25, 3, 'Authorized signature', 0, 1, 'R');
     }
-    if ($securiaceModernIsUsableImage($securiaceModernSignaturePath)) {
-        $pdf->Image($securiaceModernSignaturePath, $securiaceModernAuthorizationX + 16, $securiaceModernAuthorizationY + 2, 22, 10, '', '', '', false, 300);
-    }
-    $pdf->SetFont($securiaceModernFont, '', 5.5);
-    $pdf->SetTextColor($securiaceModernMuted[0], $securiaceModernMuted[1], $securiaceModernMuted[2]);
-    $pdf->SetXY($securiaceModernAuthorizationX + 14, $securiaceModernAuthorizationY + 14);
-    $pdf->Cell(25, 3, 'Authorized signature', 0, 1, 'R');
 }
-$securiaceModernTotalsX = $securiaceModernMargin + $securiaceModernSettlementWidth + 4;
+}
+$securiaceModernTotalsX = $securiaceModernIsBatch
+    ? $securiaceModernPageWidth - $securiaceModernMargin - $securiaceModernTotalsWidth
+    : $securiaceModernMargin + $securiaceModernSettlementWidth + 4;
 $securiaceModernDrawCard(
     $securiaceModernTotalsX,
     $securiaceModernTotalsY,
@@ -1328,6 +1342,24 @@ $pdf->SetY($securiaceModernTotalsY + $securiaceModernTotalsHeight + 4);
 // Terms, bank details, and status-aware payment/authorization panel
 // -------------------------------------------------------------------------
 
+$securiaceModernNotesText = isset($notes) ? trim((string) $notes) : '';
+$securiaceModernNotesRenderedInTerms = $securiaceModernIsBatch
+    || ($securiaceModernNotesText !== ''
+        && strlen($securiaceModernNotesText) <= 220
+        && substr_count($securiaceModernNotesText, "\n") <= 2);
+$securiaceModernUpiId = trim((string) $securiaceModernConfig['upi_id']);
+$securiaceModernCanUseUpi = !$securiaceModernIsBatch
+    && $securiaceModernStatusKey === 'unpaid'
+    && !$securiaceModernIsProforma
+    && $securiaceModernIsPayable
+    && $securiaceModernCurrencyCode === 'INR'
+    && $securiaceModernUpiId !== '';
+
+if (!$securiaceModernIsBatch) {
+$securiaceModernRenderedSupport = true;
+if ($securiaceModernNotesRenderedInTerms && $securiaceModernNotesText !== '') {
+    $securiaceModernRenderedNotes = true;
+}
 $securiaceModernSupportHeight = 43;
 $securiaceModernEnsureSpace($securiaceModernSupportHeight + 3);
 $securiaceModernSupportY = $pdf->GetY();
@@ -1348,10 +1380,6 @@ $securiaceModernDrawCard(
     $securiaceModernIsPayable ? $securiaceModernStatusLine : $securiaceModernLine
 );
 
-$securiaceModernNotesText = isset($notes) ? trim((string) $notes) : '';
-$securiaceModernNotesRenderedInTerms = $securiaceModernNotesText !== ''
-    && strlen($securiaceModernNotesText) <= 220
-    && substr_count($securiaceModernNotesText, "\n") <= 2;
 $securiaceModernDrawLabel(
     $securiaceModernNotesRenderedInTerms ? 'Payment terms & notes' : 'Payment terms',
     $securiaceModernMargin + 3,
@@ -1412,12 +1440,8 @@ if (!$securiaceModernHasBankDetails) {
     $pdf->MultiCell($securiaceModernBankWidth - 6, 3.5, 'Configure protected bank details before deployment.', 0, 'L');
 }
 
-$securiaceModernUpiId = trim((string) $securiaceModernConfig['upi_id']);
-$securiaceModernCanUseUpi = $securiaceModernIsPayable
-    && $securiaceModernCurrencyCode === 'INR'
-    && $securiaceModernUpiId !== '';
-
 if ($securiaceModernCanUseUpi && method_exists($pdf, 'write2DBarcode')) {
+    $securiaceModernRenderedUpi = true;
     $securiaceModernDrawLabel('UPI payment', $securiaceModernActionX + 3, $securiaceModernSupportY + 3, $securiaceModernActionWidth - 6);
     $securiaceModernUpiParams = array(
         'pa' => $securiaceModernUpiId,
@@ -1448,6 +1472,7 @@ if ($securiaceModernCanUseUpi && method_exists($pdf, 'write2DBarcode')) {
     $pdf->SetX($securiaceModernActionX + 2);
     $pdf->Cell($securiaceModernActionWidth - 4, 3, 'Ref · ' . $securiaceModernInvoiceNumber, 0, 1, 'C');
 } elseif ($securiaceModernCanUseUpi) {
+    $securiaceModernRenderedUpi = true;
     $securiaceModernDrawLabel('UPI payment', $securiaceModernActionX + 3, $securiaceModernSupportY + 3, $securiaceModernActionWidth - 6);
     $pdf->SetFont($securiaceModernFont, 'B', 8);
     $pdf->SetTextColor($securiaceModernStatusInk[0], $securiaceModernStatusInk[1], $securiaceModernStatusInk[2]);
@@ -1487,12 +1512,14 @@ if ($securiaceModernCanUseUpi && method_exists($pdf, 'write2DBarcode')) {
 }
 
 $pdf->SetY($securiaceModernSupportY + $securiaceModernSupportHeight + 4);
+}
 
 // -------------------------------------------------------------------------
 // Renewal and transaction records
 // -------------------------------------------------------------------------
 
-if ($securiaceModernIsPaid && !empty($securiaceModernRenewals)) {
+if (!$securiaceModernIsBatch && $securiaceModernIsPaid && !empty($securiaceModernRenewals)) {
+    $securiaceModernRenderedRenewals = true;
     $securiaceModernEnsureSpace(16 + (count($securiaceModernRenewals) * 13));
     $securiaceModernDrawLabel('Upcoming renewals', $securiaceModernMargin, $pdf->GetY(), $securiaceModernUsableWidth);
     $pdf->SetY($pdf->GetY() + 4);
@@ -1654,7 +1681,8 @@ if (empty($securiaceModernTransactions)) {
     $pdf->Cell($securiaceModernUsableWidth * 0.28, 5, $securiaceModernFormatMoney($securiaceModernTransactionTotal), 0, 1, 'R');
 }
 
-if ($securiaceModernNotesText !== '' && !$securiaceModernNotesRenderedInTerms) {
+if (!$securiaceModernIsBatch && $securiaceModernNotesText !== '' && !$securiaceModernNotesRenderedInTerms) {
+    $securiaceModernRenderedNotes = true;
     $pdf->SetFont($securiaceModernFont, '', 7);
     $securiaceModernNotesHeight = max(
         14,

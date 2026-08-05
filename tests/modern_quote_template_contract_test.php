@@ -35,6 +35,8 @@ $invoiceOnlyContracts = array(
     'Payment transactions',
     'Amount paid',
     'Authenticated invoice record',
+    'Client notes',
+    '$notes',
 );
 foreach ($invoiceOnlyContracts as $invoiceOnlyContract) {
     if (stripos($template, $invoiceOnlyContract) !== false) {
