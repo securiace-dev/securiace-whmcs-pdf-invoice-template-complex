@@ -1,9 +1,12 @@
 const states = {
   paid: {
     status: "Paid",
-    invoiceNumber: "INV-2026-00482",
+    documentKicker: "Invoice",
+    documentTitle: "Invoice",
+    documentNumberLabel: "Invoice number",
+    invoiceNumber: "ST/2070",
     invoiceDate: "5 Aug 2026",
-    proformaNumber: "PF-2026-00461",
+    proformaNumber: "PI/300000461",
     itemName: "Domain renewal",
     itemDetail: "northstar.example · 5 years",
     servicePeriod: "8 Aug 2026 – 8 Aug 2031",
@@ -32,18 +35,27 @@ const states = {
   },
   unpaid: {
     status: "Unpaid",
-    invoiceNumber: "INV-2026-00483",
+    documentKicker: "Proforma",
+    documentTitle: "Proforma Invoice",
+    documentNumberLabel: "Proforma reference",
+    duePanelLabel: "Balance due",
+    dueMessage: "Pay by 18 Aug 2026",
+    paymentCalloutLabel: "Payment required",
+    paymentHeading: "₹9,990.00 INR is due",
+    paymentCopy: "Use proforma PI/300000483 as the transfer reference. The UPI code is tied to this outstanding INR amount.",
+    termsDueText: "Payment is due by 18 Aug 2026.",
+    invoiceNumber: "PI/300000483",
     invoiceDate: "3 Aug 2026",
     dueDate: "18 Aug 2026",
     itemName: "Managed WordPress hosting",
     itemDetail: "northstar.example · annual service",
     servicePeriod: "3 Aug 2026 – 2 Aug 2027",
     quantity: "1",
-    rate: "₹8,466.10",
-    lineTotal: "₹8,466.10",
-    subtotal: "₹8,466.10",
-    taxLabel: "GST · 18%",
-    tax: "₹1,523.90",
+    rate: "₹9,990.00",
+    lineTotal: "₹9,990.00",
+    subtotal: "₹9,990.00",
+    taxLabel: "Tax",
+    tax: "₹0.00",
     credit: "− ₹0.00",
     total: "₹9,990.00 INR",
     balance: "₹9,990.00 INR",
@@ -51,14 +63,47 @@ const states = {
     stateTotal: "₹9,990.00 INR",
     transactionCount: "No records",
     generatedAt: "5 Aug 2026, 18:30 IST",
-    showTax: true,
+    showTax: false,
+    showCredit: false,
+  },
+  overdue: {
+    status: "Overdue",
+    documentKicker: "Proforma",
+    documentTitle: "Proforma Invoice",
+    documentNumberLabel: "Proforma reference",
+    duePanelLabel: "Overdue balance",
+    dueMessage: "2 days overdue · pay now",
+    paymentCalloutLabel: "Overdue payment",
+    paymentHeading: "₹9,990.00 INR is overdue",
+    paymentCopy: "Pay immediately using proforma PI/300000484 as the transfer reference. The UPI code remains tied to the outstanding INR amount.",
+    termsDueText: "Payment was due on 3 Aug 2026 and is now overdue.",
+    invoiceNumber: "PI/300000484",
+    invoiceDate: "4 Jul 2026",
+    dueDate: "3 Aug 2026",
+    itemName: "Managed WordPress hosting",
+    itemDetail: "northstar.example · annual service",
+    servicePeriod: "3 Aug 2026 – 2 Aug 2027",
+    quantity: "1",
+    rate: "₹9,990.00",
+    lineTotal: "₹9,990.00",
+    subtotal: "₹9,990.00",
+    taxLabel: "Tax",
+    tax: "₹0.00",
+    credit: "− ₹0.00",
+    total: "₹9,990.00 INR",
+    balance: "₹9,990.00 INR",
+    stateTotalLabel: "Balance due",
+    stateTotal: "₹9,990.00 INR",
+    transactionCount: "No records",
+    generatedAt: "5 Aug 2026, 18:30 IST",
+    showTax: false,
     showCredit: false,
   },
 };
 
 const stateButtons = [...document.querySelectorAll("[data-state-button]")];
 const paidOnly = [...document.querySelectorAll("[data-paid-only]")];
-const unpaidOnly = [...document.querySelectorAll("[data-unpaid-only]")];
+const outstandingOnly = [...document.querySelectorAll("[data-outstanding-only]")];
 const taxRows = [...document.querySelectorAll("[data-tax-row]")];
 const creditRows = [...document.querySelectorAll("[data-credit-row]")];
 
@@ -79,8 +124,8 @@ function setState(nextState, { updateUrl = true } = {}) {
   paidOnly.forEach((element) => {
     element.hidden = normalizedState !== "paid";
   });
-  unpaidOnly.forEach((element) => {
-    element.hidden = normalizedState !== "unpaid";
+  outstandingOnly.forEach((element) => {
+    element.hidden = normalizedState === "paid";
   });
   taxRows.forEach((element) => {
     element.hidden = !values.showTax;

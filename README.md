@@ -19,11 +19,17 @@ paid and payable invoices harder to misread.
 
 ## Modern invoice behavior
 
-- Paid invoices emphasize settlement, hide the UPI payment action, retain bank
-  details as remittance context, and show signature/stamp assets when present.
-- Customer invoices in exact WHMCS `Unpaid` state emphasize the actual balance
-  and render an amount-bound, invoice-referenced UPI QR only when the model
-  confirms INR, the balance is positive, and a protected UPI ID is configured.
+- Paid invoices emphasize settlement and transaction evidence, omit UPI and
+  remittance-instruction cards, and show signature/stamp assets when present.
+- Proforma documents use the display reference `PI/<WHMCS invoice ID>` while the
+  paid record retains WHMCS's stored sequential final number and links back to
+  the original proforma reference.
+- Outstanding invoices render an amount-bound, reference-bound UPI QR only when
+  the model confirms INR, the balance is positive, and a protected UPI ID is
+  configured. This includes an overdue proforma because it remains unpaid.
+- The template derives a red Overdue presentation from an outstanding balance
+  and a due date earlier than the generation date; it does not expect WHMCS to
+  replace its underlying `Unpaid` status.
 - Partial payments remain visible even when WHMCS still reports the invoice as
   `Unpaid`.
 - Refunded, cancelled, collections, and draft states do not offer a payment QR.
@@ -74,6 +80,7 @@ The dependency-free paid/unpaid invoice review prototype is at
 ```text
 preview/index.html?state=paid
 preview/index.html?state=unpaid
+preview/index.html?state=overdue
 ```
 
 The matching quote review prototype is at
@@ -82,6 +89,9 @@ validity rather than a workflow-stage badge, matching the runtime quote template
 
 The screenshot audit, design decisions, source findings, and edge-case matrix
 are in [`docs/INVOICE-UX-AUDIT.md`](docs/INVOICE-UX-AUDIT.md).
+The approved current/future-GST document lifecycle, statutory number constraints,
+and WHMCS settings are in
+[`docs/INVOICE-NAMING-AND-NUMBERING.md`](docs/INVOICE-NAMING-AND-NUMBERING.md).
 
 ## Install the modern invoice template
 
@@ -179,8 +189,10 @@ The renderer produces paid, unpaid, partial, overdue, refunded, cancelled,
 collections, draft, zero-total, proforma, paid-with-adjustment,
 unreconciled-total, format-2 EUR, invalid-configuration, and dense multi-page
 Letter fixtures.
-It asserts payment-action gating, stable verification IDs, DMY renewal parsing,
-reconciliation behavior, PDF file headers, and page-count stability.
+It asserts payment-action gating, derived overdue state, long localized date
+normalization, proforma/final references, seller registrations, stable
+verification IDs, DMY renewal parsing, reconciliation behavior, PDF file
+headers, and page-count stability.
 
 The fixture renderer requires the PHP GD extension only to create temporary test
 artwork. The production template does not require GD for those assets.

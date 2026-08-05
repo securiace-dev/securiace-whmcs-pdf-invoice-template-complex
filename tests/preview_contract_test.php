@@ -16,8 +16,9 @@ $requiredHtml = array(
     'id="invoice-document" tabindex="-1"',
     'data-state-button="paid"',
     'data-state-button="unpaid"',
+    'data-state-button="overdue"',
     'data-paid-only',
-    'data-unpaid-only',
+    'data-outstanding-only',
     '<table class="transaction-table"',
     '<th scope="col">Date</th>',
     'Authenticated invoice record',
@@ -43,6 +44,7 @@ $requiredCss = array(
     '.state-switch button:focus-visible',
     '.print-button:hover',
     'font-variant-numeric: tabular-nums',
+    'html[data-invoice-state="overdue"] .status-pill',
     '@media print',
     '@media (prefers-reduced-motion: reduce)',
 );

@@ -78,9 +78,14 @@ theme template.
 - Currency-dependent invoice payment actions fail closed if currency cannot be
   confirmed. The template no longer assumes INR.
 - The WHMCS 9 core invoice QR payload is outside template payment controls and is
-  suppressed. The only QR rendered is the amount-bound UPI payload for a
-  non-proforma invoice in exact Unpaid state with confirmed INR currency,
-  positive balance, and configured protected UPI ID.
+  suppressed. The only QR rendered is the amount-bound UPI payload for an
+  outstanding INR invoice or proforma, including a derived overdue state, with
+  positive balance and a configured protected UPI ID.
+- Paid PDFs omit remittance/support cards and keep settlement, authorization,
+  renewals, and wrapped transaction evidence together. Long localized dates are
+  normalized to compact display dates before entering fixed PDF geometry.
+- Seller PAN, MSME, and future tax registrations render as dedicated registration
+  tags matching the browser design rather than being buried in address text.
 - Standard admin `csvdownload.php?type=pdfbatch` output is detected explicitly.
   Its accounting profile keeps invoice identity, parties, line items, totals,
   status, and transaction references while omitting settlement/support cards,
