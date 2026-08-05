@@ -41,6 +41,33 @@ if (!mkdir($fixtureAssetDirectory, 0775, true) && !is_dir($fixtureAssetDirectory
 
 define('ROOTDIR', $fixtureRoot);
 
+final class FixtureInvoiceModel
+{
+    /** @var array<string, mixed> */
+    private $currency;
+
+    /** @var bool */
+    private $proforma;
+
+    /** @param array<string, mixed> $currency */
+    public function __construct(array $currency, bool $proforma = false)
+    {
+        $this->currency = $currency;
+        $this->proforma = $proforma;
+    }
+
+    /** @return array<string, mixed> */
+    public function getCurrency(): array
+    {
+        return $this->currency;
+    }
+
+    public function isProformaInvoice(): bool
+    {
+        return $this->proforma;
+    }
+}
+
 if (!function_exists('getTodaysDate')) {
     function getTodaysDate($includeTime = 0)
     {
@@ -155,10 +182,21 @@ function renderFixture(string $templatePath, string $outputDirectory, string $na
     if ($templateMode === 'modern') {
         $result = array_merge($result, array(
             'template_pages' => $securiaceModernPageCount,
+            'start_page' => $securiaceModernStartPage,
+            'stamped_pages' => $securiaceModernStampedPages,
             'invoice_number' => $securiaceModernInvoiceNumber,
             'document_title' => $securiaceModernDocumentTitle,
             'is_payable' => $securiaceModernIsPayable,
             'has_upi' => $securiaceModernCanUseUpi,
+            'currency_code' => $securiaceModernCurrencyCode,
+            'amount_paid_display' => $securiaceModernAmountPaidDisplay,
+            'core_qr_present' => $securiaceModernCoreQrHtml !== '',
+            'transaction_reference' => isset($securiaceModernTransactions[0]['reference'])
+                ? $securiaceModernTransactions[0]['reference']
+                : null,
+            'first_item_description' => isset($securiaceModernRenderedItemDescriptions[0])
+                ? $securiaceModernRenderedItemDescriptions[0]
+                : null,
             'settlement_mismatch' => $securiaceModernSettlementMismatch,
             'reconciliation_delta' => $securiaceModernReconciliationDeltaNumeric,
             'total_numeric' => $securiaceModernTotalNumeric,
@@ -187,6 +225,80 @@ function renderFixture(string $templatePath, string $outputDirectory, string $na
     return $result;
 }
 
+/**
+ * Exercise WHMCS's admin batch behavior: one TCPDF instance receives multiple
+ * invoice pages, and every template include must stamp only its own page range.
+ *
+ * @param array<string, array<string, mixed>> $fixtures
+ * @return array<int, array<string, mixed>>
+ */
+function renderBatchFixtures(string $templatePath, string $outputDirectory, array $fixtures): array
+{
+    $pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
+    $pdf->setPrintHeader(false);
+    $pdf->setPrintFooter(false);
+    $pdf->SetCreator('Securiace batch fixture renderer');
+    $pdf->SetAuthor('Securiace Technologies');
+    $pdf->SetTitle('Batch invoice fixture');
+
+    $ranges = array();
+    foreach ($fixtures as $name => $fixture) {
+        $paper = isset($fixture['_paper']) ? $fixture['_paper'] : 'A4';
+        unset($fixture['_paper']);
+        if (strtoupper((string) $paper) !== 'A4') {
+            throw new RuntimeException('Batch fixtures must use the same A4 PDF instance.');
+        }
+
+        $pdf->AddPage();
+        extract($fixture, EXTR_OVERWRITE);
+        $GLOBALS['currencyformat'] = isset($fixture['currencyformat']) ? $fixture['currencyformat'] : 1;
+
+        $previousHandler = set_error_handler(
+            static function (int $severity, string $message, string $file, int $line): bool {
+                if (($severity & (E_WARNING | E_NOTICE | E_USER_WARNING | E_USER_NOTICE)) === 0) {
+                    return false;
+                }
+                throw new ErrorException($message, 0, $severity, $file, $line);
+            }
+        );
+        try {
+            include $templatePath;
+        } finally {
+            restore_error_handler();
+        }
+
+        $expectedPages = range($securiaceModernStartPage, $securiaceModernFinalPage);
+        if ($securiaceModernStampedPages !== $expectedPages) {
+            throw new RuntimeException(
+                $name . ' stamped pages outside its own batch range: '
+                . json_encode($securiaceModernStampedPages)
+            );
+        }
+        $ranges[] = array(
+            'name' => $name,
+            'start' => $securiaceModernStartPage,
+            'end' => $securiaceModernFinalPage,
+            'stamped' => $securiaceModernStampedPages,
+        );
+    }
+
+    $outputPath = rtrim($outputDirectory, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'batch-two-invoices.pdf';
+    $pdf->Output($outputPath, 'F');
+    if (!is_file($outputPath) || filesize($outputPath) < 1000) {
+        throw new RuntimeException('Batch PDF fixture is missing or unexpectedly small.');
+    }
+    if (count($ranges) !== count($fixtures)) {
+        throw new RuntimeException('Batch PDF did not render every requested invoice.');
+    }
+    for ($index = 1; $index < count($ranges); ++$index) {
+        if ($ranges[$index]['start'] <= $ranges[$index - 1]['end']) {
+            throw new RuntimeException('Batch invoice page ranges overlap.');
+        }
+    }
+
+    return $ranges;
+}
+
 /** @param mixed $actual */
 function assertFixtureValue(string $fixture, string $field, $actual, $expected): void
 {
@@ -211,6 +323,12 @@ function invoiceFixture(array $overrides = array()): array
         'currencyprefix' => '₹',
         'currencysuffix' => 'INR',
         'currencyformat' => 1,
+        'model' => new FixtureInvoiceModel(array(
+            'code' => 'INR',
+            'prefix' => '₹',
+            'suffix' => 'INR',
+            'format' => 1,
+        )),
         'clientsdetails' => array(
             'id' => 2048,
             'companyname' => 'Northstar Digital Private Limited',
@@ -333,6 +451,12 @@ $fixtures = array(
         'invoicenum' => '',
         'pagetitle' => 'Proforma Invoice #300000124',
         'isProformaInvoice' => true,
+        'model' => new FixtureInvoiceModel(array(
+            'code' => 'INR',
+            'prefix' => '₹',
+            'suffix' => 'INR',
+            'format' => 1,
+        ), true),
     )),
     'paid-adjusted' => invoiceFixture(array(
         'status' => 'Paid',
@@ -383,6 +507,12 @@ $fixtures = array(
         'currencyprefix' => '€',
         'currencysuffix' => 'EUR',
         'currencyformat' => 2,
+        'model' => new FixtureInvoiceModel(array(
+            'code' => 'EUR',
+            'prefix' => '€',
+            'suffix' => 'EUR',
+            'format' => 2,
+        )),
         'invoiceitems' => array(array('description' => 'European managed infrastructure', 'amount' => '€ 1.234,56 EUR')),
         'subtotal' => '€ 1.234,56 EUR',
         'taxname' => '',
@@ -390,6 +520,55 @@ $fixtures = array(
         'tax' => '€ 0,00 EUR',
         'total' => '€ 1.234,56 EUR',
         'balance' => '€ 1.234,56 EUR',
+    )),
+    'unknown-currency' => invoiceFixture(array(
+        'invoiceid' => 300000129,
+        'invoicenum' => 'INV-2026-00129',
+        'currencycode' => '',
+        'currencyprefix' => '',
+        'currencysuffix' => '',
+        'model' => new FixtureInvoiceModel(array()),
+    )),
+    'entity-description' => invoiceFixture(array(
+        'invoiceid' => 300000130,
+        'invoicenum' => 'INV-2026-00130',
+        'invoiceitems' => array(array(
+            'description' => 'Security R&amp;D &lt;managed&gt;<br>Service period: 05/08/2026 - 04/09/2026',
+            'amount' => '₹ 8,466.10 INR',
+        )),
+    )),
+    'whmcs9-ledger' => invoiceFixture(array(
+        'invoiceid' => 300000131,
+        'invoicenum' => 'INV-2026-00131',
+        'status' => 'Paid',
+        'statuslocale' => 'Paid',
+        'datepaid' => '5 Aug 2026',
+        'invoiceamount' => '₹ 9,990.00 INR',
+        'amountpaid' => '₹ 9,990.00 INR',
+        'balance' => '₹ 0.00 INR',
+        'invoiceQrHtml' => '<div style="font-size:7px">WHMCS core invoice QR</div>',
+        'transactions' => array(array(
+            'date' => '5 Aug 2026',
+            'gateway' => 'Bank Transfer',
+            'typeLabel' => 'Payment',
+            'referenceId' => 'WHMCS9-REFERENCE-00131',
+            'isCreditNote' => false,
+            'isDebitNote' => false,
+            'amount' => '₹ 9,990.00 INR',
+        )),
+    )),
+    'whmcs9-credit-note' => invoiceFixture(array(
+        'invoiceid' => 300000132,
+        'invoicenum' => 'INV-2026-00132',
+        'transactions' => array(array(
+            'date' => '5 Aug 2026',
+            'gateway' => '',
+            'typeLabel' => 'Credit',
+            'referenceId' => 'CN-00132',
+            'isCreditNote' => true,
+            'isDebitNote' => false,
+            'amount' => '₹ 1,000.00 INR',
+        )),
     )),
     'invalid-config' => invoiceFixture(array(
         'invoiceid' => 300000128,
@@ -441,6 +620,10 @@ $expectations = array(
     'draft' => array('is_payable' => false, 'has_upi' => false, 'settlement_mismatch' => false, 'document_title' => 'Invoice'),
     'zero-total' => array('is_payable' => false, 'has_upi' => false, 'settlement_mismatch' => false, 'document_title' => 'Invoice', 'total_numeric' => 0.0, 'balance_numeric' => 0.0),
     'euro-format2' => array('is_payable' => true, 'has_upi' => false, 'settlement_mismatch' => false, 'document_title' => 'Invoice', 'total_numeric' => 1234.56, 'balance_numeric' => 1234.56),
+    'unknown-currency' => array('is_payable' => true, 'has_upi' => false, 'currency_code' => '', 'document_title' => 'Invoice'),
+    'entity-description' => array('is_payable' => true, 'has_upi' => true, 'first_item_description' => "Security R&D <managed>\nService period: 05/08/2026 - 04/09/2026", 'document_title' => 'Invoice'),
+    'whmcs9-ledger' => array('is_payable' => false, 'has_upi' => false, 'currency_code' => 'INR', 'core_qr_present' => true, 'transaction_reference' => 'WHMCS9-REFERENCE-00131', 'amount_paid_display' => '₹ 9,990.00 INR', 'document_title' => 'Invoice'),
+    'whmcs9-credit-note' => array('is_payable' => true, 'has_upi' => true, 'transaction_reference' => 'Credit note · CN-00132', 'document_title' => 'Invoice'),
     'invalid-config' => array('is_payable' => true, 'has_upi' => false, 'settlement_mismatch' => false, 'document_title' => 'Invoice'),
     'long-letter' => array('is_payable' => true, 'has_upi' => true, 'settlement_mismatch' => false, 'document_title' => 'Invoice'),
 );
@@ -475,6 +658,14 @@ try {
     }
 
     if ($templateMode === 'modern') {
+        $batchRanges = renderBatchFixtures(
+            $templatePath,
+            $outputDirectory,
+            array('batch-paid' => $fixtures['paid'], 'batch-unpaid' => $fixtures['unpaid'])
+        );
+        assertFixtureValue('batch-paid', 'stamped_pages', $batchRanges[0]['stamped'], array(1));
+        assertFixtureValue('batch-unpaid', 'stamped_pages', $batchRanges[1]['stamped'], array(2));
+
         $secondPaid = renderFixture($templatePath, $outputDirectory, 'paid-repeat', $fixtures['paid'], $templateMode);
         assertFixtureValue(
             'paid-repeat',
