@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en" data-invoice-state="paid">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Securiace invoice redesign preview</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="preview-toolbar" aria-label="Preview controls">
+    <div>
+      <p class="toolbar-kicker">Design review</p>
+      <h1>Invoice template</h1>
+    </div>
+    <div class="toolbar-actions">
+      <div class="state-switch" role="group" aria-label="Invoice state">
+        <button type="button" data-state-button="paid" aria-pressed="true">Paid</button>
+        <button type="button" data-state-button="unpaid" aria-pressed="false">Unpaid</button>
+      </div>
+      <button class="print-button" type="button" data-print>Print preview</button>
+    </div>
+  </header>
+
+  <main class="preview-canvas">
+    <article class="invoice" id="invoice-document" aria-labelledby="document-title">
+      <div class="sample-notice">
+        <span>Design preview</span>
+        <span>Fictional data</span>
+      </div>
+
+      <header class="invoice-header">
+        <div class="brand-lockup" aria-label="Securiace Technologies">
+          <span class="brand-mark" aria-hidden="true"><span></span></span>
+          <span class="brand-name"><strong>Securiace</strong><span>technologies</span></span>
+        </div>
+        <div class="document-heading">
+          <p class="eyebrow">Tax invoice</p>
+          <h2 id="document-title">Invoice</h2>
+          <span class="status-pill" data-bind="status">Paid</span>
+        </div>
+      </header>
+
+      <section class="document-strip" aria-label="Invoice identity and status">
+        <dl class="document-meta">
+          <div>
+            <dt>Invoice number</dt>
+            <dd data-bind="invoiceNumber">INV-2026-00482</dd>
+          </div>
+          <div>
+            <dt>Invoice date</dt>
+            <dd data-bind="invoiceDate">5 Aug 2026</dd>
+          </div>
+          <div data-paid-only>
+            <dt>Original proforma</dt>
+            <dd data-bind="proformaNumber">PF-2026-00461</dd>
+          </div>
+          <div data-unpaid-only hidden>
+            <dt>Due date</dt>
+            <dd data-bind="dueDate">18 Aug 2026</dd>
+          </div>
+        </dl>
+
+        <div class="verified-panel" data-paid-only>
+          <span class="verified-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" role="img"><path d="M12 2.5 20 6v5.4c0 4.8-3.1 8.6-8 10.1-4.9-1.5-8-5.3-8-10.1V6l8-3.5Z"/><path d="m8.2 12 2.4 2.4 5.2-5.2"/></svg>
+          </span>
+          <span>
+            <strong>Digitally verified</strong>
+            <small>ID <span data-bind="verificationId">8F3C912A6D44 · 1B70C9D2</span></small>
+            <small>IT Act 2000 compliant</small>
+          </span>
+        </div>
+
+        <div class="due-panel" data-unpaid-only hidden>
+          <span class="due-label">Balance due</span>
+          <strong data-bind="balance">₹9,990.00 INR</strong>
+          <small>Pay by <span data-bind="dueDate">18 Aug 2026</span></small>
+        </div>
+      </section>
+
+      <section class="party-grid" aria-label="Billing parties">
+        <article class="party-card party-card--customer">
+          <p class="section-label">Billed to</p>
+          <h3>Northstar Industries Pvt. Ltd.</h3>
+          <address>
+            14 Meridian Business Park<br>
+            Pune, Maharashtra 411045, India
+          </address>
+          <p>accounts@example.invalid<br>+91 90000 00000</p>
+          <p class="detail-line"><span>Tax ID</span> DEMO27ABCDE1234F1Z5</p>
+        </article>
+
+        <article class="party-card">
+          <p class="section-label">Billed by</p>
+          <h3>Securiace Technologies</h3>
+          <address>
+            Kishor Nagar Road<br>
+            Nanded, Maharashtra 431602, India
+          </address>
+          <p>helpdesk@securiace.com<br>+91 88888 88888</p>
+          <div class="compliance-tags" aria-label="Seller registrations">
+            <span>PAN · DEMO1234F</span>
+            <span>MSME · UDYAM-MH-00-0000000</span>
+          </div>
+        </article>
+      </section>
+
+      <section class="line-items" aria-labelledby="services-title">
+        <div class="section-heading">
+          <div>
+            <p class="section-label">Charges</p>
+            <h3 id="services-title">Services and billing period</h3>
+          </div>
+          <span>Currency · INR</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Description</th>
+                <th scope="col" class="numeric compact-column">Qty</th>
+                <th scope="col" class="numeric">Rate</th>
+                <th scope="col" class="numeric">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <strong data-bind="itemName">Domain renewal</strong>
+                  <span data-bind="itemDetail">northstar.example · 5 years</span>
+                  <small data-bind="servicePeriod">8 Aug 2026 – 8 Aug 2031</small>
+                </td>
+                <td class="numeric compact-column" data-bind="quantity">1</td>
+                <td class="numeric" data-bind="rate">₹7,750.00</td>
+                <td class="numeric amount" data-bind="lineTotal">₹7,750.00</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="financial-grid" aria-label="Invoice totals and settlement state">
+        <div class="settlement-card" data-paid-only>
+          <div class="settlement-copy">
+            <p class="section-label">Payment receipt</p>
+            <h3>Payment received in full</h3>
+            <p><span data-bind="paidDate">6 Aug 2026</span> · <span data-bind="paymentMethod">Bank transfer</span></p>
+            <dl class="receipt-meta">
+              <div><dt>Reference</dt><dd data-bind="transactionId">DEMO-NEFT-2849</dd></div>
+              <div><dt>Balance</dt><dd>₹0.00 INR</dd></div>
+            </dl>
+          </div>
+          <div class="authorization" aria-label="Stamp and authorized signature positions">
+            <span class="seal" aria-hidden="true"><strong>S</strong><small>AUTHORIZED</small></span>
+            <span class="signature"><em>Authorized</em><small>Authorized signature</small></span>
+          </div>
+        </div>
+
+        <div class="payment-callout" data-unpaid-only hidden>
+          <p class="section-label">Payment required</p>
+          <h3><span data-bind="balance">₹9,990.00 INR</span> is due</h3>
+          <p>Use the invoice number as the transfer reference. The UPI code below is tied to this invoice and outstanding amount.</p>
+        </div>
+
+        <dl class="totals-card">
+          <div><dt>Subtotal</dt><dd data-bind="subtotal">₹7,750.00</dd></div>
+          <div data-tax-row><dt data-bind="taxLabel">GST · 18%</dt><dd data-bind="tax">₹0.00</dd></div>
+          <div data-credit-row><dt>Credit applied</dt><dd data-bind="credit">− ₹0.00</dd></div>
+          <div class="grand-total"><dt>Grand total</dt><dd data-bind="total">₹7,750.00 INR</dd></div>
+          <div class="state-total"><dt data-bind="stateTotalLabel">Amount paid</dt><dd data-bind="stateTotal">₹7,750.00 INR</dd></div>
+        </dl>
+      </section>
+
+      <section class="support-grid" aria-label="Payment and invoice notes">
+        <article class="support-card terms-card">
+          <p class="section-label">Payment terms and notes</p>
+          <div data-paid-only>
+            <p><strong>Purchase order:</strong> PO-DEMO-2026-118</p>
+            <p>This receipt records the completed settlement. Quote the invoice number for any account query.</p>
+          </div>
+          <ol data-unpaid-only hidden>
+            <li>Payment is due by <span data-bind="dueDate">18 Aug 2026</span>.</li>
+            <li>Overdue interest may apply at 18% p.a.</li>
+            <li>Provide Form 16A when TDS is deducted under Section 194J.</li>
+            <li>Disputes are subject to Pune, Maharashtra jurisdiction.</li>
+          </ol>
+        </article>
+
+        <article class="support-card bank-card">
+          <p class="section-label">Bank details</p>
+          <dl>
+            <div><dt>Account</dt><dd>Securiace Technologies</dd></div>
+            <div><dt>Number</dt><dd>0000 0000 0000 0000</dd></div>
+            <div><dt>IFSC</dt><dd>DEMO0000001</dd></div>
+            <div><dt>Type</dt><dd>Current</dd></div>
+            <div><dt>Bank</dt><dd>Demo Bank</dd></div>
+          </dl>
+        </article>
+
+        <article class="support-card payment-card" data-unpaid-only hidden>
+          <div>
+            <p class="section-label">UPI payment</p>
+            <strong>Scan to pay</strong>
+            <small>billing@example</small>
+            <small>Ref · <span data-bind="invoiceNumber">INV-2026-00483</span></small>
+          </div>
+          <svg class="qr-preview" viewBox="0 0 29 29" role="img" aria-label="Preview QR position; WHMCS generates the live scannable UPI code">
+            <rect width="29" height="29" fill="#fff"/>
+            <path fill="currentColor" fill-rule="evenodd" d="M1 1h7v7H1V1Zm2 2v3h3V3H3Zm18-2h7v7h-7V1Zm2 2v3h3V3h-3ZM1 21h7v7H1v-7Zm2 2v3h3v-3H3Z"/>
+            <path fill="currentColor" d="M10 1h2v2h-2zm4 0h1v4h-2V3h1zm3 1h2v2h-2zm-7 4h2v2h-2zm3 0h3v2h-1v2h-2zm4 1h2v3h-2zM9 10h3v2h2v2h-2v2H9v-2h1v-2H9zm6 1h2v2h2v3h-2v-1h-2zm5-1h2v2h2v-2h3v2h-1v2h2v2h-3v-2h-2v2h-3v-2h1v-2h-1zM1 10h2v3H1zm4 0h3v2H6v2H4v-2h1zm-4 6h3v2h2v-2h2v3H5v1H1v-2h1zm9 2h2v2h2v2h-4zm5-1h3v2h2v2h-3v-2h-2zm6 1h2v2h2v-2h3v3h-2v2h-2v-1h-3zm-11 6h2v4h-2zm4-1h2v2h2v3h-2v-1h-2zm5 1h2v4h-2zm4 1h2v3h-3v-2h1zm4-2h1v5h-2v-3h1z"/>
+          </svg>
+        </article>
+
+        <article class="support-card settled-card" data-paid-only>
+          <p class="section-label">Settlement</p>
+          <strong>No payment action required</strong>
+          <p>Keep this document with the transaction reference as proof of payment.</p>
+        </article>
+      </section>
+
+      <section class="records-grid" aria-label="Renewal and transaction records">
+        <article class="record-card" data-paid-only>
+          <div class="record-heading">
+            <div>
+              <p class="section-label">Upcoming renewal</p>
+              <h3 data-bind="renewalService">Domain renewal · northstar.example</h3>
+            </div>
+            <div class="record-date"><strong data-bind="renewalDate">8 Aug 2031</strong><small data-bind="renewalTiming">Scheduled</small></div>
+          </div>
+        </article>
+
+        <article class="record-card transaction-card">
+          <div class="record-heading">
+            <div>
+              <p class="section-label">Payment transactions</p>
+              <h3>Transaction history</h3>
+            </div>
+            <span class="record-count" data-bind="transactionCount">1 record</span>
+          </div>
+          <div class="transaction-table" data-paid-only>
+            <span data-bind="paidDate">6 Aug 2026</span>
+            <span data-bind="paymentMethod">Bank transfer</span>
+            <span data-bind="transactionId">DEMO-NEFT-2849</span>
+            <strong data-bind="transactionAmount">₹7,750.00</strong>
+            <span class="transaction-status">Completed</span>
+          </div>
+          <p class="empty-record" data-unpaid-only hidden>No payment transactions recorded yet.</p>
+        </article>
+      </section>
+
+      <footer class="invoice-footer">
+        <p>Computer-generated invoice · Generated <span data-bind="generatedAt">5 Aug 2026, 18:30 IST</span></p>
+        <p>Securiace Technologies · helpdesk@securiace.com</p>
+      </footer>
+    </article>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
