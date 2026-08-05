@@ -155,21 +155,37 @@ $securiaceModernMoneyToFloat = static function ($value) use ($securiaceModernInp
     return $negative ? -abs($number) : $number;
 };
 
-$securiaceModernCurrencyCode = '';
-if (isset($currencycode) && trim((string) $currencycode) !== '') {
-    $securiaceModernCurrencyCode = strtoupper(trim((string) $currencycode));
-} elseif (isset($currencysuffix)) {
-    $securiaceModernCurrencyCode = strtoupper(trim((string) $currencysuffix));
-}
-if ($securiaceModernCurrencyCode === '') {
-    $securiaceModernCurrencyCode = 'INR';
+$securiaceModernModelCurrency = array();
+if (isset($model) && is_object($model) && method_exists($model, 'getCurrency')) {
+    try {
+        $securiaceModernResolvedCurrency = $model->getCurrency();
+        if (is_array($securiaceModernResolvedCurrency)) {
+            $securiaceModernModelCurrency = $securiaceModernResolvedCurrency;
+        }
+    } catch (Throwable $securiaceModernCurrencyException) {
+        // Payment actions fail closed below when currency cannot be confirmed.
+        $securiaceModernModelCurrency = array();
+    }
 }
 
-$securiaceModernCurrencyPrefix = isset($currencyprefix) ? trim((string) $currencyprefix) : '';
-$securiaceModernCurrencySuffix = isset($currencysuffix) ? trim((string) $currencysuffix) : '';
-$securiaceModernCurrencyFormat = $securiaceModernInputCurrencyFormat > 0
-    ? $securiaceModernInputCurrencyFormat
-    : 1;
+$securiaceModernCurrencyCode = '';
+if (!empty($securiaceModernModelCurrency['code'])) {
+    $securiaceModernCurrencyCode = strtoupper(trim((string) $securiaceModernModelCurrency['code']));
+} elseif (isset($currencycode) && trim((string) $currencycode) !== '') {
+    // Explicit variables are retained for third-party integrations and tests.
+    $securiaceModernCurrencyCode = strtoupper(trim((string) $currencycode));
+}
+
+$securiaceModernCurrencyPrefix = !empty($securiaceModernModelCurrency['prefix'])
+    ? trim((string) $securiaceModernModelCurrency['prefix'])
+    : (isset($currencyprefix) ? trim((string) $currencyprefix) : '');
+$securiaceModernCurrencySuffix = !empty($securiaceModernModelCurrency['suffix'])
+    ? trim((string) $securiaceModernModelCurrency['suffix'])
+    : (isset($currencysuffix) ? trim((string) $currencysuffix) : '');
+$securiaceModernCurrencyFormat = isset($securiaceModernModelCurrency['format'])
+    && is_numeric($securiaceModernModelCurrency['format'])
+    ? (int) $securiaceModernModelCurrency['format']
+    : ($securiaceModernInputCurrencyFormat > 0 ? $securiaceModernInputCurrencyFormat : 1);
 
 $securiaceModernFormatMoney = static function ($amount) use (
     $securiaceModernCurrencyPrefix,
@@ -228,9 +244,32 @@ $securiaceModernRgb = static function ($hex) {
 };
 
 $securiaceModernPlainText = static function ($value) {
-    $text = strip_tags((string) $value);
+    $text = (string) $value;
+    $text = preg_replace('/<\s*br\s*\/?>/iu', "\n", $text);
+    $text = preg_replace('/<\/(p|div|li|h[1-6])\s*>/iu', "\n", $text);
+    $text = strip_tags($text);
+    $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
     $text = preg_replace('/\s+/u', ' ', $text);
     return trim($text === null ? '' : $text);
+};
+
+$securiaceModernPlainMultiline = static function ($value) {
+    $text = (string) $value;
+    $text = preg_replace('/<\s*br\s*\/?>/iu', "\n", $text);
+    $text = preg_replace('/<\/(p|div|li|h[1-6])\s*>/iu', "\n", $text);
+    $text = strip_tags($text);
+    $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    $text = str_replace(array("\r\n", "\r"), "\n", $text);
+    $lines = explode("\n", $text);
+    $normalized = array();
+    foreach ($lines as $line) {
+        $line = preg_replace('/[\t ]+/u', ' ', $line);
+        $line = trim($line === null ? '' : $line);
+        if ($line !== '' || (!empty($normalized) && end($normalized) !== '')) {
+            $normalized[] = $line;
+        }
+    }
+    return trim(implode("\n", $normalized));
 };
 
 $securiaceModernTruncate = static function ($value, $maxLength) {
@@ -283,6 +322,9 @@ $securiaceModernFont = isset($pdfFont) && trim((string) $pdfFont) !== ''
     : 'dejavusans';
 $securiaceModernStatus = isset($status) ? trim((string) $status) : 'Draft';
 $securiaceModernStatusKey = strtolower($securiaceModernStatus);
+$securiaceModernStatusDisplay = isset($statuslocale) && trim((string) $statuslocale) !== ''
+    ? trim((string) $statuslocale)
+    : $securiaceModernStatus;
 $securiaceModernInvoiceId = isset($invoiceid) ? (string) $invoiceid : '';
 $securiaceModernInvoiceNumber = isset($invoicenum) && trim((string) $invoicenum) !== ''
     ? trim((string) $invoicenum)
@@ -293,7 +335,13 @@ if ($securiaceModernInvoiceNumber === '') {
 
 $securiaceModernPageTitle = isset($pagetitle) ? $securiaceModernPlainText($pagetitle) : '';
 $securiaceModernIsProforma = stripos($securiaceModernPageTitle, 'proforma') !== false;
-if (isset($isProformaInvoice)) {
+if (isset($model) && is_object($model) && method_exists($model, 'isProformaInvoice')) {
+    try {
+        $securiaceModernIsProforma = (bool) $model->isProformaInvoice();
+    } catch (Throwable $securiaceModernProformaException) {
+        // Keep the title-based fallback for integrations that expose a proxy model.
+    }
+} elseif (isset($isProformaInvoice)) {
     $securiaceModernIsProforma = (bool) $isProformaInvoice;
 }
 $securiaceModernDocumentTitle = $securiaceModernIsProforma ? 'Proforma Invoice' : 'Invoice';
@@ -302,7 +350,48 @@ $securiaceModernDocumentKicker = $securiaceModernIsProforma
     : (isset($taxCode) && trim((string) $taxCode) !== '' ? 'TAX INVOICE' : 'INVOICE');
 
 $securiaceModernItems = isset($invoiceitems) && is_array($invoiceitems) ? $invoiceitems : array();
-$securiaceModernTransactions = isset($transactions) && is_array($transactions) ? $transactions : array();
+$securiaceModernRawTransactions = isset($transactions) && is_array($transactions) ? $transactions : array();
+$securiaceModernTransactions = array();
+foreach ($securiaceModernRawTransactions as $securiaceModernRawTransaction) {
+    if (!is_array($securiaceModernRawTransaction)) {
+        continue;
+    }
+    $securiaceModernTransactionMethod = isset($securiaceModernRawTransaction['gateway'])
+        ? trim((string) $securiaceModernRawTransaction['gateway'])
+        : (isset($securiaceModernRawTransaction['paymentmethod'])
+            ? trim((string) $securiaceModernRawTransaction['paymentmethod'])
+            : '');
+    $securiaceModernTransactionType = isset($securiaceModernRawTransaction['typeLabel'])
+        ? trim((string) $securiaceModernRawTransaction['typeLabel'])
+        : '';
+    if ($securiaceModernTransactionType !== '') {
+        $securiaceModernTransactionMethod .= ($securiaceModernTransactionMethod !== '' ? ' · ' : '')
+            . $securiaceModernTransactionType;
+    }
+    $securiaceModernTransactionReference = '';
+    if (isset($securiaceModernRawTransaction['referenceId'])) {
+        $securiaceModernTransactionReference = trim((string) $securiaceModernRawTransaction['referenceId']);
+    } elseif (isset($securiaceModernRawTransaction['transid'])) {
+        $securiaceModernTransactionReference = trim((string) $securiaceModernRawTransaction['transid']);
+    }
+    if (!empty($securiaceModernRawTransaction['isCreditNote'])) {
+        $securiaceModernTransactionReference = 'Credit note'
+            . ($securiaceModernTransactionReference !== '' ? ' · ' . $securiaceModernTransactionReference : '');
+    } elseif (!empty($securiaceModernRawTransaction['isDebitNote'])) {
+        $securiaceModernTransactionReference = 'Debit note'
+            . ($securiaceModernTransactionReference !== '' ? ' · ' . $securiaceModernTransactionReference : '');
+    }
+    $securiaceModernTransactions[] = array(
+        'date' => isset($securiaceModernRawTransaction['date']) ? $securiaceModernRawTransaction['date'] : '',
+        'gateway' => $securiaceModernTransactionMethod,
+        'reference' => $securiaceModernTransactionReference,
+        'amount' => isset($securiaceModernRawTransaction['amount']) ? $securiaceModernRawTransaction['amount'] : null,
+        'status' => isset($securiaceModernRawTransaction['status']) ? $securiaceModernRawTransaction['status'] : '',
+    );
+}
+$securiaceModernCoreQrHtml = isset($invoiceQrHtml) && is_string($invoiceQrHtml)
+    ? trim($invoiceQrHtml)
+    : '';
 $securiaceModernCustomFields = isset($customfields) && is_array($customfields) ? $customfields : array();
 if (!isset($clientsdetails) || !is_array($clientsdetails)) {
     $clientsdetails = array();
@@ -313,16 +402,26 @@ $securiaceModernTaxNumeric = isset($tax) ? $securiaceModernMoneyToFloat($tax) : 
 $securiaceModernTax2Numeric = isset($tax2) ? $securiaceModernMoneyToFloat($tax2) : 0.0;
 $securiaceModernCreditNumeric = isset($credit) ? $securiaceModernMoneyToFloat($credit) : 0.0;
 $securiaceModernDiscountNumeric = isset($discount) ? $securiaceModernMoneyToFloat($discount) : 0.0;
-$securiaceModernTotalNumeric = isset($total) ? $securiaceModernMoneyToFloat($total) : 0.0;
+$securiaceModernTotalSource = isset($invoiceamount) && trim((string) $invoiceamount) !== ''
+    ? $invoiceamount
+    : (isset($total) ? $total : null);
+$securiaceModernTotalNumeric = $securiaceModernMoneyToFloat($securiaceModernTotalSource);
 $securiaceModernBalanceNumeric = isset($balance) ? $securiaceModernMoneyToFloat($balance) : 0.0;
+$securiaceModernAmountPaidNumeric = isset($amountpaid)
+    ? $securiaceModernMoneyToFloat($amountpaid)
+    : max(0.0, $securiaceModernTotalNumeric - $securiaceModernBalanceNumeric);
 
 $securiaceModernSubtotalDisplay = $securiaceModernDisplay(isset($subtotal) ? $subtotal : null, $securiaceModernSubtotalNumeric);
 $securiaceModernTaxDisplay = $securiaceModernDisplay(isset($tax) ? $tax : null, $securiaceModernTaxNumeric);
 $securiaceModernTax2Display = $securiaceModernDisplay(isset($tax2) ? $tax2 : null, $securiaceModernTax2Numeric);
 $securiaceModernCreditDisplay = $securiaceModernDisplay(isset($credit) ? $credit : null, $securiaceModernCreditNumeric);
 $securiaceModernDiscountDisplay = $securiaceModernDisplay(isset($discount) ? $discount : null, $securiaceModernDiscountNumeric);
-$securiaceModernTotalDisplay = $securiaceModernDisplay(isset($total) ? $total : null, $securiaceModernTotalNumeric);
+$securiaceModernTotalDisplay = $securiaceModernDisplay($securiaceModernTotalSource, $securiaceModernTotalNumeric);
 $securiaceModernBalanceDisplay = $securiaceModernDisplay(isset($balance) ? $balance : null, $securiaceModernBalanceNumeric);
+$securiaceModernAmountPaidDisplay = $securiaceModernDisplay(
+    isset($amountpaid) ? $amountpaid : null,
+    $securiaceModernAmountPaidNumeric
+);
 $securiaceModernExpectedTotalNumeric = $securiaceModernSubtotalNumeric
     - $securiaceModernDiscountNumeric
     + $securiaceModernTaxNumeric
@@ -478,12 +577,12 @@ foreach ($securiaceModernTransactions as $securiaceModernTransaction) {
 }
 
 $securiaceModernSettlementMismatch = $securiaceModernIsPaid
-    && abs(($securiaceModernTransactionTotal + $securiaceModernCreditNumeric) - $securiaceModernTotalNumeric) > 0.01;
+    && abs(($securiaceModernAmountPaidNumeric + $securiaceModernCreditNumeric) - $securiaceModernTotalNumeric) > 0.01;
 
 $securiaceModernRenewals = array();
 foreach ($securiaceModernItems as $securiaceModernItem) {
     $securiaceModernDescription = isset($securiaceModernItem['description'])
-        ? (string) $securiaceModernItem['description']
+        ? $securiaceModernPlainMultiline($securiaceModernItem['description'])
         : '';
     if (preg_match(
         '/(\d{1,4}[\/-]\d{1,2}[\/-]\d{1,4})\s*[-–]\s*(\d{1,4}[\/-]\d{1,2}[\/-]\d{1,4})/u',
@@ -504,6 +603,7 @@ foreach ($securiaceModernItems as $securiaceModernItem) {
 // PDF setup and shared drawing helpers
 // -------------------------------------------------------------------------
 
+$securiaceModernStartPage = $pdf->getPage();
 $securiaceModernMargin = 14.0;
 $securiaceModernTopMargin = 20.0;
 $securiaceModernBottomMargin = 15.0;
@@ -584,7 +684,7 @@ $pdf->SetTextColor($securiaceModernInk[0], $securiaceModernInk[1], $securiaceMod
 $pdf->SetX($securiaceModernPageWidth - $securiaceModernMargin - 66);
 $pdf->Cell(66, 8, $securiaceModernDocumentTitle, 0, 1, 'R');
 
-$securiaceModernStatusWidth = max(28, min(52, strlen($securiaceModernStatus) * 2.2 + 12));
+$securiaceModernStatusWidth = max(28, min(52, strlen($securiaceModernStatusDisplay) * 2.2 + 12));
 $securiaceModernStatusX = $securiaceModernPageWidth - $securiaceModernMargin - $securiaceModernStatusWidth;
 $pdf->SetFillColor($securiaceModernStatusSoft[0], $securiaceModernStatusSoft[1], $securiaceModernStatusSoft[2]);
 $pdf->SetDrawColor($securiaceModernStatusLine[0], $securiaceModernStatusLine[1], $securiaceModernStatusLine[2]);
@@ -592,7 +692,7 @@ $pdf->Rect($securiaceModernStatusX, $securiaceModernHeaderY + 14, $securiaceMode
 $pdf->SetFont($securiaceModernFont, 'B', 7);
 $pdf->SetTextColor($securiaceModernStatusInk[0], $securiaceModernStatusInk[1], $securiaceModernStatusInk[2]);
 $pdf->SetXY($securiaceModernStatusX, $securiaceModernHeaderY + 15.3);
-$pdf->Cell($securiaceModernStatusWidth, 4, strtoupper($securiaceModernStatus), 0, 1, 'C');
+$pdf->Cell($securiaceModernStatusWidth, 4, strtoupper($securiaceModernStatusDisplay), 0, 1, 'C');
 
 $securiaceModernRuleY = $securiaceModernHeaderY + 26;
 $pdf->SetDrawColor($securiaceModernBrand[0], $securiaceModernBrand[1], $securiaceModernBrand[2]);
@@ -724,6 +824,37 @@ foreach ($securiaceModernPartyColumns as $securiaceModernPartyColumn) {
 }
 $pdf->SetY($securiaceModernPartyY + $securiaceModernPartyHeight + 5);
 
+// WHMCS 9 can provide a core-generated invoice QR block. Preserve it as a
+// distinct system record; it is not the same thing as the optional INR UPI QR.
+if ($securiaceModernCoreQrHtml !== '') {
+    $securiaceModernEnsureSpace(28);
+    $securiaceModernCoreQrY = $pdf->GetY();
+    $securiaceModernDrawCard(
+        $securiaceModernMargin,
+        $securiaceModernCoreQrY,
+        $securiaceModernUsableWidth,
+        24,
+        $securiaceModernSurface,
+        $securiaceModernLine
+    );
+    $securiaceModernDrawLabel('Invoice QR record', $securiaceModernMargin + 4, $securiaceModernCoreQrY + 3, 45);
+    $pdf->SetXY($securiaceModernMargin + 48, $securiaceModernCoreQrY + 2);
+    $pdf->writeHTMLCell(
+        $securiaceModernUsableWidth - 52,
+        20,
+        '',
+        '',
+        $securiaceModernCoreQrHtml,
+        0,
+        0,
+        false,
+        true,
+        'R',
+        true
+    );
+    $pdf->SetY($securiaceModernCoreQrY + 29);
+}
+
 // -------------------------------------------------------------------------
 // Line items — use WHMCS line totals as line totals; quantity is conditional.
 // -------------------------------------------------------------------------
@@ -735,7 +866,7 @@ $pdf->SetXY($securiaceModernMargin, $pdf->GetY() + 3.5);
 $pdf->Cell($securiaceModernUsableWidth - 40, 4.5, 'Services and billing period', 0, 0, 'L');
 $pdf->SetFont($securiaceModernFont, 'B', 6);
 $pdf->SetTextColor($securiaceModernMuted[0], $securiaceModernMuted[1], $securiaceModernMuted[2]);
-$pdf->Cell(40, 4.5, 'Currency · ' . $securiaceModernCurrencyCode, 0, 1, 'R');
+$pdf->Cell(40, 4.5, 'Currency · ' . ($securiaceModernCurrencyCode !== '' ? $securiaceModernCurrencyCode : '—'), 0, 1, 'R');
 $pdf->Ln(1.5);
 
 $securiaceModernHasExplicitQuantity = false;
@@ -769,10 +900,12 @@ $securiaceModernItemsHtml .= '<th width="' . round(($securiaceModernAmountWidth 
 if (empty($securiaceModernItems)) {
     $securiaceModernItemsHtml .= '<tr bgcolor="#FFFefd"><td colspan="4" align="center" color="#6D6672">No line items found.</td></tr>';
 } else {
+    $securiaceModernRenderedItemDescriptions = array();
     foreach ($securiaceModernItems as $securiaceModernItemIndex => $securiaceModernItem) {
         $securiaceModernItemDescription = isset($securiaceModernItem['description'])
-            ? (string) $securiaceModernItem['description']
+            ? $securiaceModernPlainMultiline($securiaceModernItem['description'])
             : 'Invoice item';
+        $securiaceModernRenderedItemDescriptions[] = $securiaceModernItemDescription;
         $securiaceModernItemAmountRaw = isset($securiaceModernItem['amount'])
             ? $securiaceModernItem['amount']
             : 0;
@@ -852,8 +985,8 @@ if (abs($securiaceModernReconciliationDeltaNumeric) > 0.01) {
 $securiaceModernTotalRows[] = array('Grand total', $securiaceModernTotalDisplay, true);
 
 if ($securiaceModernIsPaid) {
-    $securiaceModernStateTotalLabel = 'Amount settled';
-    $securiaceModernStateTotalDisplay = $securiaceModernTotalDisplay;
+    $securiaceModernStateTotalLabel = 'Amount paid';
+    $securiaceModernStateTotalDisplay = $securiaceModernAmountPaidDisplay;
 } elseif ($securiaceModernIsPayable) {
     $securiaceModernStateTotalLabel = 'Balance due';
     $securiaceModernStateTotalDisplay = $securiaceModernBalanceDisplay;
@@ -1204,7 +1337,7 @@ if (empty($securiaceModernTransactions)) {
         $securiaceModernTransactionValues = array(
             isset($securiaceModernTransaction['date']) ? $securiaceModernTransaction['date'] : '—',
             isset($securiaceModernTransaction['gateway']) ? $securiaceModernTransaction['gateway'] : (isset($securiaceModernTransaction['paymentmethod']) ? $securiaceModernTransaction['paymentmethod'] : '—'),
-            isset($securiaceModernTransaction['transid']) && trim((string) $securiaceModernTransaction['transid']) !== '' ? $securiaceModernTransaction['transid'] : '—',
+            isset($securiaceModernTransaction['reference']) && trim((string) $securiaceModernTransaction['reference']) !== '' ? $securiaceModernTransaction['reference'] : '—',
             isset($securiaceModernTransaction['amount']) ? $securiaceModernTransaction['amount'] : $securiaceModernFormatMoney(0),
         );
         if ($securiaceModernHasTransactionStatus) {
@@ -1260,18 +1393,20 @@ $securiaceModernGeneratedAt = function_exists('getTodaysDate')
     ? getTodaysDate(1)
     : date('j M Y');
 $securiaceModernFinalPage = $pdf->getPage();
-$securiaceModernPageCount = $pdf->getNumPages();
+$securiaceModernPageCount = $securiaceModernFinalPage - $securiaceModernStartPage + 1;
 $securiaceModernPreviousAutoPageBreak = $pdf->getAutoPageBreak();
 $securiaceModernPreviousBreakMargin = $pdf->getBreakMargin();
 $pdf->SetAutoPageBreak(false, 0);
+$securiaceModernStampedPages = array();
 
-for ($securiaceModernPage = 1; $securiaceModernPage <= $securiaceModernPageCount; ++$securiaceModernPage) {
+for ($securiaceModernPage = $securiaceModernStartPage; $securiaceModernPage <= $securiaceModernFinalPage; ++$securiaceModernPage) {
+    $securiaceModernStampedPages[] = $securiaceModernPage;
     $pdf->setPage($securiaceModernPage);
     // setPage() restores the page's original auto-break setting in TCPDF.
     // Disable it again so footer positioning cannot consume the next page or
     // append a blank page when drawing near the physical page edge.
     $pdf->SetAutoPageBreak(false, 0);
-    if ($securiaceModernPage > 1) {
+    if ($securiaceModernPage > $securiaceModernStartPage) {
         $pdf->SetFont($securiaceModernFont, 'B', 7);
         $pdf->SetTextColor($securiaceModernBrand[0], $securiaceModernBrand[1], $securiaceModernBrand[2]);
         $pdf->SetXY($securiaceModernMargin, 8);
@@ -1286,7 +1421,8 @@ for ($securiaceModernPage = 1; $securiaceModernPage <= $securiaceModernPageCount
     $pdf->SetTextColor($securiaceModernMuted[0], $securiaceModernMuted[1], $securiaceModernMuted[2]);
     $pdf->SetXY($securiaceModernMargin, $securiaceModernPageHeight - 10);
     $pdf->Cell($securiaceModernUsableWidth * 0.7, 4, 'Generated ' . $securiaceModernGeneratedAt . ' · ' . $securiaceModernCompanyName, 0, 0, 'L');
-    $pdf->Cell($securiaceModernUsableWidth * 0.3, 4, 'Page ' . $securiaceModernPage . ' of ' . $securiaceModernPageCount, 0, 1, 'R');
+    $securiaceModernRelativePage = $securiaceModernPage - $securiaceModernStartPage + 1;
+    $pdf->Cell($securiaceModernUsableWidth * 0.3, 4, 'Page ' . $securiaceModernRelativePage . ' of ' . $securiaceModernPageCount, 0, 1, 'R');
 }
 
 $pdf->SetAutoPageBreak($securiaceModernPreviousAutoPageBreak, $securiaceModernPreviousBreakMargin);
