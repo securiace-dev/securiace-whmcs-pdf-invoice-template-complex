@@ -1,15 +1,18 @@
 # Invoice UI/UX and Runtime Audit
 
 Date: 2026-08-05  
-Scope: the supplied paid and unpaid invoice screenshots, the current `invoicepdf.tpl`, and the first-pass browser preview.
+Scope: the supplied paid and unpaid invoice screenshots, the repaired legacy
+`invoicepdf.tpl`, the browser preview, and the implemented
+`invoicepdf-modern.tpl`.
 
 ## Outcome
 
 The redesign keeps the existing invoice identity, parties, item details, totals,
 payment terms, bank details, UPI path, verification, signature/stamp, renewal
 information, and transaction history. It changes their hierarchy and makes
-payment content status-aware. The browser preview is intentionally the approval
-gate before a second WHMCS PDF template is implemented.
+payment content status-aware. The approved browser direction is now implemented
+as a second, separately named WHMCS PDF template; the repaired legacy template
+remains the rollback option.
 
 The sample HTML uses fictional customer, payment, tax, and bank data because
 this repository is public. Production assets and values must continue to come
@@ -136,9 +139,60 @@ Primary references:
 - Browser download and email attachment for at least one paid and one unpaid
   production-safe test invoice.
 
-## Approval boundary
+## Implementation and renderer findings
 
-The files under `preview/` are a browser-rendered design prototype, not a WHMCS
-runtime template. After the paid and unpaid preview states are approved, the
-design will be implemented as a new, separately named WHMCS-compatible template;
-the current repaired template remains available as a rollback option.
+The browser prototype remains a design-review artifact; the runtime
+implementation is `invoicepdf-modern.tpl`. Its protected settings contract is
+documented in `config/securiace-invoice-config.example.php`.
+
+Real TCPDF rendering found and resolved additional issues that were not visible
+in the browser prototype:
+
+1. Drawing a footer near the page edge while automatic page breaks were active
+   could append a blank page. On multi-page documents, TCPDF's `setPage()` also
+   restores the original break setting, so the template now disables it after
+   every page switch before drawing repeated context.
+2. Short notes could move onto a nearly empty second page. They now share the
+   payment-terms panel when short enough; long notes retain a dedicated section.
+3. `strtotime()` interpreted an Indian `04/09/2026` service-period end date as
+   9 April. Renewal parsing now uses strict `DMY` or `MDY` configuration and
+   rejects invalid dates.
+4. Mixed invoice items could inherit an invented quantity of `1` when only one
+   row supplied `qty`. Missing quantities and rates now render as em dashes.
+5. A zero subtotal with a non-zero grand total—the contradiction visible in the
+   supplied unpaid screenshot—had no explanatory row. The totals panel now
+   exposes the supplied difference as `Invoice adjustment` rather than hiding
+   it.
+6. A paid record with an inconsistent positive balance could still expose UPI.
+   All paid states now block payment actions regardless of balance corruption.
+7. A keyed HMAC was previously described as a digital signature and automatic
+   IT Act compliance. The implementation accurately labels it an authenticated
+   invoice record and electronic-record identifier. It does not claim to apply
+   a cryptographic PDF signature or certify legal compliance.
+
+The integration renderer covers paid, unpaid, partial, overdue, refunded,
+cancelled, collections, draft, zero-total, proforma, paid-with-adjustment,
+unreconciled-total, format-2 EUR, invalid-configuration, and 28-line Letter
+invoices. Standard fixtures render on one page; the dense Letter fixture renders
+on three pages with repeated identity, table headers, and stable `Page X of Y`
+footers. The tests use the TCPDF package bundled with local WHMCS 8.12.1 and were
+also run under PHP 8.5.9 without template notices or warnings.
+
+The browser preview's final accessibility pass adds a keyboard skip link,
+visible focus and hover states, URL-backed state switching, semantic transaction
+table markup, explicit QR dimensions, long-content wrapping, touch behavior,
+and balanced headings. The print document continues to communicate status in
+text rather than color alone.
+
+The repaired legacy template is also exercised through TCPDF with paid and
+unpaid fixtures. Both produce valid PDF files without the former
+`Undefined constant "COLOR_DARK_GREY"` runtime failure; the paid legacy layout
+remains two pages and the unpaid layout one page as a rollback-only baseline.
+
+## Production acceptance boundary
+
+The repository implementation is complete and locally rendered. Production
+activation still requires an operator-controlled deployment of the protected
+configuration and assets, followed by paid and unpaid invoice download plus
+email-attachment checks inside the target WHMCS instance. No production secret
+or customer data belongs in this repository.
