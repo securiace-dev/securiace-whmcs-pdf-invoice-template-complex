@@ -42,6 +42,18 @@ try {
         throw new RuntimeException('Repair is not idempotent: ' . json_encode($secondPass));
     }
 
+    $backupPath = backupWhmcsInvoiceTemplate($temporaryPath);
+    try {
+        if (file_get_contents($backupPath) !== file_get_contents($temporaryPath)) {
+            throw new RuntimeException('Rollback copy does not match the repaired template.');
+        }
+        if ((fileperms($backupPath) & 0777) !== (fileperms($temporaryPath) & 0777)) {
+            throw new RuntimeException('Rollback copy did not preserve template permissions.');
+        }
+    } finally {
+        @unlink($backupPath);
+    }
+
     fwrite(STDOUT, "WHMCS invoice template repair tests passed.\n");
 } finally {
     @unlink($temporaryPath);

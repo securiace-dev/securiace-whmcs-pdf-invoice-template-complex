@@ -11,14 +11,16 @@ declare(strict_types=1);
  */
 function repairWhmcsInvoiceTemplate(string $path): array
 {
-    if (!is_file($path) || !is_readable($path) || !is_writable($path)) {
-        throw new RuntimeException('Template must be a readable, writable file.');
+    $directory = dirname($path);
+    if (!is_file($path) || !is_readable($path) || !is_writable($path) || !is_writable($directory)) {
+        throw new RuntimeException('Template and its parent directory must be readable and writable.');
     }
 
     $source = file_get_contents($path);
     if ($source === false) {
         throw new RuntimeException('Unable to read template.');
     }
+    $originalSource = $source;
 
     $colorCount = 0;
     $source = preg_replace_callback(
@@ -52,8 +54,30 @@ function repairWhmcsInvoiceTemplate(string $path): array
         throw new RuntimeException('Unable to remove the trailing template artifact.');
     }
 
-    if (file_put_contents($path, $source, LOCK_EX) === false) {
-        throw new RuntimeException('Unable to write repaired template.');
+    if ($source !== $originalSource) {
+        $temporaryPath = tempnam($directory, '.invoicepdf-repair-');
+        if ($temporaryPath === false) {
+            throw new RuntimeException('Unable to create an atomic repair file.');
+        }
+
+        try {
+            if (file_put_contents($temporaryPath, $source, LOCK_EX) === false) {
+                throw new RuntimeException('Unable to write the atomic repair file.');
+            }
+
+            $permissions = fileperms($path);
+            if ($permissions !== false && !chmod($temporaryPath, $permissions & 0777)) {
+                throw new RuntimeException('Unable to preserve template permissions.');
+            }
+
+            if (!rename($temporaryPath, $path)) {
+                throw new RuntimeException('Unable to atomically replace the template.');
+            }
+        } finally {
+            if (is_file($temporaryPath)) {
+                @unlink($temporaryPath);
+            }
+        }
     }
 
     return array(
@@ -87,6 +111,23 @@ function assertWhmcsInvoiceTemplateRepaired(string $path): void
     }
 }
 
+function backupWhmcsInvoiceTemplate(string $path): string
+{
+    $suffix = gmdate('YmdHis') . '-' . bin2hex(random_bytes(3));
+    $backupPath = $path . '.bak.' . $suffix;
+    if (!copy($path, $backupPath)) {
+        throw new RuntimeException('Unable to create the rollback copy.');
+    }
+
+    $permissions = fileperms($path);
+    if ($permissions !== false && !chmod($backupPath, $permissions & 0777)) {
+        @unlink($backupPath);
+        throw new RuntimeException('Unable to preserve rollback-copy permissions.');
+    }
+
+    return $backupPath;
+}
+
 function main(array $arguments): int
 {
     if (count($arguments) !== 2) {
@@ -94,13 +135,20 @@ function main(array $arguments): int
         return 64;
     }
 
+    $backupPath = null;
     try {
+        $backupPath = backupWhmcsInvoiceTemplate($arguments[1]);
         $result = repairWhmcsInvoiceTemplate($arguments[1]);
         assertWhmcsInvoiceTemplateRepaired($arguments[1]);
+        $result['backup'] = $backupPath;
         fwrite(STDOUT, json_encode($result, JSON_UNESCAPED_SLASHES) . PHP_EOL);
         return 0;
     } catch (Throwable $error) {
-        fwrite(STDERR, $error->getMessage() . PHP_EOL);
+        $message = $error->getMessage();
+        if ($backupPath !== null) {
+            $message .= ' Rollback copy: ' . $backupPath;
+        }
+        fwrite(STDERR, $message . PHP_EOL);
         return 1;
     }
 }
