@@ -191,6 +191,14 @@ function renderFixture(string $templatePath, string $outputDirectory, string $na
             'currency_code' => $securiaceModernCurrencyCode,
             'amount_paid_display' => $securiaceModernAmountPaidDisplay,
             'core_qr_present' => $securiaceModernCoreQrHtml !== '',
+            'is_batch' => $securiaceModernIsBatch,
+            'rendered_core_qr' => $securiaceModernRenderedCoreQr,
+            'rendered_support' => $securiaceModernRenderedSupport,
+            'rendered_notes' => $securiaceModernRenderedNotes,
+            'rendered_renewals' => $securiaceModernRenderedRenewals,
+            'rendered_authorization' => $securiaceModernRenderedAuthorization,
+            'rendered_upi' => $securiaceModernRenderedUpi,
+            'rendered_settlement' => $securiaceModernRenderedSettlement,
             'transaction_reference' => isset($securiaceModernTransactions[0]['reference'])
                 ? $securiaceModernTransactions[0]['reference']
                 : null,
@@ -251,6 +259,7 @@ function renderBatchFixtures(string $templatePath, string $outputDirectory, arra
 
         $pdf->AddPage();
         extract($fixture, EXTR_OVERWRITE);
+        $securiaceInvoiceRenderProfile = 'batch';
         $GLOBALS['currencyformat'] = isset($fixture['currencyformat']) ? $fixture['currencyformat'] : 1;
 
         $previousHandler = set_error_handler(
@@ -279,6 +288,14 @@ function renderBatchFixtures(string $templatePath, string $outputDirectory, arra
             'start' => $securiaceModernStartPage,
             'end' => $securiaceModernFinalPage,
             'stamped' => $securiaceModernStampedPages,
+            'is_batch' => $securiaceModernIsBatch,
+            'rendered_core_qr' => $securiaceModernRenderedCoreQr,
+            'rendered_support' => $securiaceModernRenderedSupport,
+            'rendered_notes' => $securiaceModernRenderedNotes,
+            'rendered_renewals' => $securiaceModernRenderedRenewals,
+            'rendered_authorization' => $securiaceModernRenderedAuthorization,
+            'rendered_upi' => $securiaceModernRenderedUpi,
+            'rendered_settlement' => $securiaceModernRenderedSettlement,
         );
     }
 
@@ -607,14 +624,14 @@ $fixtures = array(
 );
 
 $expectations = array(
-    'paid' => array('is_payable' => false, 'has_upi' => false, 'settlement_mismatch' => false, 'document_title' => 'Invoice', 'renewal_date' => '4 Sep 2026'),
-    'unpaid' => array('is_payable' => true, 'has_upi' => true, 'settlement_mismatch' => false, 'document_title' => 'Invoice'),
+    'paid' => array('is_payable' => false, 'has_upi' => false, 'rendered_authorization' => true, 'rendered_support' => true, 'rendered_renewals' => true, 'settlement_mismatch' => false, 'document_title' => 'Invoice', 'renewal_date' => '4 Sep 2026'),
+    'unpaid' => array('is_payable' => true, 'has_upi' => true, 'rendered_upi' => true, 'rendered_support' => true, 'settlement_mismatch' => false, 'document_title' => 'Invoice'),
     'partial' => array('is_payable' => true, 'has_upi' => true, 'settlement_mismatch' => false, 'document_title' => 'Invoice'),
     'refunded' => array('is_payable' => false, 'has_upi' => false, 'settlement_mismatch' => false, 'document_title' => 'Invoice'),
-    'proforma' => array('is_payable' => true, 'has_upi' => true, 'settlement_mismatch' => false, 'document_title' => 'Proforma Invoice', 'invoice_number' => '300000124'),
+    'proforma' => array('is_payable' => true, 'has_upi' => false, 'rendered_upi' => false, 'settlement_mismatch' => false, 'document_title' => 'Proforma Invoice', 'invoice_number' => '300000124'),
     'paid-adjusted' => array('is_payable' => false, 'has_upi' => false, 'settlement_mismatch' => true, 'document_title' => 'Invoice'),
     'reconciled-adjustment' => array('is_payable' => true, 'has_upi' => true, 'settlement_mismatch' => false, 'document_title' => 'Invoice', 'reconciliation_delta' => 9990.0, 'renewal_date' => '2 Aug 2027'),
-    'overdue' => array('is_payable' => true, 'has_upi' => true, 'settlement_mismatch' => false, 'document_title' => 'Invoice'),
+    'overdue' => array('is_payable' => true, 'has_upi' => false, 'rendered_upi' => false, 'settlement_mismatch' => false, 'document_title' => 'Invoice'),
     'cancelled' => array('is_payable' => false, 'has_upi' => false, 'settlement_mismatch' => false, 'document_title' => 'Invoice'),
     'collections' => array('is_payable' => false, 'has_upi' => false, 'settlement_mismatch' => false, 'document_title' => 'Invoice'),
     'draft' => array('is_payable' => false, 'has_upi' => false, 'settlement_mismatch' => false, 'document_title' => 'Invoice'),
@@ -622,7 +639,7 @@ $expectations = array(
     'euro-format2' => array('is_payable' => true, 'has_upi' => false, 'settlement_mismatch' => false, 'document_title' => 'Invoice', 'total_numeric' => 1234.56, 'balance_numeric' => 1234.56),
     'unknown-currency' => array('is_payable' => true, 'has_upi' => false, 'currency_code' => '', 'document_title' => 'Invoice'),
     'entity-description' => array('is_payable' => true, 'has_upi' => true, 'first_item_description' => "Security R&D <managed>\nService period: 05/08/2026 - 04/09/2026", 'document_title' => 'Invoice'),
-    'whmcs9-ledger' => array('is_payable' => false, 'has_upi' => false, 'currency_code' => 'INR', 'core_qr_present' => true, 'transaction_reference' => 'WHMCS9-REFERENCE-00131', 'amount_paid_display' => '₹ 9,990.00 INR', 'document_title' => 'Invoice'),
+    'whmcs9-ledger' => array('is_payable' => false, 'has_upi' => false, 'currency_code' => 'INR', 'core_qr_present' => true, 'rendered_core_qr' => false, 'transaction_reference' => 'WHMCS9-REFERENCE-00131', 'amount_paid_display' => '₹ 9,990.00 INR', 'document_title' => 'Invoice'),
     'whmcs9-credit-note' => array('is_payable' => true, 'has_upi' => true, 'transaction_reference' => 'Credit note · CN-00132', 'document_title' => 'Invoice'),
     'invalid-config' => array('is_payable' => true, 'has_upi' => false, 'settlement_mismatch' => false, 'document_title' => 'Invoice'),
     'long-letter' => array('is_payable' => true, 'has_upi' => true, 'settlement_mismatch' => false, 'document_title' => 'Invoice'),
@@ -661,10 +678,30 @@ try {
         $batchRanges = renderBatchFixtures(
             $templatePath,
             $outputDirectory,
-            array('batch-paid' => $fixtures['paid'], 'batch-unpaid' => $fixtures['unpaid'])
+            array(
+                'batch-paid' => array_replace($fixtures['paid'], array(
+                    'invoiceQrHtml' => '<div>Batch QR must not render</div>',
+                    'notes' => str_repeat('Batch notes must not render. ', 20),
+                )),
+                'batch-unpaid' => $fixtures['unpaid'],
+            )
         );
         assertFixtureValue('batch-paid', 'stamped_pages', $batchRanges[0]['stamped'], array(1));
         assertFixtureValue('batch-unpaid', 'stamped_pages', $batchRanges[1]['stamped'], array(2));
+        foreach ($batchRanges as $batchRange) {
+            assertFixtureValue($batchRange['name'], 'is_batch', $batchRange['is_batch'], true);
+            foreach (array(
+                'rendered_core_qr',
+                'rendered_support',
+                'rendered_notes',
+                'rendered_renewals',
+                'rendered_authorization',
+                'rendered_upi',
+                'rendered_settlement',
+            ) as $suppressedField) {
+                assertFixtureValue($batchRange['name'], $suppressedField, $batchRange[$suppressedField], false);
+            }
+        }
 
         $secondPaid = renderFixture($templatePath, $outputDirectory, 'paid-repeat', $fixtures['paid'], $templateMode);
         assertFixtureValue(

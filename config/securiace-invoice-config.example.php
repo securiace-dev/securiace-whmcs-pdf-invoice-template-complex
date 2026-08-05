@@ -27,4 +27,5 @@ return array(
     'jurisdiction' => 'Pune, Maharashtra',
     'overdue_interest' => '18% p.a.',
     'tds_note' => 'If applicable, deduct TDS under Section 194J and provide Form 16A.',
+    'acceptance_note' => 'Acceptance confirms the scope and commercial terms shown in this quote.',
 );

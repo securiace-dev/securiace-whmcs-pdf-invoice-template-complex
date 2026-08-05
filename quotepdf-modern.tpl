@@ -154,7 +154,6 @@ $securiaceQuoteSubject = isset($subject) && trim((string) $subject) !== ''
     : 'Commercial proposal';
 $securiaceQuoteProposalHtml = isset($proposal) ? $securiaceQuoteRichHtml($proposal) : '';
 $securiaceQuoteProposalPlain = isset($proposal) ? $securiaceQuotePlainMultiline($proposal) : '';
-$securiaceQuoteNotes = isset($notes) ? $securiaceQuotePlainMultiline($notes) : '';
 $securiaceQuoteItems = isset($lineitems) && is_array($lineitems) ? $lineitems : array();
 if (!isset($clientsdetails) || !is_array($clientsdetails)) {
     $clientsdetails = array();
@@ -610,19 +609,7 @@ foreach ($totalRows as $totalRow) {
 }
 $pdf->SetY($totalsY + $totalsHeight + 4);
 
-if ($securiaceQuoteNotes !== '') {
-    $pdf->SetFont($securiaceQuoteFont, '', 7);
-    $notesHeight = max(14, $pdf->getStringHeight($securiaceQuoteUsableWidth - 8, $securiaceQuoteNotes) + 10);
-    $securiaceQuoteEnsureSpace($notesHeight + 3);
-    $notesY = $pdf->GetY();
-    $securiaceQuoteDrawCard($securiaceQuoteMargin, $notesY, $securiaceQuoteUsableWidth, $notesHeight, $securiaceQuoteSurface, $securiaceQuoteLine);
-    $securiaceQuoteDrawLabel('Client notes', $securiaceQuoteMargin + 4, $notesY + 3, $securiaceQuoteUsableWidth - 8);
-    $pdf->SetFont($securiaceQuoteFont, '', 7);
-    $pdf->SetTextColor($securiaceQuoteMuted[0], $securiaceQuoteMuted[1], $securiaceQuoteMuted[2]);
-    $pdf->SetXY($securiaceQuoteMargin + 4, $notesY + 8);
-    $pdf->MultiCell($securiaceQuoteUsableWidth - 8, 4, $securiaceQuoteNotes, 0, 'L');
-    $pdf->SetY($notesY + $notesHeight);
-}
+$securiaceQuoteRenderedNotes = false;
 
 // Batch-safe repeated context and footer.
 $securiaceQuoteGeneratedAt = function_exists('getTodaysDate') ? getTodaysDate(1) : date('j M Y');
