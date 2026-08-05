@@ -1,16 +1,17 @@
-name: Validate invoice templates
+name: Validate WHMCS PDF suite
 
 on:
   pull_request:
   push:
     branches:
       - main
+      - "release/**"
 
 permissions:
   contents: read
 
 concurrency:
-  group: invoice-validation-${{ github.workflow }}-${{ github.ref }}
+  group: pdf-suite-validation-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -47,10 +48,17 @@ jobs:
           for source in \
             invoicepdf.tpl \
             invoicepdf-modern.tpl \
+            quotepdf-modern.tpl \
             config/securiace-invoice-config.example.php \
+            scripts/audit-whmcs-pdf-surface.php \
             scripts/repair-whmcs-invoice-template.php \
+            tests/modern_invoice_design_contract_test.php \
+            tests/modern_quote_template_contract_test.php \
             tests/preview_contract_test.php \
+            tests/quote_preview_contract_test.php \
             tests/render_modern_invoice_fixtures.php \
+            tests/render_modern_quote_fixtures.php \
+            tests/whmcs_pdf_surface_audit_test.php \
             tests/whmcs_invoice_template_repair_test.php
           do
             php -l "$source"
@@ -59,7 +67,11 @@ jobs:
       - name: Run dependency-free regression tests
         run: |
           php tests/whmcs_invoice_template_repair_test.php
+          php tests/whmcs_pdf_surface_audit_test.php
           php tests/preview_contract_test.php
+          php tests/quote_preview_contract_test.php
+          php tests/modern_invoice_design_contract_test.php
+          php tests/modern_quote_template_contract_test.php
 
       - name: Install a clean TCPDF test dependency
         shell: bash
@@ -71,19 +83,23 @@ jobs:
             --no-progress \
             tecnickcom/tcpdf:^6.7
 
-      - name: Render modern and legacy PDF fixtures
+      - name: Render invoice and quote PDF fixtures
         shell: bash
         run: |
           set -euo pipefail
           modern_output="$(mktemp -d "$RUNNER_TEMP/modern-invoices.XXXXXX")"
           legacy_output="$(mktemp -d "$RUNNER_TEMP/legacy-invoices.XXXXXX")"
+          quote_output="$(mktemp -d "$RUNNER_TEMP/modern-quotes.XXXXXX")"
           tcpdf="$RUNNER_TEMP/tcpdf/vendor/tecnickcom/tcpdf/tcpdf.php"
-          php tests/render_modern_invoice_fixtures.php "$tcpdf" "$modern_output"
+          php tests/render_modern_invoice_fixtures.php "$tcpdf" "$modern_output" modern
           php tests/render_modern_invoice_fixtures.php "$tcpdf" "$legacy_output" legacy
+          php tests/render_modern_quote_fixtures.php "$tcpdf" "$quote_output"
 
       - name: Check browser-preview JavaScript syntax
         if: matrix.php == '8.3'
-        run: node --check preview/app.js
+        run: |
+          node --check preview/app.js
+          node --check quote-preview/app.js
 
       - name: Reject whitespace errors in the pull-request diff
         if: github.event_name == 'pull_request'
