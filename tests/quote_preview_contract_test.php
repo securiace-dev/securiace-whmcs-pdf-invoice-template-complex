@@ -1,0 +1,48 @@
+<?php
+
+declare(strict_types=1);
+
+$previewDirectory = __DIR__ . '/../quote-preview';
+$html = file_get_contents($previewDirectory . '/index.html');
+$css = file_get_contents($previewDirectory . '/styles.css');
+$javascript = file_get_contents($previewDirectory . '/app.js');
+if ($html === false || $css === false || $javascript === false) {
+    throw new RuntimeException('Unable to read quote preview files.');
+}
+
+$requiredHtml = array(
+    'href="#quote-document"',
+    'id="quote-document" tabindex="-1"',
+    'Commercial proposal',
+    'Valid until 19 Aug 2026',
+    'Prepared for',
+    'Prepared by',
+    '<th scope="col" class="numeric">Qty</th>',
+    '<th scope="col" class="numeric">Unit price</th>',
+    '<th scope="col" class="numeric">Discount</th>',
+    'Validity and acceptance',
+);
+foreach ($requiredHtml as $required) {
+    if (strpos($html, $required) === false) {
+        throw new RuntimeException('Quote preview contract is missing: ' . $required);
+    }
+}
+
+foreach (array('UPI payment', 'Payment transactions', 'Amount paid', 'Authenticated invoice record') as $invoiceOnlyText) {
+    if (stripos($html, $invoiceOnlyText) !== false) {
+        throw new RuntimeException('Quote preview contains invoice-only content: ' . $invoiceOnlyText);
+    }
+}
+
+foreach (array('@import url("../preview/styles.css")', '.validity-pill', '.proposal-copy', '.quote-financial', '@media print') as $required) {
+    if (strpos($css, $required) === false) {
+        throw new RuntimeException('Quote preview stylesheet contract is missing: ' . $required);
+    }
+}
+foreach (array('window.print()', 'beforeprint', 'afterprint', 'aria-busy') as $required) {
+    if (strpos($javascript, $required) === false) {
+        throw new RuntimeException('Quote preview interaction contract is missing: ' . $required);
+    }
+}
+
+fwrite(STDOUT, "Quote browser preview contract tests passed.\n");
