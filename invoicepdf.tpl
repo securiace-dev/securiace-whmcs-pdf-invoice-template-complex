@@ -142,10 +142,9 @@ if (!function_exists('classifyInvoiceItem')) {
 //   - thousands/decimal separators driven by $currencyformat (WHMCS
 //     tblcurrencies.format: 1=US "1,234.56", 2=EU "1.234,56",
 //     3=French "1 234.56", 4=plain "1234.56")
-// Loaded only when WHMCS hasn't already exposed its own formatCurrency()
-// (in that case PHP routes calls there; extra args are silently ignored).
-if (!function_exists('formatCurrency')) {
-    function formatCurrency($amount, $currencyprefix = '', $currencysuffix = '') {
+// Namespaced to avoid collisions with WHMCS core and third-party add-ons.
+if (!function_exists('securiaceInvoiceFormatCurrency')) {
+    function securiaceInvoiceFormatCurrency($amount, $currencyprefix = '', $currencysuffix = '') {
         // Set default currency values if not provided
         if (empty($currencyprefix) && empty($currencysuffix)) {
             if (isset($clientsdetails['currency']) && !empty($clientsdetails['currency'])) {
@@ -200,7 +199,6 @@ if (!function_exists('formatCurrency')) {
         return $formatted;
     }
 }
-
 // ========================================================================
 // SECURIACE CONFIG BLOCK — edit only this section for company/bank/UPI
 // ========================================================================
@@ -368,7 +366,7 @@ $pdf->Image(ROOTDIR . '/assets/img/' . $logoFilename, 8, 8, 45);
 
 // Dynamic Document Title (right side) - Proforma vs Invoice
 $pdf->SetFont('dejavusans', 'B', 20);
-$pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]);
+$pdf->SetTextColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]);
 $pdf->SetXY(120, 8);
 $pdf->Cell(70, 8, $document_type, 0, 1, 'R');
 
@@ -399,7 +397,7 @@ if ($ENH['show_status_ribbon']) {
     $pdf->Cell(55, 8, $status_text, 1, 1, 'C', true);
     
     // Reset colors and line width
-    $pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]);
+    $pdf->SetTextColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]);
     $pdf->SetLineWidth(0.2);
     
 }
@@ -538,7 +536,7 @@ if ($ENH['show_verification_badge'] && $normalized_status === 'paid') {
     $pdf->Line(135, $verification_y + $badge_height - 0.3, 135 + $badge_width, $verification_y + $badge_height - 0.3);
     
     // Reset colors
-    $pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]);
+    $pdf->SetTextColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]);
 } elseif ($isProforma) {
     // Proforma Status Badge - in place of verification badge
     $proforma_y = 29; // Same position as verification badge (reduced gap)
@@ -610,7 +608,7 @@ if ($ENH['show_verification_badge'] && $normalized_status === 'paid') {
     $pdf->Line(135, $proforma_y + $badge_height - 0.5, 135 + $badge_width, $proforma_y + $badge_height - 0.5);
     
     // Reset colors
-    $pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]);
+    $pdf->SetTextColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]);
 }
 
 // ========================================================================
@@ -641,7 +639,7 @@ if ($isProforma) {
     // Reset graphics state
     $pdf->StopTransform();
     $pdf->SetAlpha(1.0); // Reset opacity
-    $pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]); // Reset text color
+    $pdf->SetTextColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]); // Reset text color
 }
 
 // ========================================================================
@@ -650,7 +648,7 @@ if ($isProforma) {
 
 // Dynamic Document Number (Proforma No vs Invoice No)
 $pdf->SetFont('dejavusans', '', 9);
-$pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]);
+$pdf->SetTextColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]);
 $pdf->SetXY(8, 25);
 $pdf->Cell(25, 4, $document_number_label . ' #', 0, 0, 'L');
 $pdf->SetFont('dejavusans', 'B', 9);
@@ -733,19 +731,19 @@ if ($normalized_status === 'paid' && $ENH['show_original_proforma']) {
 $billed_y_start = 50;
 
 // Client Section (Left) - Client information (who is being billed)
-$pdf->SetFillColor(COLOR_WHITE[0], COLOR_WHITE[1], COLOR_WHITE[2]);
-$pdf->SetDrawColor(COLOR_BLACK[0], COLOR_BLACK[1], COLOR_BLACK[2]);
+$pdf->SetFillColor($COLOR_WHITE[0], $COLOR_WHITE[1], $COLOR_WHITE[2]);
+$pdf->SetDrawColor($COLOR_BLACK[0], $COLOR_BLACK[1], $COLOR_BLACK[2]);
 $pdf->Rect(8, $billed_y_start, 95, 55);
 
 // "Billed To" title - professional styling
 $pdf->SetFont('dejavusans', 'B', 10);
-$pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]);
+$pdf->SetTextColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]);
 $pdf->SetXY(12, $billed_y_start + 3);
 $pdf->Cell(87, 5, 'Billed To', 0, 0, 'L');
 
 // Client Details - with proper text wrapping and dynamic alignment
 $pdf->SetFont('dejavusans', 'B', 9);
-$pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]);
+$pdf->SetTextColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]);
 $pdf->SetXY(12, $billed_y_start + 8);
 
 // Use company name if available, otherwise use first/last name
@@ -767,7 +765,7 @@ $pdf->MultiCell(87, 4, $client_name, 0, 'L');
 
 // Client address with proper text wrapping
 $pdf->SetFont('dejavusans', '', 8);
-$pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]);
+$pdf->SetTextColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]);
 $pdf->SetXY(12, $pdf->GetY() + 2);
 
 // Build comprehensive client address from WHMCS variables
@@ -800,7 +798,7 @@ $pdf->MultiCell(87, 3, $client_full_address, 0, 'L');
 
 // Client email and phone with proper styling
 $pdf->SetFont('dejavusans', '', 8);
-$pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]);
+$pdf->SetTextColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]);
 
 // Client email
 if (isset($clientsdetails["email"]) && !empty(trim($clientsdetails["email"]))) {
@@ -826,19 +824,19 @@ if (isset($customfields) && is_array($customfields)) {
 }
 
 // Seller Section (Right) - Company Details (business owner/seller)
-$pdf->SetFillColor(COLOR_WHITE[0], COLOR_WHITE[1], COLOR_WHITE[2]);
-$pdf->SetDrawColor(COLOR_BLACK[0], COLOR_BLACK[1], COLOR_BLACK[2]);
+$pdf->SetFillColor($COLOR_WHITE[0], $COLOR_WHITE[1], $COLOR_WHITE[2]);
+$pdf->SetDrawColor($COLOR_BLACK[0], $COLOR_BLACK[1], $COLOR_BLACK[2]);
 $pdf->Rect(107, $billed_y_start, 95, 55);
 
 // "Billed By" title - professional styling
 $pdf->SetFont('dejavusans', 'B', 10);
-$pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]);
+$pdf->SetTextColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]);
 $pdf->SetXY(111, $billed_y_start + 3);
 $pdf->Cell(87, 5, 'Billed By', 0, 0, 'L');
 
 // Seller Details - Company Details (business owner/seller) with proper text wrapping
 $pdf->SetFont('dejavusans', 'B', 9);
-$pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]);
+$pdf->SetTextColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]);
 $pdf->SetXY(111, $billed_y_start + 8);
 
 // Use WHMCS company name variable for seller with fallback
@@ -847,7 +845,7 @@ $pdf->MultiCell(87, 4, $seller_name, 0, 'L');
 
 // Company Address - from screenshot
 $pdf->SetFont('dejavusans', '', 8);
-$pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]);
+$pdf->SetTextColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]);
 $pdf->SetXY(111, $pdf->GetY() + 2);
 $pdf->MultiCell(87, 3, 'Kishor Nagar Rd,, Nanded, Maharashtra, India - 431602', 0, 'L');
 
@@ -873,7 +871,7 @@ $pdf->SetTextColor(75, 0, 130); // Purple color for MSME details
 $pdf->MultiCell(87, 3, 'MSME Registered | UDYAM-MH-21-0014457', 0, 'L');
 
 // Reset text color
-$pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]);
+$pdf->SetTextColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]);
 
 
 // ========================================================================
@@ -974,7 +972,7 @@ $discount_x = $show_discount_column ? $rate_x + $rate_width : 0;
 $amount_x = $show_discount_column ? $discount_x + $discount_width : $rate_x + $rate_width;
 
 // Enhanced Table Header with Status-based Professional Styling
-$pdf->SetFillColor(STATUS_ACCENT_COLOR[0], STATUS_ACCENT_COLOR[1], STATUS_ACCENT_COLOR[2]); // Status-based header background
+$pdf->SetFillColor($STATUS_ACCENT_COLOR[0], $STATUS_ACCENT_COLOR[1], $STATUS_ACCENT_COLOR[2]); // Status-based header background
 $pdf->SetTextColor(255, 255, 255); // White text for contrast
 $pdf->SetFont('dejavusans', 'B', 10); // Larger, bolder font
 
@@ -990,13 +988,13 @@ if ($show_discount_column) {
     $pdf->SetTextColor(255, 255, 255); // White text
     $pdf->Cell($discount_width, 8, 'DISCOUNT', 1, 0, 'C', true);
     // Reset to status accent color for AMOUNT header
-    $pdf->SetFillColor(STATUS_ACCENT_COLOR[0], STATUS_ACCENT_COLOR[1], STATUS_ACCENT_COLOR[2]);
+    $pdf->SetFillColor($STATUS_ACCENT_COLOR[0], $STATUS_ACCENT_COLOR[1], $STATUS_ACCENT_COLOR[2]);
 }
 
 $pdf->Cell($amount_width, 8, 'AMOUNT', 1, 1, 'C', true);
 
 // Enhanced Table Rows with Professional Styling
-$pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]);
+$pdf->SetTextColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]);
 
 $current_y = $table_y_start + 8; // Increased spacing after header
 $item_number = 1;
@@ -1140,7 +1138,7 @@ foreach ($regular_items AS $item) {
     $pdf->SetFont('dejavusans', '', 8);
     $pdf->SetXY($rate_x, $current_y);
     $amount_value = parseAmount($item['amount']);
-    $rate_display = formatCurrency($amount_value, $currencyprefix, $currencysuffix);
+    $rate_display = securiaceInvoiceFormatCurrency($amount_value, $currencyprefix, $currencysuffix);
     $pdf->Cell($rate_width, $row_height, $rate_display, 1, 0, 'R', true);
     
     // Conditionally show discount column
@@ -1153,7 +1151,7 @@ foreach ($regular_items AS $item) {
             $pdf->SetFillColor($row_bg_color[0], $row_bg_color[1], $row_bg_color[2]); // Base row color
             $pdf->SetTextColor(34, 139, 34); // Forest Green text for discount
             $pdf->SetFont('dejavusans', 'B', 8); // Bold font for emphasis
-            $discount_display = formatCurrency($item_discount, $currencyprefix, $currencysuffix);
+            $discount_display = securiaceInvoiceFormatCurrency($item_discount, $currencyprefix, $currencysuffix);
         } else {
             // No Discount - Muted styling
             $pdf->SetFillColor($row_bg_color[0], $row_bg_color[1], $row_bg_color[2]); // Base row color
@@ -1171,14 +1169,14 @@ foreach ($regular_items AS $item) {
     $pdf->SetFont('dejavusans', 'B', 9); // Bold for emphasis
     $pdf->SetXY($amount_x, $current_y);
     $amount = ($amount_value * $quantity) - $item_discount;
-    $amount_display = formatCurrency($amount, $currencyprefix, $currencysuffix);
+    $amount_display = securiaceInvoiceFormatCurrency($amount, $currencyprefix, $currencysuffix);
     $pdf->Cell($amount_width, $row_height, $amount_display, 1, 1, 'R', true);
     
     // Debug output removed to prevent page breaks
     
     // Reset font and color for next iteration
     $pdf->SetFont('dejavusans', '', 8);
-    $pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]);
+    $pdf->SetTextColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]);
     
     // Update current_y for next row using actual MultiCell height
     $current_y = $pdf->GetY() + 2; // Add small spacing between rows
@@ -1382,10 +1380,10 @@ $pdf->SetTextColor(128, 128, 128);
 
 // Reset font and color for totals section
 $pdf->SetFont('dejavusans', 'B', 9);
-$pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]);
+$pdf->SetTextColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]);
 
 // Enhanced Subtotal Row with Professional Styling
-$pdf->SetFillColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]); // Dark background
+$pdf->SetFillColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]); // Dark background
 $pdf->SetTextColor(255, 255, 255); // White text
 $pdf->SetFont('dejavusans', 'B', 9); // Bold font
 $pdf->SetXY($item_x, $current_y);
@@ -1400,7 +1398,7 @@ if ($show_discount_column) {
 
 // Display services-only subtotal — late-fee and gateway-fee items render as
 // their own rows below so the running math adds up to the printed total.
-$subtotal_display = formatCurrency($subtotal_for_display, $currencyprefix, $currencysuffix);
+$subtotal_display = securiaceInvoiceFormatCurrency($subtotal_for_display, $currencyprefix, $currencysuffix);
 $pdf->Cell($amount_width, 8, $subtotal_display, 1, 1, 'R', true);
 // Debug output removed to prevent page breaks
 
@@ -1421,7 +1419,7 @@ if ($isProforma) {
     $pdf->Cell(190, 6, 'DISCLAIMER:', 0, 1, 'L');
     
     $pdf->SetFont('dejavusans', '', 8);
-    $pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]);
+    $pdf->SetTextColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]);
     $pdf->SetXY(12, $current_y + 6);
     $pdf->Cell(190, 4, 'This is a provisional document. An official invoice will be issued once payment is confirmed.', 0, 1, 'L');
     
@@ -1430,7 +1428,7 @@ if ($isProforma) {
 
 // Reset font and color for next section
 $pdf->SetFont('dejavusans', 'B', 9);
-$pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]);
+$pdf->SetTextColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]);
 $current_y += 7;
 
 // Indian Tax Compliance - Proper order: Subtotal → Discount → Tax → Credit → Total
@@ -1460,7 +1458,7 @@ if ($discount > 0) {
         $pdf->Cell($discount_width, 8, '', 1, 0, 'C', true);
     }
     
-    $discount_display = '(' . formatCurrency($discount, $currencyprefix, $currencysuffix) . ')';
+    $discount_display = '(' . securiaceInvoiceFormatCurrency($discount, $currencyprefix, $currencysuffix) . ')';
     $pdf->Cell($amount_width, 8, $discount_display, 1, 1, 'R', true);
     $current_y += 8;
 }
@@ -1479,7 +1477,7 @@ if (!empty($late_fee_items) && $late_fee_total > 0) {
     if ($show_discount_column) {
         $pdf->Cell($discount_width, 8, '', 1, 0, 'C', true);
     }
-    $late_fee_display = formatCurrency($late_fee_total, $currencyprefix, $currencysuffix);
+    $late_fee_display = securiaceInvoiceFormatCurrency($late_fee_total, $currencyprefix, $currencysuffix);
     $pdf->Cell($amount_width, 8, $late_fee_display, 1, 1, 'R', true);
     $current_y += 8;
 }
@@ -1497,7 +1495,7 @@ if (!empty($gateway_fee_items) && $gateway_fee_total > 0) {
     if ($show_discount_column) {
         $pdf->Cell($discount_width, 8, '', 1, 0, 'C', true);
     }
-    $gateway_fee_display = formatCurrency($gateway_fee_total, $currencyprefix, $currencysuffix);
+    $gateway_fee_display = securiaceInvoiceFormatCurrency($gateway_fee_total, $currencyprefix, $currencysuffix);
     $pdf->Cell($amount_width, 8, $gateway_fee_display, 1, 1, 'R', true);
     $current_y += 8;
 }
@@ -1532,7 +1530,7 @@ if ($tax > 0) {
         $pdf->Cell($discount_width, 8, '', 1, 0, 'C', true);
     }
     
-    $tax_display = formatCurrency($tax, $currencyprefix, $currencysuffix);
+    $tax_display = securiaceInvoiceFormatCurrency($tax, $currencyprefix, $currencysuffix);
     $pdf->Cell($amount_width, 8, $tax_display, 1, 1, 'R', true);
     $current_y += 8;
 }
@@ -1565,7 +1563,7 @@ if ($tax2 > 0) {
         $pdf->Cell($discount_width, 8, '', 1, 0, 'C', true);
     }
     
-    $tax2_display = formatCurrency($tax2, $currencyprefix, $currencysuffix);
+    $tax2_display = securiaceInvoiceFormatCurrency($tax2, $currencyprefix, $currencysuffix);
     $pdf->Cell($amount_width, 8, $tax2_display, 1, 1, 'R', true);
     $current_y += 8;
 }
@@ -1585,7 +1583,7 @@ if ($credit > 0) {
         $pdf->Cell($discount_width, 8, '', 1, 0, 'C', true);
     }
     
-    $credit_display = '(' . formatCurrency($credit, $currencyprefix, $currencysuffix) . ')';
+    $credit_display = '(' . securiaceInvoiceFormatCurrency($credit, $currencyprefix, $currencysuffix) . ')';
     $pdf->Cell($amount_width, 8, $credit_display, 1, 1, 'R', true);
     $current_y += 8;
 }
@@ -1659,7 +1657,7 @@ if (isset($transactions) && is_array($transactions) && count($transactions) > 0)
 }
 
 // Enhanced Total Row with Status-based Premium Styling
-$pdf->SetFillColor(STATUS_ACCENT_COLOR[0], STATUS_ACCENT_COLOR[1], STATUS_ACCENT_COLOR[2]); // Status-based background for emphasis
+$pdf->SetFillColor($STATUS_ACCENT_COLOR[0], $STATUS_ACCENT_COLOR[1], $STATUS_ACCENT_COLOR[2]); // Status-based background for emphasis
 $pdf->SetTextColor(255, 255, 255); // White text
 $pdf->SetFont('dejavusans', 'B', 11); // Larger, bolder font
 $pdf->SetXY($item_x, $current_y);
@@ -1672,7 +1670,7 @@ if ($show_discount_column) {
     $pdf->Cell($discount_width, 10, '', 1, 0, 'C', true);
 }
 
-$total_display = formatCurrency($final_total, $currencyprefix, $currencysuffix);
+$total_display = securiaceInvoiceFormatCurrency($final_total, $currencyprefix, $currencysuffix);
 $pdf->Cell($amount_width, 10, $total_display, 1, 1, 'R', true);
 $current_y += 10;
 
@@ -1689,7 +1687,7 @@ if ($normalized_status === 'paid') {
     if ($show_discount_column) {
         $pdf->Cell($discount_width, 8, '', 1, 0, 'C', true);
     }
-    $pdf->Cell($amount_width, 8, formatCurrency($amount_paid, $currencyprefix, $currencysuffix), 1, 1, 'R', true);
+    $pdf->Cell($amount_width, 8, securiaceInvoiceFormatCurrency($amount_paid, $currencyprefix, $currencysuffix), 1, 1, 'R', true);
     $current_y += 8;
     
     // Balance Due = 0.00 for paid invoices (FIXED: Hide for paid invoices)
@@ -1705,14 +1703,14 @@ if ($normalized_status === 'paid') {
         if ($show_discount_column) {
             $pdf->Cell($discount_width, 8, '', 1, 0, 'C', true);
         }
-        $pdf->Cell($amount_width, 8, formatCurrency($balance, $currencyprefix, $currencysuffix), 1, 1, 'R', true);
+        $pdf->Cell($amount_width, 8, securiaceInvoiceFormatCurrency($balance, $currencyprefix, $currencysuffix), 1, 1, 'R', true);
         $current_y += 8;
     }
     
     // Payment details (moved after Balance Due row)
     if (!empty($date_paid)) {
         $pdf->SetFont('dejavusans', '', 8);
-        $pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]);
+        $pdf->SetTextColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]);
         $pdf->SetXY($item_x, $current_y);
         $payment_details = 'Paid on ' . date('M j, Y', strtotime($date_paid));
         if (!empty($payment_method)) {
@@ -1734,7 +1732,7 @@ if ($normalized_status === 'paid') {
     if ($show_discount_column) {
         $pdf->Cell($discount_width, 8, '', 1, 0, 'C', true);
     }
-    $pdf->Cell($amount_width, 8, formatCurrency($balance, $currencyprefix, $currencysuffix), 1, 1, 'R', true);
+    $pdf->Cell($amount_width, 8, securiaceInvoiceFormatCurrency($balance, $currencyprefix, $currencysuffix), 1, 1, 'R', true);
     $current_y += 8;
     
     // Show Amount Paid if partial payment
@@ -1749,14 +1747,14 @@ if ($normalized_status === 'paid') {
         if ($show_discount_column) {
             $pdf->Cell($discount_width, 6, '', 1, 0, 'C', true);
         }
-        $pdf->Cell($amount_width, 6, formatCurrency($amount_paid, $currencyprefix, $currencysuffix), 1, 1, 'R', true);
+        $pdf->Cell($amount_width, 6, securiaceInvoiceFormatCurrency($amount_paid, $currencyprefix, $currencysuffix), 1, 1, 'R', true);
         $current_y += 6;
     }
     
     // Payment details for unpaid invoices (if there was partial payment)
     if (!empty($date_paid) && $amount_paid > 0) {
         $pdf->SetFont('dejavusans', '', 8);
-        $pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]);
+        $pdf->SetTextColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]);
         $pdf->SetXY($item_x, $current_y);
         $payment_details = 'Paid on ' . date('M j, Y', strtotime($date_paid));
         if (!empty($payment_method)) {
@@ -1778,7 +1776,7 @@ if ($normalized_status === 'paid') {
     if ($show_discount_column) {
         $pdf->Cell($discount_width, 8, '', 1, 0, 'C', true);
     }
-    $pdf->Cell($amount_width, 8, formatCurrency($final_total, $currencyprefix, $currencysuffix), 1, 1, 'R', true);
+    $pdf->Cell($amount_width, 8, securiaceInvoiceFormatCurrency($final_total, $currencyprefix, $currencysuffix), 1, 1, 'R', true);
     $current_y += 8;
     
 } elseif ($balance < 0) {
@@ -1793,7 +1791,7 @@ if ($normalized_status === 'paid') {
     if ($show_discount_column) {
         $pdf->Cell($discount_width, 8, '', 1, 0, 'C', true);
     }
-    $pdf->Cell($amount_width, 8, formatCurrency(abs($balance), $currencyprefix, $currencysuffix), 1, 1, 'R', true);
+    $pdf->Cell($amount_width, 8, securiaceInvoiceFormatCurrency(abs($balance), $currencyprefix, $currencysuffix), 1, 1, 'R', true);
     $current_y += 8;
     
     // Show Amount Paid if there was payment
@@ -1808,7 +1806,7 @@ if ($normalized_status === 'paid') {
         if ($show_discount_column) {
             $pdf->Cell($discount_width, 6, '', 1, 0, 'C', true);
         }
-        $pdf->Cell($amount_width, 6, formatCurrency($amount_paid, $currencyprefix, $currencysuffix), 1, 1, 'R', true);
+        $pdf->Cell($amount_width, 6, securiaceInvoiceFormatCurrency($amount_paid, $currencyprefix, $currencysuffix), 1, 1, 'R', true);
         $current_y += 6;
     }
 }
@@ -1828,7 +1826,7 @@ if ($ENH['show_transactions'] && isset($transactions) && is_array($transactions)
 
 // Reset font and color for next section
 $pdf->SetFont('dejavusans', 'B', 9);
-$pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]);
+$pdf->SetTextColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]);
 
 // ========================================================================
 // SIGNATURE & STAMP SECTION (Paid & Refunded Invoices Only)
@@ -1965,7 +1963,7 @@ if ($show_signature_stamp) {
                 
                 // Add signature label
                 $pdf->SetFont('dejavusans', 'B', 7);
-                $pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]);
+                $pdf->SetTextColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]);
                 $pdf->SetXY($signature_x, $signature_y_start + $signature_height + 2);
                 $pdf->Cell($signature_width, 3, 'Authorized Signature', 0, 0, 'C');
                 
@@ -1975,7 +1973,7 @@ if ($show_signature_stamp) {
                 
                 // Add signature label
                 $pdf->SetFont('dejavusans', 'B', 7);
-                $pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]);
+                $pdf->SetTextColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]);
                 $pdf->SetXY($signature_x, $signature_y_start + $signature_height + 2);
                 $pdf->Cell($signature_width, 3, 'Authorized Signature', 0, 0, 'C');
             }
@@ -2091,7 +2089,7 @@ $upi_x = $bank_details_x + $bank_details_width; // Start position for UPI sectio
 
 // Payment Terms Section (Left) - 50% width with dynamic content from WHMCS
 $pdf->SetFont('dejavusans', 'B', 8);
-$pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]);
+$pdf->SetTextColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]);
 $pdf->SetXY(8, $bottom_y_start);
 $pdf->Cell($payment_terms_width, 5, 'Payment Terms / Notes', 0, 1, 'L');
 
@@ -2122,18 +2120,18 @@ if (isset($notes) && !empty(trim($notes))) {
 }
 
 $pdf->SetFont('dejavusans', '', 7); // Increased font size for better readability
-$pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]);
+$pdf->SetTextColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]);
 $pdf->SetXY(8, $bottom_y_start + 6);
 $pdf->MultiCell($payment_terms_width - 4, 4, $payment_terms_content, 0, 'L'); // Reduced width and increased line height for proper wrapping
 
 // Bank Details Section (Middle) - 30% width with invisible box
 $pdf->SetFont('dejavusans', 'B', 8);
-$pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]);
+$pdf->SetTextColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]);
 $pdf->SetXY($bank_details_x, $bottom_y_start);
 $pdf->Cell($bank_details_width, 5, 'Bank Details', 0, 1, 'L');
 
 $pdf->SetFont('dejavusans', '', 6);
-$pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]);
+$pdf->SetTextColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]);
 
 $bank_details = array(
     'Account Name' => isset($companyname) && !empty($companyname) ? $companyname : 'Securiace Technologies',
@@ -2165,7 +2163,7 @@ $show_payment_ui = $ENH['show_payment_ui'] && (!$hide_payment_ui || $normalized_
 if ($show_payment_ui) {
     // UPI Section (Right) - 20% width with invisible box
     $pdf->SetFont('dejavusans', 'B', 8);
-    $pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]);
+    $pdf->SetTextColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]);
     $pdf->SetXY($upi_x, $bottom_y_start);
     
     // UPI header - same for both paid and unpaid
@@ -2191,7 +2189,7 @@ if ($show_payment_ui) {
     } else {
         // Specific QR code for unpaid invoices with balance details
         $payment_amount = $balance; // Use balance instead of total
-        $upi_payment_url = "upi://pay?pa={$upi_id}&pn=" . urlencode($company_name) . "&am=" . $payment_amount . "&cu=INR&tr=" . urlencode("Invoice-{$invoice_number}") . "&tn=" . urlencode("Payment for Invoice #{$invoice_number} - Balance: " . formatCurrency($payment_amount, $currencyprefix, $currencysuffix));
+        $upi_payment_url = "upi://pay?pa={$upi_id}&pn=" . urlencode($company_name) . "&am=" . $payment_amount . "&cu=INR&tr=" . urlencode("Invoice-{$invoice_number}") . "&tn=" . urlencode("Payment for Invoice #{$invoice_number} - Balance: " . securiaceInvoiceFormatCurrency($payment_amount, $currencyprefix, $currencysuffix));
     }
 
 // Generate QR code using TCPDF's built-in QR code functionality
@@ -2228,7 +2226,7 @@ try {
         $pdf->SetFont('dejavusans', 'B', round(4 * 1.30)); // Font size increased by 30%
         $pdf->SetXY($qr_x + 1, $bottom_y_start + 6 + ($qr_size/2) - 2);
         $pdf->Cell($qr_size - 2, round(4 * 1.30), 'QR', 0, 0, 'C');
-        $pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]);
+        $pdf->SetTextColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]);
     }
 } catch (Exception $e) {
     // Fallback QR code placeholder if generation fails
@@ -2263,7 +2261,7 @@ $compliance_y = $current_y + 20;
 // Tax compliance information
 if ($ENH['show_tax_details']) {
     $pdf->SetFont('dejavusans', '', 7);
-    $pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]);
+    $pdf->SetTextColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]);
     
     // Company tax ID
     if ($ENH['show_company_tax_id'] && isset($taxCode) && !empty($taxCode)) {
@@ -2552,7 +2550,7 @@ if ($show_renewal_section || $show_transaction_section || $show_debug_section) {
         
         // Enhanced transaction data styling
         $pdf->SetFont('dejavusans', '', 9); // Slightly larger font
-        $pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]);
+        $pdf->SetTextColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]);
         
         // Date with enhanced positioning
         $pdf->SetXY(10, $current_y + 3);
@@ -2571,7 +2569,7 @@ if ($show_renewal_section || $show_transaction_section || $show_debug_section) {
         
         // Transaction ID with enhanced styling
         $pdf->SetFont('dejavusans', '', 8);
-        $pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]);
+        $pdf->SetTextColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]);
         $pdf->SetXY(70, $current_y + 3);
         $pdf->Cell(50, 4, substr($trans_id, 0, 20) . (strlen($trans_id) > 20 ? '...' : ''), 0, 0, 'L');
         
@@ -2579,7 +2577,7 @@ if ($show_renewal_section || $show_transaction_section || $show_debug_section) {
         $pdf->SetFont('dejavusans', 'B', 9); // Larger, bolder font
         $pdf->SetTextColor(34, 139, 34); // Green for amount
         $pdf->SetXY(125, $current_y + 3);
-        $pdf->Cell(30, 4, formatCurrency($trans_amount, $currencyprefix, $currencysuffix), 0, 0, 'R');
+        $pdf->Cell(30, 4, securiaceInvoiceFormatCurrency($trans_amount, $currencyprefix, $currencysuffix), 0, 0, 'R');
         
         // Status with enhanced styling
         $pdf->SetFont('dejavusans', 'B', 8); // Bold status
@@ -2615,7 +2613,7 @@ if ($show_renewal_section || $show_transaction_section || $show_debug_section) {
     
     // Summary details with enhanced styling
     $pdf->SetFont('dejavusans', 'B', 10); // Bold font
-    $pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]);
+    $pdf->SetTextColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]);
     $pdf->SetXY(12, $current_y + 10);
     $pdf->Cell(100, 5, 'Total Transactions: ' . count($transactions_for_page2), 0, 1, 'L');
     
@@ -2623,7 +2621,7 @@ if ($show_renewal_section || $show_transaction_section || $show_debug_section) {
     $pdf->SetXY(12, $current_y + 16);
     $pdf->SetFont('dejavusans', 'B', 12); // Larger, bolder font
     $pdf->SetTextColor(34, 139, 34); // Green for total amount
-    $pdf->Cell(100, 5, 'Total Amount: ' . formatCurrency($total_transaction_amount, $currencyprefix, $currencysuffix), 0, 1, 'L');
+    $pdf->Cell(100, 5, 'Total Amount: ' . securiaceInvoiceFormatCurrency($total_transaction_amount, $currencyprefix, $currencysuffix), 0, 1, 'L');
     
     // Add some spacing at the end
     $current_y += 30; // Increased spacing after summary
@@ -2702,7 +2700,7 @@ if ($show_renewal_section || $show_transaction_section || $show_debug_section) {
             
             foreach ($basic_info as $label => $value) {
                 $pdf->SetFont('dejavusans', '', 7);
-                $pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]);
+                $pdf->SetTextColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]);
                 $pdf->SetXY($column1_x, $debug_y);
                 $pdf->Cell(85, $line_height, $label . ':', 0, 0, 'L');
                 $pdf->SetXY($column2_x, $debug_y);
@@ -2737,7 +2735,7 @@ if ($show_renewal_section || $show_transaction_section || $show_debug_section) {
             
             foreach ($financial_info as $label => $value) {
                 $pdf->SetFont('dejavusans', '', 7);
-                $pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]);
+                $pdf->SetTextColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]);
                 $pdf->SetXY($column1_x, $debug_y);
                 $pdf->Cell(85, $line_height, $label . ':', 0, 0, 'L');
                 $pdf->SetXY($column2_x, $debug_y);
@@ -2769,7 +2767,7 @@ if ($show_renewal_section || $show_transaction_section || $show_debug_section) {
             
             foreach ($payment_info as $label => $value) {
                 $pdf->SetFont('dejavusans', '', 7);
-                $pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]);
+                $pdf->SetTextColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]);
                 $pdf->SetXY($column1_x, $debug_y);
                 $pdf->Cell(85, $line_height, $label . ':', 0, 0, 'L');
                 $pdf->SetXY($column2_x, $debug_y);
@@ -2797,15 +2795,15 @@ if ($show_renewal_section || $show_transaction_section || $show_debug_section) {
             }
             
             $credit_info = array(
-                'Client Available Credit' => formatCurrency($client_credit_balance, $currencyprefix, $currencysuffix),
-                'Credit Applied to Invoice' => formatCurrency($credit, $currencyprefix, $currencysuffix),
+                'Client Available Credit' => securiaceInvoiceFormatCurrency($client_credit_balance, $currencyprefix, $currencysuffix),
+                'Credit Applied to Invoice' => securiaceInvoiceFormatCurrency($credit, $currencyprefix, $currencysuffix),
                 'Client Credit (Raw)' => isset($clientsdetails['credit']) ? $clientsdetails['credit'] : 'NOT SET',
                 'Invoice Credit (Raw)' => isset($credit) ? $credit : 'NOT SET'
             );
             
             foreach ($credit_info as $label => $value) {
                 $pdf->SetFont('dejavusans', '', 7);
-                $pdf->SetTextColor(COLOR_DARK_GREY[0], COLOR_DARK_GREY[1], COLOR_DARK_GREY[2]);
+                $pdf->SetTextColor($COLOR_DARK_GREY[0], $COLOR_DARK_GREY[1], $COLOR_DARK_GREY[2]);
                 $pdf->SetXY($column1_x, $debug_y);
                 $pdf->Cell(85, $line_height, $label . ':', 0, 0, 'L');
                 $pdf->SetXY($column2_x, $debug_y);
@@ -2828,6 +2826,3 @@ if ($show_renewal_section || $show_transaction_section || $show_debug_section) {
         $current_y += 160; // Total debug section height
     }
 }
-
-?>
-invoicepdf.tpl
