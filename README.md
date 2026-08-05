@@ -2,6 +2,34 @@
 
 A comprehensive, enterprise-grade PDF invoice template for WHMCS v6/7/8 with advanced features, professional styling, and extensive customization options.
 
+## Browser Redesign Preview
+
+The paid/unpaid redesign is available as a dependency-free browser prototype at
+[`preview/index.html`](preview/index.html). It uses fictional data because this
+repository is public and acts as the visual approval gate before the redesign is
+implemented as a separately named WHMCS 8.x/9.x PDF template.
+
+Open the file directly, or choose a state with a query string:
+
+```text
+preview/index.html?state=paid
+preview/index.html?state=unpaid
+```
+
+The detailed screenshot, source-code, and edge-case review is in
+[`docs/INVOICE-UX-AUDIT.md`](docs/INVOICE-UX-AUDIT.md).
+
+## PHP 8 Runtime Repair
+
+The existing template has been repaired for PHP 8 bare-constant handling and a
+currency-helper collision that can occur inside WHMCS. To validate or repair a
+copy without changing the established layout:
+
+```bash
+php scripts/repair-whmcs-invoice-template.php /absolute/path/invoicepdf.tpl
+php tests/whmcs_invoice_template_repair_test.php
+```
+
 ## 🚀 Features
 
 ### Core Functionality
