@@ -185,7 +185,14 @@ function renderFixture(string $templatePath, string $outputDirectory, string $na
             'start_page' => $securiaceModernStartPage,
             'stamped_pages' => $securiaceModernStampedPages,
             'invoice_number' => $securiaceModernInvoiceNumber,
+            'proforma_reference' => $securiaceModernProformaReference,
             'document_title' => $securiaceModernDocumentTitle,
+            'status_key' => $securiaceModernStatusKey,
+            'is_overdue' => $securiaceModernIsOverdue,
+            'days_overdue' => $securiaceModernDaysOverdue,
+            'issue_date_display' => $securiaceModernIssueDateDisplay,
+            'due_date_display' => $securiaceModernDueDateDisplay,
+            'seller_registrations' => $securiaceModernSellerRegistrations,
             'is_payable' => $securiaceModernIsPayable,
             'has_upi' => $securiaceModernCanUseUpi,
             'currency_code' => $securiaceModernCurrencyCode,
@@ -332,6 +339,7 @@ function invoiceFixture(array $overrides = array()): array
 {
     $base = array(
         'pdfFont' => 'dejavusans',
+        'securiaceInvoiceToday' => '5 Aug 2026',
         'companyname' => 'Securiace Technologies',
         'companyaddress' => array('88 Secure Cloud Avenue', 'Pune, Maharashtra 411001', 'India'),
         'taxCode' => '27ABCDE1234F1Z5',
@@ -417,8 +425,8 @@ function invoiceFixture(array $overrides = array()): array
 }
 
 $paidTransaction = array(
-    'date' => '5 Aug 2026',
-    'gateway' => 'Bank Transfer',
+    'date' => 'Wednesday, August 5th, 2026',
+    'gateway' => 'NEFT/IMPS/UPI/BHIM/Cheque (Offline Only)',
     'transid' => 'UTR-AXIS-20260805-883711',
     'amount' => '₹ 9,990.00 INR',
     'status' => 'Completed',
@@ -496,8 +504,17 @@ $fixtures = array(
         'balance' => '₹ 9,990.00 INR',
     )),
     'overdue' => invoiceFixture(array(
-        'status' => 'Overdue',
-        'duedate' => '1 Aug 2026',
+        'status' => 'Unpaid',
+        'datecreated' => 'Saturday, July 4th, 2026',
+        'duedate' => 'Monday, August 3rd, 2026',
+        'invoicenum' => '',
+        'pagetitle' => 'Proforma Invoice #300000123',
+        'model' => new FixtureInvoiceModel(array(
+            'code' => 'INR',
+            'prefix' => '₹',
+            'suffix' => 'INR',
+            'format' => 1,
+        ), true),
     )),
     'cancelled' => invoiceFixture(array(
         'status' => 'Cancelled',
@@ -624,20 +641,20 @@ $fixtures = array(
 );
 
 $expectations = array(
-    'paid' => array('is_payable' => false, 'has_upi' => false, 'rendered_authorization' => true, 'rendered_support' => true, 'rendered_renewals' => true, 'settlement_mismatch' => false, 'document_title' => 'Invoice', 'renewal_date' => '4 Sep 2026'),
+    'paid' => array('is_payable' => false, 'has_upi' => false, 'rendered_authorization' => true, 'rendered_support' => false, 'rendered_renewals' => true, 'settlement_mismatch' => false, 'document_title' => 'Invoice', 'renewal_date' => '4 Sep 2026', 'pages' => 1, 'seller_registrations' => array('PAN · ABCDE1234F', 'MSME · UDYAM-MH-00-0000000', 'GSTIN · 27ABCDE1234F1Z5')),
     'unpaid' => array('is_payable' => true, 'has_upi' => true, 'rendered_upi' => true, 'rendered_support' => true, 'settlement_mismatch' => false, 'document_title' => 'Invoice'),
     'partial' => array('is_payable' => true, 'has_upi' => true, 'settlement_mismatch' => false, 'document_title' => 'Invoice'),
-    'refunded' => array('is_payable' => false, 'has_upi' => false, 'settlement_mismatch' => false, 'document_title' => 'Invoice'),
-    'proforma' => array('is_payable' => true, 'has_upi' => false, 'rendered_upi' => false, 'settlement_mismatch' => false, 'document_title' => 'Proforma Invoice', 'invoice_number' => '300000124'),
+    'refunded' => array('is_payable' => false, 'has_upi' => false, 'rendered_support' => false, 'settlement_mismatch' => false, 'document_title' => 'Invoice'),
+    'proforma' => array('is_payable' => true, 'has_upi' => true, 'rendered_upi' => true, 'settlement_mismatch' => false, 'document_title' => 'Proforma Invoice', 'invoice_number' => 'PI/300000124', 'proforma_reference' => 'PI/300000124'),
     'paid-adjusted' => array('is_payable' => false, 'has_upi' => false, 'settlement_mismatch' => true, 'document_title' => 'Invoice'),
     'reconciled-adjustment' => array('is_payable' => true, 'has_upi' => true, 'settlement_mismatch' => false, 'document_title' => 'Invoice', 'reconciliation_delta' => 9990.0, 'renewal_date' => '2 Aug 2027'),
-    'overdue' => array('is_payable' => true, 'has_upi' => false, 'rendered_upi' => false, 'settlement_mismatch' => false, 'document_title' => 'Invoice'),
+    'overdue' => array('is_payable' => true, 'has_upi' => true, 'rendered_upi' => true, 'settlement_mismatch' => false, 'document_title' => 'Proforma Invoice', 'invoice_number' => 'PI/300000123', 'status_key' => 'overdue', 'is_overdue' => true, 'days_overdue' => 2, 'issue_date_display' => '4 Jul 2026', 'due_date_display' => '3 Aug 2026'),
     'cancelled' => array('is_payable' => false, 'has_upi' => false, 'settlement_mismatch' => false, 'document_title' => 'Invoice'),
     'collections' => array('is_payable' => false, 'has_upi' => false, 'settlement_mismatch' => false, 'document_title' => 'Invoice'),
     'draft' => array('is_payable' => false, 'has_upi' => false, 'settlement_mismatch' => false, 'document_title' => 'Invoice'),
     'zero-total' => array('is_payable' => false, 'has_upi' => false, 'settlement_mismatch' => false, 'document_title' => 'Invoice', 'total_numeric' => 0.0, 'balance_numeric' => 0.0),
-    'euro-format2' => array('is_payable' => true, 'has_upi' => false, 'settlement_mismatch' => false, 'document_title' => 'Invoice', 'total_numeric' => 1234.56, 'balance_numeric' => 1234.56),
-    'unknown-currency' => array('is_payable' => true, 'has_upi' => false, 'currency_code' => '', 'document_title' => 'Invoice'),
+    'euro-format2' => array('is_payable' => true, 'has_upi' => false, 'rendered_support' => true, 'settlement_mismatch' => false, 'document_title' => 'Invoice', 'total_numeric' => 1234.56, 'balance_numeric' => 1234.56),
+    'unknown-currency' => array('is_payable' => true, 'has_upi' => false, 'rendered_support' => true, 'currency_code' => '', 'document_title' => 'Invoice'),
     'entity-description' => array('is_payable' => true, 'has_upi' => true, 'first_item_description' => "Security R&D <managed>\nService period: 05/08/2026 - 04/09/2026", 'document_title' => 'Invoice'),
     'whmcs9-ledger' => array('is_payable' => false, 'has_upi' => false, 'currency_code' => 'INR', 'core_qr_present' => true, 'rendered_core_qr' => false, 'transaction_reference' => 'WHMCS9-REFERENCE-00131', 'amount_paid_display' => '₹ 9,990.00 INR', 'document_title' => 'Invoice'),
     'whmcs9-credit-note' => array('is_payable' => true, 'has_upi' => true, 'transaction_reference' => 'Credit note · CN-00132', 'document_title' => 'Invoice'),

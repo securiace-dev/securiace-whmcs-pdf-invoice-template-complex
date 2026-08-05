@@ -296,11 +296,24 @@ $securiaceModernParseDate = static function ($value) use (&$securiaceModernConfi
 
     $dateOrder = strtoupper(trim((string) $securiaceModernConfig['date_order']));
     $dateOrder = in_array($dateOrder, array('DMY', 'MDY'), true) ? $dateOrder : 'DMY';
-    $formats = preg_match('/^\d{4}[\/-]/', $value)
+    $numericFormats = preg_match('/^\d{4}[\/-]/', $value)
         ? array('!Y-m-d', '!Y/m/d')
         : ($dateOrder === 'MDY'
             ? array('!m/d/Y', '!m-d-Y', '!d/m/Y', '!d-m-Y')
             : array('!d/m/Y', '!d-m-Y', '!m/d/Y', '!m-d-Y'));
+    $formats = array_merge($numericFormats, array(
+        '!j M Y',
+        '!j M Y, H:i',
+        '!d M Y',
+        '!d M Y, H:i',
+        '!j F Y',
+        '!F j, Y',
+        '!F jS, Y',
+        '!l, F j, Y',
+        '!l, F jS, Y',
+        '!l, F j, Y H:i',
+        '!l, F jS, Y H:i',
+    ));
 
     foreach ($formats as $format) {
         $date = DateTimeImmutable::createFromFormat($format, $value);
@@ -313,6 +326,16 @@ $securiaceModernParseDate = static function ($value) use (&$securiaceModernConfi
     return null;
 };
 
+$securiaceModernFormatDate = static function ($value) use ($securiaceModernParseDate) {
+    $value = trim((string) $value);
+    if ($value === '') {
+        return '—';
+    }
+
+    $date = $securiaceModernParseDate($value);
+    return $date instanceof DateTimeImmutable ? $date->format('j M Y') : $value;
+};
+
 // -------------------------------------------------------------------------
 // WHMCS data normalization
 // -------------------------------------------------------------------------
@@ -321,7 +344,8 @@ $securiaceModernFont = isset($pdfFont) && trim((string) $pdfFont) !== ''
     ? (string) $pdfFont
     : 'dejavusans';
 $securiaceModernStatus = isset($status) ? trim((string) $status) : 'Draft';
-$securiaceModernStatusKey = strtolower($securiaceModernStatus);
+$securiaceModernRawStatusKey = strtolower($securiaceModernStatus);
+$securiaceModernStatusKey = $securiaceModernRawStatusKey;
 $securiaceModernStatusDisplay = isset($statuslocale) && trim((string) $statuslocale) !== ''
     ? trim((string) $statuslocale)
     : $securiaceModernStatus;
@@ -343,6 +367,12 @@ if (isset($model) && is_object($model) && method_exists($model, 'isProformaInvoi
     }
 } elseif (isset($isProformaInvoice)) {
     $securiaceModernIsProforma = (bool) $isProformaInvoice;
+}
+$securiaceModernProformaReference = $securiaceModernInvoiceId !== ''
+    ? 'PI/' . $securiaceModernInvoiceId
+    : $securiaceModernInvoiceNumber;
+if ($securiaceModernIsProforma) {
+    $securiaceModernInvoiceNumber = $securiaceModernProformaReference;
 }
 $securiaceModernDocumentTitle = $securiaceModernIsProforma ? 'Proforma Invoice' : 'Invoice';
 $securiaceModernDocumentKicker = $securiaceModernIsProforma
@@ -434,6 +464,35 @@ $securiaceModernIsRefunded = $securiaceModernStatusKey === 'refunded';
 $securiaceModernNoPaymentStatuses = array('paid', 'cancelled', 'collections', 'draft', 'refunded');
 $securiaceModernIsPayable = $securiaceModernBalanceNumeric > 0.00001
     && !in_array($securiaceModernStatusKey, $securiaceModernNoPaymentStatuses, true);
+$securiaceModernDueDate = isset($duedate) ? $securiaceModernParseDate($duedate) : null;
+$securiaceModernIssueDateDisplay = isset($datecreated) ? $securiaceModernFormatDate($datecreated) : '—';
+$securiaceModernDueDateDisplay = isset($duedate) ? $securiaceModernFormatDate($duedate) : '—';
+$securiaceModernPaidDateDisplay = isset($datepaid) && trim((string) $datepaid) !== ''
+    ? $securiaceModernFormatDate($datepaid)
+    : '—';
+$securiaceModernTodaySource = isset($securiaceInvoiceToday)
+    ? (string) $securiaceInvoiceToday
+    : date('Y-m-d');
+$securiaceModernToday = $securiaceModernParseDate($securiaceModernTodaySource);
+if (!$securiaceModernToday instanceof DateTimeImmutable) {
+    $securiaceModernToday = new DateTimeImmutable('today');
+}
+$securiaceModernDaysOverdue = 0;
+$securiaceModernIsOverdue = false;
+if (in_array($securiaceModernRawStatusKey, array('unpaid', 'overdue'), true)
+    && $securiaceModernIsPayable
+    && $securiaceModernDueDate instanceof DateTimeImmutable
+    && $securiaceModernDueDate < $securiaceModernToday
+) {
+    $securiaceModernIsOverdue = true;
+    $securiaceModernDaysOverdue = (int) $securiaceModernDueDate->diff($securiaceModernToday)->format('%a');
+    $securiaceModernStatusKey = 'overdue';
+    $securiaceModernStatusDisplay = 'Overdue';
+} elseif ($securiaceModernRawStatusKey === 'overdue') {
+    $securiaceModernIsOverdue = true;
+    $securiaceModernStatusKey = 'overdue';
+    $securiaceModernStatusDisplay = 'Overdue';
+}
 
 // Standard WHMCS admin batch export runs through admin/csvdownload.php with
 // type=pdfbatch but does not pass a template flag. Detect that exact request;
@@ -476,6 +535,7 @@ $securiaceModernPalette = isset($securiaceModernStatusPalette[$securiaceModernSt
 
 $securiaceModernBrand = array(79, 11, 112);
 $securiaceModernBrandDark = array(50, 16, 68);
+$securiaceModernBrandSoft = array(247, 239, 250);
 $securiaceModernInk = array(32, 28, 36);
 $securiaceModernMuted = array(109, 102, 114);
 $securiaceModernLine = array(221, 215, 225);
@@ -558,16 +618,17 @@ foreach (array('company_email', 'company_phone') as $securiaceModernSellerConfig
         $securiaceModernSellerLines[] = trim((string) $securiaceModernConfig[$securiaceModernSellerConfigKey]);
     }
 }
+$securiaceModernSellerRegistrations = array();
 if (trim((string) $securiaceModernConfig['company_pan']) !== '') {
-    $securiaceModernSellerLines[] = 'PAN: ' . trim((string) $securiaceModernConfig['company_pan']);
+    $securiaceModernSellerRegistrations[] = 'PAN · ' . trim((string) $securiaceModernConfig['company_pan']);
 }
 if (trim((string) $securiaceModernConfig['company_msme']) !== '') {
-    $securiaceModernSellerLines[] = 'MSME: ' . trim((string) $securiaceModernConfig['company_msme']);
+    $securiaceModernSellerRegistrations[] = 'MSME · ' . trim((string) $securiaceModernConfig['company_msme']);
 }
 if (isset($taxCode) && trim((string) $taxCode) !== '') {
-    $securiaceModernSellerLines[] = (isset($taxIdLabel) && trim((string) $taxIdLabel) !== ''
+    $securiaceModernSellerRegistrations[] = (isset($taxIdLabel) && trim((string) $taxIdLabel) !== ''
         ? trim((string) $taxIdLabel)
-        : 'Tax ID') . ': ' . trim((string) $taxCode);
+        : 'Tax ID') . ' · ' . trim((string) $taxCode);
 }
 
 // Stable verification: immutable invoice fields only. The generation timestamp
@@ -763,30 +824,38 @@ $pdf->Line(
 );
 
 $securiaceModernMetaY = $securiaceModernRuleY + 5;
-$securiaceModernMetaWidth = ($securiaceModernUsableWidth - 72) / 3;
+$securiaceModernStatePanelX = $securiaceModernPageWidth - $securiaceModernMargin - 68;
+$securiaceModernMetaAreaWidth = $securiaceModernStatePanelX - $securiaceModernMargin - 4;
+$securiaceModernMetaColumnWidth = ($securiaceModernMetaAreaWidth - 4) / 2;
 $securiaceModernMeta = array(
-    array('Invoice number', $securiaceModernInvoiceNumber),
-    array('Invoice date', isset($datecreated) ? $datecreated : '—'),
+    array($securiaceModernIsProforma ? 'Proforma reference' : 'Invoice number', $securiaceModernInvoiceNumber),
+    array('Issue date', $securiaceModernIssueDateDisplay),
 );
 if ($securiaceModernIsPaid && $securiaceModernInvoiceId !== '' && $securiaceModernInvoiceId !== $securiaceModernInvoiceNumber) {
-    $securiaceModernMeta[] = array('Original reference', $securiaceModernInvoiceId);
+    $securiaceModernMeta[] = array('Original proforma reference', $securiaceModernProformaReference);
 } else {
-    $securiaceModernMeta[] = array('Due date', isset($duedate) ? $duedate : '—');
+    $securiaceModernMeta[] = array('Due date', $securiaceModernDueDateDisplay);
 }
 
 foreach ($securiaceModernMeta as $securiaceModernMetaIndex => $securiaceModernMetaItem) {
-    $securiaceModernMetaX = $securiaceModernMargin + ($securiaceModernMetaIndex * $securiaceModernMetaWidth);
-    $pdf->SetFont($securiaceModernFont, '', 6.5);
+    $securiaceModernMetaIsSecondary = $securiaceModernMetaIndex === 2;
+    $securiaceModernMetaX = $securiaceModernMetaIsSecondary
+        ? $securiaceModernMargin
+        : $securiaceModernMargin + ($securiaceModernMetaIndex * ($securiaceModernMetaColumnWidth + 4));
+    $securiaceModernMetaItemWidth = $securiaceModernMetaIsSecondary
+        ? $securiaceModernMetaAreaWidth
+        : $securiaceModernMetaColumnWidth;
+    $securiaceModernMetaItemY = $securiaceModernMetaY + ($securiaceModernMetaIsSecondary ? 9 : 0);
+    $pdf->SetFont($securiaceModernFont, '', 6.2);
     $pdf->SetTextColor($securiaceModernMuted[0], $securiaceModernMuted[1], $securiaceModernMuted[2]);
-    $pdf->SetXY($securiaceModernMetaX, $securiaceModernMetaY);
-    $pdf->Cell($securiaceModernMetaWidth - 3, 3.5, $securiaceModernMetaItem[0], 0, 1, 'L');
-    $pdf->SetFont($securiaceModernFont, 'B', 8);
+    $pdf->SetXY($securiaceModernMetaX, $securiaceModernMetaItemY);
+    $pdf->Cell($securiaceModernMetaItemWidth, 3, $securiaceModernMetaItem[0], 0, 1, 'L');
+    $pdf->SetFont($securiaceModernFont, 'B', $securiaceModernMetaIsSecondary ? 7.2 : 8);
     $pdf->SetTextColor($securiaceModernInk[0], $securiaceModernInk[1], $securiaceModernInk[2]);
-    $pdf->SetX($securiaceModernMetaX);
-    $pdf->Cell($securiaceModernMetaWidth - 3, 4.5, (string) $securiaceModernMetaItem[1], 0, 1, 'L');
+    $pdf->SetXY($securiaceModernMetaX, $securiaceModernMetaItemY + 3.2);
+    $pdf->Cell($securiaceModernMetaItemWidth, 4, (string) $securiaceModernMetaItem[1], 0, 1, 'L', false, '', 1);
 }
 
-$securiaceModernStatePanelX = $securiaceModernPageWidth - $securiaceModernMargin - 68;
 $securiaceModernStatePanelY = $securiaceModernMetaY - 1;
 $securiaceModernDrawCard(
     $securiaceModernStatePanelX,
@@ -818,13 +887,18 @@ if ($securiaceModernIsBatch) {
         $pdf->Cell(60, 3.5, 'Electronic record · IT Act 2000', 0, 1, 'L');
     }
 } elseif ($securiaceModernIsPayable) {
-    $pdf->Cell(60, 4, 'Balance due', 0, 1, 'L');
+    $pdf->Cell(60, 4, $securiaceModernIsOverdue ? 'Overdue balance' : 'Balance due', 0, 1, 'L');
     $pdf->SetFont($securiaceModernFont, 'B', 10);
     $pdf->SetX($securiaceModernStatePanelX + 4);
     $pdf->Cell(60, 5, $securiaceModernBalanceDisplay, 0, 1, 'L');
     $pdf->SetFont($securiaceModernFont, '', 6);
     $pdf->SetX($securiaceModernStatePanelX + 4);
-    $pdf->Cell(60, 3.5, 'Pay by ' . (isset($duedate) ? $duedate : 'the due date'), 0, 1, 'L');
+    $securiaceModernStateDeadline = $securiaceModernIsOverdue
+        ? ($securiaceModernDaysOverdue > 0
+            ? $securiaceModernDaysOverdue . ' day' . ($securiaceModernDaysOverdue === 1 ? '' : 's') . ' overdue · pay now'
+            : 'Past due · pay now')
+        : 'Pay by ' . $securiaceModernDueDateDisplay;
+    $pdf->Cell(60, 3.5, $securiaceModernStateDeadline, 0, 1, 'L', false, '', 1);
 } else {
     $pdf->Cell(60, 4, ucfirst($securiaceModernStatusKey) . ' invoice', 0, 1, 'L');
     $pdf->SetFont($securiaceModernFont, '', 6.5);
@@ -846,7 +920,34 @@ $securiaceModernSellerText = implode("\n", $securiaceModernSellerLines);
 $pdf->SetFont($securiaceModernFont, '', 7);
 $securiaceModernClientHeight = $pdf->getStringHeight($securiaceModernPartyWidth - 8, $securiaceModernClientText);
 $securiaceModernSellerHeight = $pdf->getStringHeight($securiaceModernPartyWidth - 8, $securiaceModernSellerText);
-$securiaceModernPartyHeight = max(35, 16 + max($securiaceModernClientHeight, $securiaceModernSellerHeight));
+$securiaceModernRegistrationRows = 0;
+if (!empty($securiaceModernSellerRegistrations)) {
+    $pdf->SetFont($securiaceModernFont, 'B', 5.8);
+    $securiaceModernRegistrationRows = 1;
+    $securiaceModernRegistrationLineWidth = 0.0;
+    $securiaceModernRegistrationAvailableWidth = $securiaceModernPartyWidth - 8;
+    foreach ($securiaceModernSellerRegistrations as $securiaceModernSellerRegistration) {
+        $securiaceModernRegistrationWidth = min(
+            $securiaceModernRegistrationAvailableWidth,
+            $pdf->GetStringWidth($securiaceModernSellerRegistration) + 7
+        );
+        if ($securiaceModernRegistrationLineWidth > 0
+            && $securiaceModernRegistrationLineWidth + 2 + $securiaceModernRegistrationWidth > $securiaceModernRegistrationAvailableWidth
+        ) {
+            ++$securiaceModernRegistrationRows;
+            $securiaceModernRegistrationLineWidth = 0.0;
+        }
+        $securiaceModernRegistrationLineWidth += ($securiaceModernRegistrationLineWidth > 0 ? 2 : 0)
+            + $securiaceModernRegistrationWidth;
+    }
+}
+$securiaceModernRegistrationHeight = $securiaceModernRegistrationRows > 0
+    ? 1 + ($securiaceModernRegistrationRows * 6)
+    : 0;
+$securiaceModernPartyHeight = max(
+    35,
+    16 + max($securiaceModernClientHeight, $securiaceModernSellerHeight + $securiaceModernRegistrationHeight)
+);
 
 $securiaceModernDrawCard(
     $securiaceModernMargin,
@@ -888,11 +989,59 @@ foreach ($securiaceModernPartyColumns as $securiaceModernPartyColumn) {
     $pdf->SetXY($securiaceModernPartyX + 4, $pdf->GetY() + 1);
     $pdf->MultiCell($securiaceModernPartyWidth - 8, 3.5, $securiaceModernPartyColumn[2], 0, 'L');
 }
+if (!empty($securiaceModernSellerRegistrations)) {
+    $securiaceModernRegistrationCardX = $securiaceModernMargin
+        + $securiaceModernPartyWidth
+        + $securiaceModernPartyGap;
+    $securiaceModernRegistrationX = $securiaceModernRegistrationCardX + 4;
+    $securiaceModernRegistrationMaxX = $securiaceModernRegistrationCardX + $securiaceModernPartyWidth - 4;
+    $securiaceModernRegistrationY = $securiaceModernPartyY
+        + $securiaceModernPartyHeight
+        - $securiaceModernRegistrationHeight;
+    $pdf->SetFont($securiaceModernFont, 'B', 5.8);
+    foreach ($securiaceModernSellerRegistrations as $securiaceModernSellerRegistration) {
+        $securiaceModernRegistrationWidth = min(
+            $securiaceModernPartyWidth - 8,
+            $pdf->GetStringWidth($securiaceModernSellerRegistration) + 7
+        );
+        if ($securiaceModernRegistrationX > $securiaceModernRegistrationCardX + 4
+            && $securiaceModernRegistrationX + $securiaceModernRegistrationWidth > $securiaceModernRegistrationMaxX
+        ) {
+            $securiaceModernRegistrationX = $securiaceModernRegistrationCardX + 4;
+            $securiaceModernRegistrationY += 6;
+        }
+        $pdf->SetFillColor($securiaceModernBrandSoft[0], $securiaceModernBrandSoft[1], $securiaceModernBrandSoft[2]);
+        if (method_exists($pdf, 'RoundedRect')) {
+            $pdf->RoundedRect(
+                $securiaceModernRegistrationX,
+                $securiaceModernRegistrationY,
+                $securiaceModernRegistrationWidth,
+                5,
+                1.4,
+                '1111',
+                'F'
+            );
+        } else {
+            $pdf->Rect(
+                $securiaceModernRegistrationX,
+                $securiaceModernRegistrationY,
+                $securiaceModernRegistrationWidth,
+                5,
+                'F'
+            );
+        }
+        $pdf->SetTextColor($securiaceModernBrandDark[0], $securiaceModernBrandDark[1], $securiaceModernBrandDark[2]);
+        $pdf->SetXY($securiaceModernRegistrationX + 2, $securiaceModernRegistrationY + 0.8);
+        $pdf->Cell($securiaceModernRegistrationWidth - 4, 3.4, $securiaceModernSellerRegistration, 0, 0, 'L');
+        $securiaceModernRegistrationX += $securiaceModernRegistrationWidth + 2;
+    }
+}
 $pdf->SetY($securiaceModernPartyY + $securiaceModernPartyHeight + 5);
 
 // WHMCS 9 may supply a core QR block, but its payload is outside this template's
 // payment controls. It is intentionally suppressed. The only rendered QR is the
-// amount-bound UPI payload below, for an INR invoice in exact Unpaid state.
+// amount-bound UPI payload below, for a payable INR invoice or proforma. A
+// derived Overdue presentation remains an unpaid payment state.
 
 // -------------------------------------------------------------------------
 // Line items — use WHMCS line totals as line totals; quantity is conditional.
@@ -1206,7 +1355,9 @@ $securiaceModernDrawCard(
     $securiaceModernStatusLine
 );
 $securiaceModernDrawLabel(
-    $securiaceModernIsPaid ? 'Payment receipt' : ($securiaceModernIsPayable ? 'Payment required' : 'Invoice state'),
+    $securiaceModernIsPaid
+        ? 'Payment receipt'
+        : ($securiaceModernIsOverdue ? 'Overdue payment' : ($securiaceModernIsPayable ? 'Payment required' : 'Invoice state')),
     $securiaceModernMargin + 4,
     $securiaceModernTotalsY + 3,
     $securiaceModernSettlementWidth - 8
@@ -1218,14 +1369,17 @@ $pdf->SetXY($securiaceModernMargin + 4, $securiaceModernTotalsY + 8);
 if ($securiaceModernIsPaid) {
     $securiaceModernSettlementHeading = 'Payment received in full';
     $securiaceModernSettlementBody = 'Settled'
-        . (!empty($datepaid) ? ' on ' . $datepaid : '')
-        . (!empty($securiaceModernTransactions[0]['gateway']) ? ' · ' . $securiaceModernTransactions[0]['gateway'] : '');
+        . ($securiaceModernPaidDateDisplay !== '—' ? ' on ' . $securiaceModernPaidDateDisplay : '')
+        . '. See transaction history for the payment method.';
     if ($securiaceModernSettlementMismatch) {
         $securiaceModernSettlementBody .= "\nIncludes account credit or an administrative adjustment.";
     }
 } elseif ($securiaceModernIsPayable) {
-    $securiaceModernSettlementHeading = $securiaceModernBalanceDisplay . ' is due';
-    $securiaceModernSettlementBody = 'Use invoice ' . $securiaceModernInvoiceNumber . ' as the payment reference.';
+    $securiaceModernSettlementHeading = $securiaceModernBalanceDisplay
+        . ($securiaceModernIsOverdue ? ' is overdue' : ' is due');
+    $securiaceModernSettlementBody = ($securiaceModernIsOverdue ? 'Pay immediately. ' : '')
+        . 'Use ' . ($securiaceModernIsProforma ? 'proforma ' : 'invoice ')
+        . $securiaceModernInvoiceNumber . ' as the payment reference.';
 } elseif ($securiaceModernIsRefunded) {
     $securiaceModernSettlementHeading = 'Refund recorded';
     $securiaceModernSettlementBody = 'No payment action is required.';
@@ -1349,13 +1503,12 @@ $securiaceModernNotesRenderedInTerms = $securiaceModernIsBatch
         && substr_count($securiaceModernNotesText, "\n") <= 2);
 $securiaceModernUpiId = trim((string) $securiaceModernConfig['upi_id']);
 $securiaceModernCanUseUpi = !$securiaceModernIsBatch
-    && $securiaceModernStatusKey === 'unpaid'
-    && !$securiaceModernIsProforma
+    && in_array($securiaceModernStatusKey, array('unpaid', 'overdue'), true)
     && $securiaceModernIsPayable
     && $securiaceModernCurrencyCode === 'INR'
     && $securiaceModernUpiId !== '';
 
-if (!$securiaceModernIsBatch) {
+if (!$securiaceModernIsBatch && $securiaceModernIsPayable) {
 $securiaceModernRenderedSupport = true;
 if ($securiaceModernNotesRenderedInTerms && $securiaceModernNotesText !== '') {
     $securiaceModernRenderedNotes = true;
@@ -1387,8 +1540,10 @@ $securiaceModernDrawLabel(
     $securiaceModernTermsWidth - 6
 );
 $securiaceModernTerms = array();
-if ($securiaceModernIsPayable && isset($duedate) && trim((string) $duedate) !== '') {
-    $securiaceModernTerms[] = 'Payment is due by ' . trim((string) $duedate) . '.';
+if ($securiaceModernIsOverdue) {
+    $securiaceModernTerms[] = 'Payment was due on ' . $securiaceModernDueDateDisplay . ' and is now overdue.';
+} elseif ($securiaceModernIsPayable && $securiaceModernDueDateDisplay !== '—') {
+    $securiaceModernTerms[] = 'Payment is due by ' . $securiaceModernDueDateDisplay . '.';
 }
 $securiaceModernTerms[] = 'Overdue interest may apply at ' . trim((string) $securiaceModernConfig['overdue_interest']) . '.';
 if (trim((string) $securiaceModernConfig['tds_note']) !== '') {
@@ -1448,8 +1603,8 @@ if ($securiaceModernCanUseUpi && method_exists($pdf, 'write2DBarcode')) {
         'pn' => $securiaceModernCompanyName,
         'am' => number_format($securiaceModernBalanceNumeric, 2, '.', ''),
         'cu' => 'INR',
-        'tr' => 'Invoice-' . $securiaceModernInvoiceNumber,
-        'tn' => 'Payment for invoice ' . $securiaceModernInvoiceNumber,
+        'tr' => $securiaceModernInvoiceNumber,
+        'tn' => 'Payment for ' . ($securiaceModernIsProforma ? 'proforma ' : 'invoice ') . $securiaceModernInvoiceNumber,
     );
     $securiaceModernUpiUri = 'upi://pay?' . http_build_query($securiaceModernUpiParams, '', '&', PHP_QUERY_RFC3986);
     $securiaceModernQrSize = min(25, $securiaceModernActionWidth - 8);
@@ -1487,28 +1642,30 @@ if ($securiaceModernCanUseUpi && method_exists($pdf, 'write2DBarcode')) {
         0,
         'L'
     );
-} elseif ($securiaceModernIsPaid || $securiaceModernIsRefunded) {
-    $securiaceModernDrawLabel('Settlement', $securiaceModernActionX + 3, $securiaceModernSupportY + 3, $securiaceModernActionWidth - 6);
+} else {
+    $securiaceModernDrawLabel('Payment options', $securiaceModernActionX + 3, $securiaceModernSupportY + 3, $securiaceModernActionWidth - 6);
     $pdf->SetFont($securiaceModernFont, 'B', 7.5);
-    $pdf->SetTextColor($securiaceModernInk[0], $securiaceModernInk[1], $securiaceModernInk[2]);
+    $pdf->SetTextColor($securiaceModernStatusInk[0], $securiaceModernStatusInk[1], $securiaceModernStatusInk[2]);
     $pdf->SetXY($securiaceModernActionX + 3, $securiaceModernSupportY + 9);
-    $pdf->MultiCell($securiaceModernActionWidth - 6, 4, 'No payment action required', 0, 'L');
+    $pdf->MultiCell(
+        $securiaceModernActionWidth - 6,
+        4,
+        $securiaceModernHasBankDetails ? 'Pay by bank transfer' : 'Payment instructions',
+        0,
+        'L'
+    );
     $pdf->SetFont($securiaceModernFont, '', 6.2);
     $pdf->SetTextColor($securiaceModernMuted[0], $securiaceModernMuted[1], $securiaceModernMuted[2]);
     $pdf->SetX($securiaceModernActionX + 3);
     $pdf->MultiCell(
         $securiaceModernActionWidth - 6,
         3.4,
-        'Keep this document with its transaction reference as proof of payment.',
+        $securiaceModernHasBankDetails
+            ? 'Use the bank details and reference ' . $securiaceModernInvoiceNumber . '.'
+            : 'Contact billing for payment instructions and quote reference ' . $securiaceModernInvoiceNumber . '.',
         0,
         'L'
     );
-} else {
-    $securiaceModernDrawLabel('Payment status', $securiaceModernActionX + 3, $securiaceModernSupportY + 3, $securiaceModernActionWidth - 6);
-    $pdf->SetFont($securiaceModernFont, 'B', 8);
-    $pdf->SetTextColor($securiaceModernStatusInk[0], $securiaceModernStatusInk[1], $securiaceModernStatusInk[2]);
-    $pdf->SetXY($securiaceModernActionX + 3, $securiaceModernSupportY + 10);
-    $pdf->MultiCell($securiaceModernActionWidth - 6, 4, 'No payment action required', 0, 'L');
 }
 
 $pdf->SetY($securiaceModernSupportY + $securiaceModernSupportHeight + 4);
@@ -1557,10 +1714,10 @@ if (!$securiaceModernIsBatch && $securiaceModernIsPaid && !empty($securiaceModer
     }
 }
 
-$securiaceModernEnsureSpace(22 + (count($securiaceModernTransactions) * 11));
+$securiaceModernEnsureSpace(22 + (min(2, count($securiaceModernTransactions)) * 14));
 $securiaceModernTransactionColumns = $securiaceModernHasTransactionStatus
-    ? array(0.16, 0.20, 0.27, 0.22, 0.15)
-    : array(0.18, 0.23, 0.31, 0.28);
+    ? array(0.15, 0.24, 0.25, 0.21, 0.15)
+    : array(0.16, 0.29, 0.28, 0.27);
 $securiaceModernTransactionHeaders = $securiaceModernHasTransactionStatus
     ? array('Date', 'Method', 'Reference', 'Amount', 'Status')
     : array('Date', 'Method', 'Reference', 'Amount');
@@ -1626,14 +1783,10 @@ if (empty($securiaceModernTransactions)) {
     $pdf->SetY($emptyTransactionY + 10);
 } else {
     foreach ($securiaceModernTransactions as $securiaceModernTransactionIndex => $securiaceModernTransaction) {
-        if ($pdf->GetY() + 12 > $securiaceModernPageHeight - $securiaceModernBottomMargin) {
-            $pdf->AddPage();
-            $securiaceModernPaintPage();
-            $pdf->SetY($securiaceModernTopMargin);
-            $securiaceModernDrawTransactionHeading(true);
-        }
         $transactionValues = array(
-            isset($securiaceModernTransaction['date']) ? $securiaceModernTransaction['date'] : '—',
+            isset($securiaceModernTransaction['date'])
+                ? $securiaceModernFormatDate($securiaceModernTransaction['date'])
+                : '—',
             isset($securiaceModernTransaction['gateway']) && trim((string) $securiaceModernTransaction['gateway']) !== '' ? $securiaceModernTransaction['gateway'] : '—',
             isset($securiaceModernTransaction['reference']) && trim((string) $securiaceModernTransaction['reference']) !== '' ? $securiaceModernTransaction['reference'] : '—',
             isset($securiaceModernTransaction['amount']) ? $securiaceModernTransaction['amount'] : $securiaceModernFormatMoney(0),
@@ -1643,35 +1796,61 @@ if (empty($securiaceModernTransactions)) {
                 ? $securiaceModernTransaction['status']
                 : '—';
         }
+
+        $pdf->SetFont($securiaceModernFont, '', 6.3);
+        $securiaceModernTransactionRowHeight = 10.0;
+        foreach ($transactionValues as $valueIndex => $transactionValue) {
+            $valueWidth = ($securiaceModernUsableWidth * $securiaceModernTransactionColumns[$valueIndex]) - 5;
+            $valueText = $securiaceModernTruncate((string) $transactionValue, 72);
+            $securiaceModernTransactionRowHeight = max(
+                $securiaceModernTransactionRowHeight,
+                min(18, $pdf->getStringHeight($valueWidth, $valueText) + 5)
+            );
+        }
+        if ($pdf->GetY() + $securiaceModernTransactionRowHeight + 2 > $securiaceModernPageHeight - $securiaceModernBottomMargin) {
+            $pdf->AddPage();
+            $securiaceModernPaintPage();
+            $pdf->SetY($securiaceModernTopMargin);
+            $securiaceModernDrawTransactionHeading(true);
+        }
         $transactionY = $pdf->GetY();
         $transactionFill = $securiaceModernTransactionIndex % 2 === 0 ? $securiaceModernPaper : $securiaceModernSurface;
         $securiaceModernDrawCard(
             $securiaceModernMargin,
             $transactionY,
             $securiaceModernUsableWidth,
-            10,
+            $securiaceModernTransactionRowHeight,
             $transactionFill,
             $securiaceModernLine,
             2.2
         );
         $pdf->SetFont($securiaceModernFont, '', 6.3);
         $pdf->SetTextColor($securiaceModernInk[0], $securiaceModernInk[1], $securiaceModernInk[2]);
-        $pdf->SetXY($securiaceModernMargin + 2.5, $transactionY + 2.8);
+        $securiaceModernTransactionCellX = $securiaceModernMargin + 2.5;
         foreach ($transactionValues as $valueIndex => $transactionValue) {
             $valueWidth = $securiaceModernUsableWidth * $securiaceModernTransactionColumns[$valueIndex];
-            $maxLengths = array(18, 24, 30, 24, 16);
-            $valueText = $securiaceModernTruncate((string) $transactionValue, $maxLengths[$valueIndex]);
-            $rightPadding = $valueIndex === count($transactionValues) - 1 ? 5 : 0;
-            $pdf->Cell(
-                $valueWidth - $rightPadding,
-                4,
+            $valueText = $securiaceModernTruncate((string) $transactionValue, 72);
+            $pdf->SetXY($securiaceModernTransactionCellX, $transactionY + 2.3);
+            $pdf->MultiCell(
+                $valueWidth - 5,
+                3.2,
                 $valueText,
                 0,
-                $valueIndex === count($transactionValues) - 1 ? 1 : 0,
-                $valueIndex === 3 ? 'R' : 'L'
+                $valueIndex === 3 ? 'R' : 'L',
+                false,
+                0,
+                '',
+                '',
+                true,
+                0,
+                false,
+                true,
+                $securiaceModernTransactionRowHeight - 4.5,
+                'T'
             );
+            $securiaceModernTransactionCellX += $valueWidth;
         }
-        $pdf->SetY($transactionY + 12);
+        $pdf->SetY($transactionY + $securiaceModernTransactionRowHeight + 2);
     }
 
     $pdf->SetFont($securiaceModernFont, 'B', 6.6);
