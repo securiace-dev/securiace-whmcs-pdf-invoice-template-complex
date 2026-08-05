@@ -4,10 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#201c24">
   <title>Securiace invoice redesign preview</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <a class="skip-link" href="#invoice-document">Skip to invoice</a>
   <header class="preview-toolbar" aria-label="Preview controls">
     <div>
       <p class="toolbar-kicker">Design review</p>
@@ -23,7 +25,7 @@
   </header>
 
   <main class="preview-canvas">
-    <article class="invoice" id="invoice-document" aria-labelledby="document-title">
+    <article class="invoice" id="invoice-document" tabindex="-1" aria-labelledby="document-title">
       <div class="sample-notice">
         <span>Design preview</span>
         <span>Fictional data</span>
@@ -52,7 +54,7 @@
             <dd data-bind="invoiceDate">5 Aug 2026</dd>
           </div>
           <div data-paid-only>
-            <dt>Original proforma</dt>
+            <dt>Original reference</dt>
             <dd data-bind="proformaNumber">PF-2026-00461</dd>
           </div>
           <div data-unpaid-only hidden>
@@ -66,9 +68,9 @@
             <svg viewBox="0 0 24 24" role="img"><path d="M12 2.5 20 6v5.4c0 4.8-3.1 8.6-8 10.1-4.9-1.5-8-5.3-8-10.1V6l8-3.5Z"/><path d="m8.2 12 2.4 2.4 5.2-5.2"/></svg>
           </span>
           <span>
-            <strong>Digitally verified</strong>
+            <strong>Authenticated invoice record</strong>
             <small>ID <span data-bind="verificationId">8F3C912A6D44 · 1B70C9D2</span></small>
-            <small>IT Act 2000 compliant</small>
+            <small>Electronic record · IT Act 2000</small>
           </span>
         </div>
 
@@ -205,7 +207,7 @@
             <small>billing@example</small>
             <small>Ref · <span data-bind="invoiceNumber">INV-2026-00483</span></small>
           </div>
-          <svg class="qr-preview" viewBox="0 0 29 29" role="img" aria-label="Preview QR position; WHMCS generates the live scannable UPI code">
+          <svg class="qr-preview" width="62" height="62" viewBox="0 0 29 29" role="img" aria-label="Preview QR position; WHMCS generates the live scannable UPI code">
             <rect width="29" height="29" fill="#fff"/>
             <path fill="currentColor" fill-rule="evenodd" d="M1 1h7v7H1V1Zm2 2v3h3V3H3Zm18-2h7v7h-7V1Zm2 2v3h3V3h-3ZM1 21h7v7H1v-7Zm2 2v3h3v-3H3Z"/>
             <path fill="currentColor" d="M10 1h2v2h-2zm4 0h1v4h-2V3h1zm3 1h2v2h-2zm-7 4h2v2h-2zm3 0h3v2h-1v2h-2zm4 1h2v3h-2zM9 10h3v2h2v2h-2v2H9v-2h1v-2H9zm6 1h2v2h2v3h-2v-1h-2zm5-1h2v2h2v-2h3v2h-1v2h2v2h-3v-2h-2v2h-3v-2h1v-2h-1zM1 10h2v3H1zm4 0h3v2H6v2H4v-2h1zm-4 6h3v2h2v-2h2v3H5v1H1v-2h1zm9 2h2v2h2v2h-4zm5-1h3v2h2v2h-3v-2h-2zm6 1h2v2h2v-2h3v3h-2v2h-2v-1h-3zm-11 6h2v4h-2zm4-1h2v2h2v3h-2v-1h-2zm5 1h2v4h-2zm4 1h2v3h-3v-2h1zm4-2h1v5h-2v-3h1z"/>
@@ -238,13 +240,28 @@
             </div>
             <span class="record-count" data-bind="transactionCount">1 record</span>
           </div>
-          <div class="transaction-table" data-paid-only>
-            <span data-bind="paidDate">6 Aug 2026</span>
-            <span data-bind="paymentMethod">Bank transfer</span>
-            <span data-bind="transactionId">DEMO-NEFT-2849</span>
-            <strong data-bind="transactionAmount">₹7,750.00</strong>
-            <span class="transaction-status">Completed</span>
-          </div>
+          <table class="transaction-table" data-paid-only>
+            <caption class="visually-hidden">Recorded payment transaction</caption>
+            <colgroup>
+              <col class="transaction-date-column">
+              <col class="transaction-method-column">
+              <col class="transaction-reference-column">
+              <col class="transaction-amount-column">
+              <col class="transaction-status-column">
+            </colgroup>
+            <thead class="visually-hidden">
+              <tr><th scope="col">Date</th><th scope="col">Method</th><th scope="col">Reference</th><th scope="col">Amount</th><th scope="col">Status</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td data-bind="paidDate">6 Aug 2026</td>
+                <td data-bind="paymentMethod">Bank transfer</td>
+                <td data-bind="transactionId">DEMO-NEFT-2849</td>
+                <td data-bind="transactionAmount">₹7,750.00</td>
+                <td><span class="transaction-status">Completed</span></td>
+              </tr>
+            </tbody>
+          </table>
           <p class="empty-record" data-unpaid-only hidden>No payment transactions recorded yet.</p>
         </article>
       </section>

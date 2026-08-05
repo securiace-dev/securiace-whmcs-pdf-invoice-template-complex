@@ -45,10 +45,41 @@ textarea {
 
 button {
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: rgba(217, 183, 236, 0.3);
 }
 
 [hidden] {
   display: none !important;
+}
+
+.skip-link {
+  position: fixed;
+  z-index: 20;
+  top: 8px;
+  left: 8px;
+  padding: 8px 12px;
+  color: #fff;
+  background: var(--brand);
+  border-radius: 6px;
+  transform: translateY(-150%);
+}
+
+.skip-link:focus-visible {
+  outline: 3px solid #d9b7ec;
+  outline-offset: 2px;
+  transform: translateY(0);
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
 }
 
 .preview-toolbar {
@@ -120,6 +151,20 @@ button {
   background: #fff;
 }
 
+.state-switch button:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.state-switch button[aria-pressed="true"]:hover {
+  color: var(--brand-dark);
+  background: #fff;
+}
+
+.print-button:hover {
+  background: #671291;
+}
+
 .print-button {
   color: #fff;
   background: var(--brand);
@@ -145,6 +190,7 @@ button {
   background: var(--paper);
   border: 1px solid #dad5dc;
   box-shadow: var(--shadow);
+  scroll-margin-top: 84px;
 }
 
 .sample-notice {
@@ -232,6 +278,16 @@ button {
   font-size: 28px;
   line-height: 1;
   letter-spacing: -0.045em;
+}
+
+.preview-toolbar h1,
+.document-heading h2,
+.party-card h3,
+.section-heading h3,
+.record-heading h3,
+.settlement-card h3,
+.payment-callout h3 {
+  text-wrap: balance;
 }
 
 .status-pill {
@@ -415,6 +471,7 @@ dd {
   font-size: 7.7pt;
   font-style: normal;
   line-height: 1.38;
+  overflow-wrap: anywhere;
 }
 
 .detail-line {
@@ -850,19 +907,54 @@ html[data-invoice-state="unpaid"] .records-grid {
 }
 
 .transaction-table {
-  display: grid;
-  grid-template-columns: 0.85fr 0.9fr 1.1fr 0.85fr auto;
-  gap: 7px;
-  align-items: center;
   margin-top: 8px;
-  padding-top: 7px;
   border-top: 1px solid var(--line);
   font-size: 6.7pt;
   font-variant-numeric: tabular-nums;
+  table-layout: fixed;
 }
 
-.transaction-table strong {
+.transaction-table td {
+  padding: 7px 4px 0;
+  overflow-wrap: anywhere;
+  border: 0;
+  font-size: inherit;
+  vertical-align: middle;
+}
+
+.transaction-table td:first-child {
+  padding-left: 0;
+}
+
+.transaction-table td:nth-child(4) {
+  font-weight: 800;
   text-align: right;
+  white-space: nowrap;
+}
+
+.transaction-table td:last-child {
+  padding-right: 0;
+  text-align: right;
+}
+
+.transaction-date-column {
+  width: 17%;
+}
+
+.transaction-method-column {
+  width: 18%;
+}
+
+.transaction-reference-column {
+  width: 25%;
+}
+
+.transaction-amount-column {
+  width: 22%;
+}
+
+.transaction-status-column {
+  width: 18%;
 }
 
 .transaction-status {
@@ -948,11 +1040,11 @@ html[data-invoice-state="unpaid"] .records-grid {
   }
 
   .transaction-table {
-    grid-template-columns: 1fr 1fr;
+    min-width: 560px;
   }
 
-  .transaction-status {
-    justify-self: start;
+  .transaction-card {
+    overflow-x: auto;
   }
 }
 
