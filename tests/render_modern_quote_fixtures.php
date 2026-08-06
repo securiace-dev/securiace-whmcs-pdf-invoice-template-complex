@@ -217,6 +217,18 @@ function renderQuoteFixture(string $templatePath, string $outputDirectory, strin
         'pages' => $securiaceQuotePageCount,
         'number' => $securiaceQuoteNumber,
         'currency_code' => $securiaceQuoteCurrencyCode,
+        'subject' => $securiaceQuoteSubject,
+        'issued_label' => $securiaceQuoteIssuedLabel,
+        'issued_display' => $securiaceQuoteIssuedDisplay,
+        'valid_until_display' => $securiaceQuoteValidUntilDisplay,
+        'date_warnings' => $securiaceQuoteDateWarnings,
+        'has_valid_until' => $securiaceQuoteHasValidUntil,
+        'summary_height' => $summaryHeight,
+        'summary_full_width' => $summaryUsesFullWidth,
+        'shows_discount' => $securiaceQuoteShowDiscount,
+        'detail_continuations' => $securiaceQuoteDetailContinuationCount,
+        'acceptance_height' => $acceptanceHeight,
+        'totals_height' => $totalsHeight,
         'sanitized_proposal' => $securiaceQuoteProposalHtml,
         'proposal_plain' => $securiaceQuoteProposalPlain,
         'first_description' => isset($securiaceQuoteNormalizedDescriptions[0])
@@ -246,6 +258,15 @@ for ($index = 1; $index <= 42; ++$index) {
         'total' => '₹ ' . number_format(2500 + ($index * 100), 2) . ' INR',
     );
 }
+$longDetail = str_repeat(
+    'Stakeholder workshop, infrastructure inventory, architecture review, security observations, '
+        . 'risk prioritisation, implementation planning, validation criteria, and documented handover. ',
+    90
+);
+$veryLongSubject = str_repeat(
+    'Multi-site infrastructure, software architecture, security operations, and implementation governance ',
+    5
+);
 
 $fixtures = array(
     'standard' => quoteFixture(),
@@ -295,6 +316,70 @@ $fixtures = array(
             'total' => '₹ 2,850.00 INR',
         )),
     )),
+    'screenshot-regression' => quoteFixture(array(
+        'quotenumber' => '182',
+        'subject' => 'Onsite Discovery & Blueprint Visit for IT Infrastructure, Software Architecture, and Security Operations',
+        'datecreated' => '00/00/0000',
+        'validuntil' => '05/09/2026',
+        'proposal' => '',
+        'lineitems' => array(array(
+            'id' => 1,
+            'description' => 'Onsite Discovery & Blueprint Visit - Review of current IT/software setup<br>'
+                . 'Deliverables: Codebase health and feasibility report; system requirements specification; AI and automation upgrade roadmap; fixed-cost stabilisation and rollout proposal.\n\n'
+                . 'Payment term: 100% advance is payable after written acceptance and before visit scheduling.\n'
+                . 'Commercial adjustment: If a separately scoped implementation engagement is awarded, this discovery fee may be credited only under the accepted implementation terms.\n'
+                . 'Tax: GST is not charged because the supplier is not registered under GST as of the quote date.',
+            'qty' => 1,
+            'unitprice' => 65000,
+            'discount' => 0,
+            'taxable' => 0,
+            'total' => '₹ 65,000.00 INR',
+        )),
+        'subtotal' => '₹ 65,000.00 INR',
+        'taxlevel1' => array('name' => '', 'rate' => 0),
+        'tax1' => '₹ 0.00 INR',
+        'total' => '₹ 65,000.00 INR',
+    )),
+    'invalid-validity-order' => quoteFixture(array(
+        'quotenumber' => 'Q-2026-00224',
+        'datecreated' => '10/09/2026',
+        'validuntil' => '05/09/2026',
+    )),
+    'mdy-dates' => quoteFixture(array(
+        'quotenumber' => 'Q-2026-00225',
+        'datecreated' => '08/06/2026',
+        'validuntil' => '09/05/2026',
+        'securiaceQuoteTemplateConfig' => array(
+            'date_order' => 'MDY',
+        ),
+    )),
+    'missing-validity' => quoteFixture(array(
+        'quotenumber' => 'Q-2026-00227',
+        'validuntil' => '',
+    )),
+    'very-long-subject' => quoteFixture(array(
+        'quotenumber' => 'Q-2026-00228',
+        'subject' => trim($veryLongSubject),
+        'proposal' => '',
+    )),
+    'long-detail-a4' => quoteFixture(array(
+        'quotenumber' => 'Q-2026-00226',
+        'subject' => 'Long-form discovery workstream with multi-page item details',
+        'proposal' => '',
+        'lineitems' => array(array(
+            'id' => 1,
+            'description' => 'Discovery and implementation blueprint<br>' . $longDetail,
+            'qty' => 1,
+            'unitprice' => 65000,
+            'discount' => 0,
+            'taxable' => 0,
+            'total' => '₹ 65,000.00 INR',
+        )),
+        'subtotal' => '₹ 65,000.00 INR',
+        'taxlevel1' => array('name' => '', 'rate' => 0),
+        'tax1' => '₹ 0.00 INR',
+        'total' => '₹ 65,000.00 INR',
+    )),
     'long-letter' => quoteFixture(array(
         '_paper' => 'LETTER',
         'quotenumber' => 'Q-2026-00222',
@@ -312,6 +397,7 @@ $expectations = array(
         'number' => 'Q-2026-00218',
         'currency_code' => 'INR',
         'item_count' => 2,
+        'shows_discount' => true,
         'rendered_notes' => false,
         'issuer_name' => 'Example Technologies',
         'issuer_lines' => array(
@@ -341,10 +427,54 @@ $expectations = array(
         ),
         'payment_details_rendered' => false,
     ),
-    'guest' => array('number' => 'Q-2026-00219', 'currency_code' => 'INR', 'item_count' => 1),
+    'guest' => array('number' => 'Q-2026-00219', 'currency_code' => 'INR', 'item_count' => 1, 'shows_discount' => false),
     'sanitized-rich-content' => array('number' => 'Q-2026-00220', 'currency_code' => 'INR', 'item_count' => 2),
     'entity-description' => array('number' => 'Q-2026-00221', 'currency_code' => 'INR', 'item_count' => 1, 'first_description' => "Security R&D <managed>\nDiscovery and implementation"),
-    'long-letter' => array('number' => 'Q-2026-00222', 'currency_code' => 'INR', 'item_count' => 42),
+    'screenshot-regression' => array(
+        'number' => '182',
+        'currency_code' => 'INR',
+        'item_count' => 1,
+        'subject' => 'Onsite Discovery & Blueprint Visit for IT Infrastructure, Software Architecture, and Security Operations',
+        'issued_label' => 'Generated',
+        'issued_display' => '5 Aug 2026',
+        'valid_until_display' => '5 Sep 2026',
+        'date_warnings' => array('issue-date-invalid-or-missing'),
+        'has_valid_until' => true,
+        'shows_discount' => false,
+    ),
+    'invalid-validity-order' => array(
+        'number' => 'Q-2026-00224',
+        'issued_label' => 'Issued',
+        'issued_display' => '10 Sep 2026',
+        'valid_until_display' => 'Review required',
+        'date_warnings' => array('valid-until-precedes-issue-date'),
+        'has_valid_until' => false,
+    ),
+    'mdy-dates' => array(
+        'number' => 'Q-2026-00225',
+        'issued_label' => 'Issued',
+        'issued_display' => '6 Aug 2026',
+        'valid_until_display' => '5 Sep 2026',
+        'date_warnings' => array(),
+        'has_valid_until' => true,
+    ),
+    'missing-validity' => array(
+        'number' => 'Q-2026-00227',
+        'valid_until_display' => 'No expiry stated',
+        'date_warnings' => array('valid-until-invalid-or-missing'),
+        'has_valid_until' => false,
+    ),
+    'very-long-subject' => array(
+        'number' => 'Q-2026-00228',
+        'subject' => trim($veryLongSubject),
+        'summary_full_width' => true,
+    ),
+    'long-detail-a4' => array(
+        'number' => 'Q-2026-00226',
+        'item_count' => 1,
+        'shows_discount' => false,
+    ),
+    'long-letter' => array('number' => 'Q-2026-00222', 'currency_code' => 'INR', 'item_count' => 42, 'shows_discount' => true),
 );
 
 foreach ($fixtures as $name => $fixture) {
@@ -357,6 +487,22 @@ foreach ($fixtures as $name => $fixture) {
     }
     if ($name === 'long-letter' && $result['pages'] < 2) {
         throw new RuntimeException('Long quote fixture did not exercise multi-page rendering.');
+    }
+    if ($name === 'screenshot-regression') {
+        if ($result['summary_height'] <= 16 || $result['summary_full_width']) {
+            throw new RuntimeException('Screenshot subject did not expand inside its metadata card.');
+        }
+        if ($result['totals_height'] !== $result['acceptance_height']) {
+            throw new RuntimeException('Acceptance and totals cards did not share their measured height.');
+        }
+    }
+    if ($name === 'long-detail-a4') {
+        if ($result['pages'] < 2 || $result['detail_continuations'] < 1) {
+            throw new RuntimeException('Long quote-item detail did not exercise continuation rendering.');
+        }
+    }
+    if ($name === 'very-long-subject' && $result['summary_height'] <= 16) {
+        throw new RuntimeException('Very long quote subject did not expand its full-width summary.');
     }
     if ($name === 'sanitized-rich-content') {
         foreach (array('script', 'style', 'onclick', '<img', '<a ', 'data-x') as $forbidden) {
