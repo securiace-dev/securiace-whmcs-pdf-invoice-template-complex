@@ -16,7 +16,7 @@ $securiaceQuoteDefaults = array(
     'company_phone' => '',
     'company_pan' => '',
     'company_msme' => '',
-    'jurisdiction' => 'Pune, Maharashtra',
+    'jurisdiction' => '',
     'acceptance_note' => 'Acceptance confirms the scope and commercial terms shown in this quote.',
 );
 $securiaceQuoteConfig = $securiaceQuoteDefaults;
@@ -42,6 +42,31 @@ foreach (array_keys($securiaceQuoteDefaults) as $securiaceQuoteConfigKey) {
         $securiaceQuoteConfigValue = '';
     }
     $securiaceQuoteConfig[$securiaceQuoteConfigKey] = trim((string) $securiaceQuoteConfigValue);
+}
+
+// WHMCS passes the company name, domain, and Pay To block into quote PDFs,
+// while email and tax settings may need to be read through the supported
+// settings model. Tests and integrations can inject the same non-secret map.
+$securiaceQuoteWhmcsSettings = isset($securiacePdfSettings) && is_array($securiacePdfSettings)
+    ? $securiacePdfSettings
+    : array();
+$securiaceQuoteSettingNames = array(
+    'company_email' => 'Email',
+    'company_url' => 'Domain',
+    'tax_code' => 'TaxCode',
+);
+if (class_exists('\\WHMCS\\Config\\Setting')) {
+    foreach ($securiaceQuoteSettingNames as $securiaceQuoteSettingKey => $securiaceQuoteSettingName) {
+        if (array_key_exists($securiaceQuoteSettingKey, $securiaceQuoteWhmcsSettings)) {
+            continue;
+        }
+        try {
+            $securiaceQuoteWhmcsSettings[$securiaceQuoteSettingKey] =
+                \WHMCS\Config\Setting::getValue($securiaceQuoteSettingName);
+        } catch (Throwable $securiaceQuoteSettingException) {
+            $securiaceQuoteWhmcsSettings[$securiaceQuoteSettingKey] = '';
+        }
+    }
 }
 
 $securiaceQuotePlainMultiline = static function ($value) {
@@ -159,33 +184,83 @@ if (!isset($clientsdetails) || !is_array($clientsdetails)) {
     $clientsdetails = array();
 }
 
-$securiaceQuoteCompanyName = isset($companyname) && trim((string) $companyname) !== ''
-    ? trim((string) $companyname)
-    : 'Securiace Technologies';
+$securiaceQuoteProfilePath = __DIR__ . '/securiace-pdf-profile.php';
+$securiaceQuoteProfileResolver = is_readable($securiaceQuoteProfilePath)
+    ? include $securiaceQuoteProfilePath
+    : null;
+$securiaceQuoteCompanyNameInput = isset($companyname) ? $companyname : '';
+$securiaceQuoteCompanyUrlInput = isset($companyurl) && trim((string) $companyurl) !== ''
+    ? $companyurl
+    : (isset($securiaceQuoteWhmcsSettings['company_url']) ? $securiaceQuoteWhmcsSettings['company_url'] : '');
+$securiaceQuoteCompanyEmailInput = isset($securiaceQuoteWhmcsSettings['company_email'])
+    ? $securiaceQuoteWhmcsSettings['company_email']
+    : '';
+$securiaceQuoteTaxCodeInput = isset($taxCode) && trim((string) $taxCode) !== ''
+    ? $taxCode
+    : (isset($securiaceQuoteWhmcsSettings['tax_code']) ? $securiaceQuoteWhmcsSettings['tax_code'] : '');
+
+if ($securiaceQuoteProfileResolver instanceof Closure) {
+    $securiaceQuoteIssuerProfile = $securiaceQuoteProfileResolver(array(
+        'company_name' => $securiaceQuoteCompanyNameInput,
+        'company_email' => $securiaceQuoteCompanyEmailInput,
+        'company_url' => $securiaceQuoteCompanyUrlInput,
+        'tax_code' => $securiaceQuoteTaxCodeInput,
+        'tax_label' => isset($taxIdLabel) ? $taxIdLabel : 'GSTIN',
+        'pay_to' => isset($companyaddress) ? $companyaddress : array(),
+        'default_bank_currencies' => array('INR'),
+        'fallback' => $securiaceQuoteConfig,
+    ));
+} else {
+    // Never render the raw Pay To block when the shared parser is unavailable;
+    // it can contain bank and UPI credentials that do not belong on a quote.
+    $securiaceQuoteFallbackCompanyName = trim((string) $securiaceQuoteCompanyNameInput);
+    if ($securiaceQuoteFallbackCompanyName === '') {
+        $securiaceQuoteFallbackCompanyName = 'Issuer';
+    }
+    $securiaceQuoteIssuerProfile = array(
+        'identity' => array(
+            'business_name' => $securiaceQuoteFallbackCompanyName,
+            'address_lines' => array(),
+            'support_email' => trim((string) $securiaceQuoteCompanyEmailInput),
+            'support_email_valid' => true,
+            'mobile' => trim((string) $securiaceQuoteConfig['company_phone']),
+        ),
+        'registrations' => array(),
+        'diagnostics' => array(
+            'sources' => array('profile' => 'safe-fallback'),
+            'warnings' => array('profile-helper-unavailable'),
+            'conflicts' => array(),
+            'unknown_labels' => array(),
+        ),
+    );
+}
+
+$securiaceQuoteCompanyName = trim((string) $securiaceQuoteIssuerProfile['identity']['business_name']);
 $securiaceQuoteCompanyLines = array();
-if (isset($companyaddress) && is_array($companyaddress)) {
-    foreach ($companyaddress as $addressLine) {
-        if (is_scalar($addressLine)
-            || (is_object($addressLine) && method_exists($addressLine, '__toString'))
-        ) {
-            $addressLine = trim((string) $addressLine);
-            if ($addressLine !== '') {
-                $securiaceQuoteCompanyLines[] = $addressLine;
-            }
-        }
+foreach ($securiaceQuoteIssuerProfile['identity']['address_lines'] as $securiaceQuoteAddressLine) {
+    $securiaceQuoteAddressLine = trim((string) $securiaceQuoteAddressLine);
+    if ($securiaceQuoteAddressLine !== '') {
+        $securiaceQuoteCompanyLines[] = $securiaceQuoteAddressLine;
     }
 }
-foreach (array('company_email', 'company_phone') as $companyConfigKey) {
-    if ($securiaceQuoteConfig[$companyConfigKey] !== '') {
-        $securiaceQuoteCompanyLines[] = $securiaceQuoteConfig[$companyConfigKey];
+if ($securiaceQuoteIssuerProfile['identity']['support_email'] !== ''
+    && $securiaceQuoteIssuerProfile['identity']['support_email_valid']
+) {
+    $securiaceQuoteCompanyLines[] = 'Helpdesk · '
+        . $securiaceQuoteIssuerProfile['identity']['support_email'];
+}
+if ($securiaceQuoteIssuerProfile['identity']['mobile'] !== '') {
+    $securiaceQuoteCompanyLines[] = 'Mobile · ' . $securiaceQuoteIssuerProfile['identity']['mobile'];
+}
+$securiaceQuoteSellerRegistrations = array();
+foreach ($securiaceQuoteIssuerProfile['registrations'] as $securiaceQuoteRegistration) {
+    if (!empty($securiaceQuoteRegistration['valid'])) {
+        $securiaceQuoteSellerRegistrations[] = $securiaceQuoteRegistration['label']
+            . ' · ' . $securiaceQuoteRegistration['value'];
     }
 }
-if ($securiaceQuoteConfig['company_pan'] !== '') {
-    $securiaceQuoteCompanyLines[] = 'PAN: ' . $securiaceQuoteConfig['company_pan'];
-}
-if ($securiaceQuoteConfig['company_msme'] !== '') {
-    $securiaceQuoteCompanyLines[] = 'MSME: ' . $securiaceQuoteConfig['company_msme'];
-}
+$securiaceQuoteIssuerDiagnostics = $securiaceQuoteIssuerProfile['diagnostics'];
+$securiaceQuotePaymentDetailsRendered = false;
 
 $securiaceQuoteClientName = !empty($clientsdetails['companyname'])
     ? trim((string) $clientsdetails['companyname'])
@@ -363,12 +438,20 @@ $partyWidth = ($securiaceQuoteUsableWidth - $partyGap) / 2;
 $partyY = $pdf->GetY();
 $clientText = implode("\n", $securiaceQuoteClientLines);
 $companyText = implode("\n", $securiaceQuoteCompanyLines);
+$registrationText = implode("\n", $securiaceQuoteSellerRegistrations);
 $pdf->SetFont($securiaceQuoteFont, '', 7);
+$clientTextHeight = $pdf->getStringHeight($partyWidth - 8, $clientText);
+$companyTextHeight = $pdf->getStringHeight($partyWidth - 8, $companyText);
+$registrationHeight = 0;
+if ($registrationText !== '') {
+    $pdf->SetFont($securiaceQuoteFont, 'B', 5.6);
+    $registrationHeight = max(6, $pdf->getStringHeight($partyWidth - 12, $registrationText) + 2.5);
+}
 $partyHeight = max(
     35,
     16 + max(
-        $pdf->getStringHeight($partyWidth - 8, $clientText),
-        $pdf->getStringHeight($partyWidth - 8, $companyText)
+        $clientTextHeight,
+        $companyTextHeight + $registrationHeight + ($registrationHeight > 0 ? 2 : 0)
     )
 );
 $securiaceQuoteDrawCard($securiaceQuoteMargin, $partyY, $partyWidth, $partyHeight, $securiaceQuotePaper, $securiaceQuoteLine);
@@ -378,8 +461,8 @@ $pdf->SetDrawColor($securiaceQuoteBrand[0], $securiaceQuoteBrand[1], $securiaceQ
 $pdf->SetLineWidth(0.8);
 $pdf->Line($securiaceQuoteMargin + 2.65, $partyY, $securiaceQuoteMargin + $partyWidth - 2.65, $partyY);
 $partyColumns = array(
-    array('Prepared for', $securiaceQuoteClientName, $clientText, $securiaceQuoteMargin),
-    array('Prepared by', $securiaceQuoteCompanyName, $companyText, $issuerX),
+    array('Prepared for', $securiaceQuoteClientName, $clientText, $securiaceQuoteMargin, ''),
+    array('Prepared by', $securiaceQuoteCompanyName, $companyText, $issuerX, $registrationText),
 );
 foreach ($partyColumns as $partyColumn) {
     $partyX = $partyColumn[3];
@@ -392,6 +475,22 @@ foreach ($partyColumns as $partyColumn) {
     $pdf->SetTextColor($securiaceQuoteMuted[0], $securiaceQuoteMuted[1], $securiaceQuoteMuted[2]);
     $pdf->SetXY($partyX + 4, $pdf->GetY() + 1);
     $pdf->MultiCell($partyWidth - 8, 3.5, $partyColumn[2], 0, 'L');
+    if ($partyColumn[4] !== '') {
+        $registrationY = $pdf->GetY() + 1.5;
+        $securiaceQuoteDrawCard(
+            $partyX + 4,
+            $registrationY,
+            $partyWidth - 8,
+            $registrationHeight,
+            $securiaceQuoteBrandSoft,
+            $securiaceQuoteLine,
+            2.4
+        );
+        $pdf->SetFont($securiaceQuoteFont, 'B', 5.6);
+        $pdf->SetTextColor($securiaceQuoteBrand[0], $securiaceQuoteBrand[1], $securiaceQuoteBrand[2]);
+        $pdf->SetXY($partyX + 6, $registrationY + 1.2);
+        $pdf->MultiCell($partyWidth - 12, 3, $partyColumn[4], 0, 'L');
+    }
 }
 $pdf->SetY($partyY + $partyHeight + 5);
 
