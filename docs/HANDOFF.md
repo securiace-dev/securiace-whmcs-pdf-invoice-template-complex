@@ -71,6 +71,16 @@ issuer/payment identifiers or snapshot counts here.
 - Paid, refunded, cancelled, draft, zero-balance, quote, and admin-batch outputs
   do not expose UPI/QR. Quotes and batch PDFs remain free of invoice-specific
   payment instructions and unrelated additions.
+- Quote issue/validity dates fail closed for zero, malformed, missing, or
+  chronologically invalid values. Supported numeric dates use the configured
+  DMY/MDY order and render with an unambiguous abbreviated month. An unusable
+  stored issue date falls back to a labelled generation date plus a diagnostic.
+- Quote subjects never truncate silently. Long line-item detail uses the full
+  commercial-table width and can continue across pages without repeating
+  monetary values; zero-only discount columns are omitted.
+- Quote issuer registrations share one compact dynamic block, acceptance points
+  to the WHMCS client area or authorised written confirmation, and every page
+  footer carries the WHMCS-owned quote number.
 - Long and localized dates cannot overlap. Overdue invoices remain visibly
   distinct even though WHMCS keeps the underlying status as `Unpaid`.
 - PAN and Udyam/MSME render when valid. GSTIN remains hidden before GST mode is
