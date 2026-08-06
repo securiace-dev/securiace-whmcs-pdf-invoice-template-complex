@@ -60,6 +60,7 @@ jobs:
             tests/modern_invoice_design_contract_test.php \
             tests/modern_quote_template_contract_test.php \
             tests/addon_module_contract_test.php \
+            tests/handoff_contract_test.php \
             tests/pdf_profile_resolver_test.php \
             tests/pdf_snapshot_test.php \
             tests/preview_contract_test.php \
@@ -81,6 +82,7 @@ jobs:
           php tests/modern_invoice_design_contract_test.php
           php tests/modern_quote_template_contract_test.php
           php tests/addon_module_contract_test.php
+          php tests/handoff_contract_test.php
           php tests/pdf_profile_resolver_test.php
           php tests/pdf_snapshot_test.php
 
@@ -111,6 +113,40 @@ jobs:
         run: |
           node --check preview/app.js
           node --check quote-preview/app.js
+
+      - name: Enforce living handoff freshness
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          merge_base="$(git merge-base HEAD "origin/$BASE_REF")"
+          protected_changed=false
+          handoff_changed=false
+          while IFS= read -r path; do
+            if [[ "$path" == "docs/HANDOFF.md" ]]; then
+              handoff_changed=true
+            fi
+            case "$path" in
+              invoicepdf.tpl|invoicepdf-modern.tpl|quotepdf-modern.tpl|securiace-pdf-*.php|config/*|modules/addons/securiace_pdf_profile/*|scripts/*|.github/workflows/*)
+                protected_changed=true
+                ;;
+            esac
+          done < <(git diff --name-only "$merge_base"...HEAD)
+
+          if [[ "$handoff_changed" == true ]]; then
+            if ! printf '%s\n' "$PR_BODY" | grep -Eq '^Handoff-Impact: updated[[:space:]]*$'; then
+              echo "docs/HANDOFF.md changed, but the PR body does not declare Handoff-Impact: updated." >&2
+              exit 1
+            fi
+          elif [[ "$protected_changed" == true ]]; then
+            if ! printf '%s\n' "$PR_BODY" | grep -Eq '^Handoff-Impact: none - .+'; then
+              echo "Production-facing files changed without a handoff update or a specific Handoff-Impact exemption." >&2
+              exit 1
+            fi
+          fi
 
       - name: Reject whitespace errors in the pull-request diff
         if: github.event_name == 'pull_request'

@@ -92,6 +92,11 @@ are in [`docs/INVOICE-UX-AUDIT.md`](docs/INVOICE-UX-AUDIT.md).
 The approved current/future-GST document lifecycle, statutory number constraints,
 and WHMCS settings are in
 [`docs/INVOICE-NAMING-AND-NUMBERING.md`](docs/INVOICE-NAMING-AND-NUMBERING.md).
+The evergreen source-of-truth map, update triggers, deployment evidence, rollback
+requirements, and next-maintainer checklist are in
+[`docs/HANDOFF.md`](docs/HANDOFF.md). Runtime issuer/payment values and transient
+health counts are deliberately read live instead of being copied into the
+handoff.
 
 ## Install the modern invoice template
 
