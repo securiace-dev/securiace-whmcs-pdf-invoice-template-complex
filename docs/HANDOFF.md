@@ -15,6 +15,7 @@ screenshot or a value pasted into this repository is never a source of truth.
 - Handoff contract version: `1`
 - Addon module version: `1.0.0`
 - Snapshot schema version: `1`
+- Shared profile helper SHA-256: `75879d938f2dc3f100835e3a2826a35c166d3002d5b006d65b4a84e8e5b0db61`
 - Supported WHMCS line: `8.x and 9.x`
 - Supported PHP line: `7.4 through 8.3`
 
@@ -28,6 +29,9 @@ At this handoff closure, production has been verified with:
 
 - `securiace-pdf-profile.php` copied into the WHMCS `includes` area and readable
   by the WHMCS runtime;
+- the deployed helper matching the repository SHA-256 contract marker above
+  after an atomic refresh, with its previous copy retained at
+  `/var/backups/securiace-whmcs-pdf/20260806-handoff-helper-refresh-62777cd/`;
 - **Securiace PDF Profile Snapshots** activated through WHMCS Addon Modules;
 - the addon version recorded and its invoice hook registered;
 - issuer snapshot storage available at the expected schema version;

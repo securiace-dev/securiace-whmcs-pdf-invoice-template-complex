@@ -64,6 +64,17 @@ if ($schemaVersion[1] !== $handoffSchemaVersion[1]) {
     throw new RuntimeException('Handoff snapshot schema version is stale.');
 }
 
+$helperHash = hash_file('sha256', $root . '/securiace-pdf-profile.php');
+if (!is_string($helperHash)) {
+    throw new RuntimeException('Unable to hash shared profile helper.');
+}
+if (!preg_match('/Shared profile helper SHA-256:\s*`([a-f0-9]{64})`/', $sources['handoff'], $handoffHelperHash)) {
+    throw new RuntimeException('Unable to resolve shared profile helper hash from handoff.');
+}
+if (!hash_equals($helperHash, $handoffHelperHash[1])) {
+    throw new RuntimeException('Handoff shared profile helper hash is stale.');
+}
+
 $requiredRepositoryContracts = array(
     array('readme', '[`docs/HANDOFF.md`](docs/HANDOFF.md)'),
     array('pull_request_template', '## Living handoff'),
