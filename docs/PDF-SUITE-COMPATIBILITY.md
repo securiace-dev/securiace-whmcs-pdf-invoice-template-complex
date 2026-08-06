@@ -51,7 +51,8 @@ theme template.
 - Quote line items contain real `qty`, raw `unitprice`, percentage `discount`, and
   formatted line `total`; the renderer uses each for its documented purpose.
   Zero-only discounts do not consume a column, long item detail spans the full
-  table width, and continuation pages do not duplicate monetary values.
+  table width, wrapped continuation titles receive a measured header, and
+  continuation pages do not duplicate monetary values.
 - Guest quotes have `userid = 0` and recipient fields from the quote record rather
   than a WHMCS client profile.
 - Proposal content passes through WHMCS decoding. The template removes executable,

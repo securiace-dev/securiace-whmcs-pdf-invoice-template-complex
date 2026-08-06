@@ -86,7 +86,8 @@ issuer/payment identifiers or snapshot counts here.
   stored issue date falls back to a labelled generation date plus a diagnostic.
 - Quote subjects never truncate silently. Long line-item detail uses the full
   commercial-table width and can continue across pages without repeating
-  monetary values; zero-only discount columns are omitted.
+  monetary values; wrapped continuation titles expand their measured header
+  instead of overlapping detail, and zero-only discount columns are omitted.
 - Quote issuer registrations share one compact dynamic block, acceptance points
   to the WHMCS client area or authorised written confirmation, and every page
   footer carries the WHMCS-owned quote number.

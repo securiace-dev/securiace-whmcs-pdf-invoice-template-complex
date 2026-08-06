@@ -807,6 +807,7 @@ $securiaceQuoteSplitTextForHeight = static function ($text, $width, $maxHeight) 
 $securiaceQuoteNormalizedDescriptions = array();
 $preparedQuoteItems = array();
 $securiaceQuoteDetailContinuationCount = 0;
+$securiaceQuoteMaxDetailContinuationHeaderHeight = 0;
 foreach ($securiaceQuoteItems as $item) {
     if (!is_array($item)) {
         continue;
@@ -924,7 +925,16 @@ if (empty($preparedQuoteItems)) {
             ++$securiaceQuoteDetailContinuationCount;
             $drawItemsContinuation();
             $continuationY = $pdf->GetY();
-            $continuationHeaderHeight = 10;
+            $pdf->SetFont($securiaceQuoteFont, 'B', 6.8);
+            $continuationTitleHeight = $pdf->getStringHeight(
+                $detailWidth,
+                $preparedItem['title']
+            );
+            $continuationHeaderHeight = max(10, 7 + $continuationTitleHeight);
+            $securiaceQuoteMaxDetailContinuationHeaderHeight = max(
+                $securiaceQuoteMaxDetailContinuationHeaderHeight,
+                $continuationHeaderHeight
+            );
             $maxDetailHeight = max(3.5, $pageBottom - $continuationY - $continuationHeaderHeight - 4);
             list($detailChunk, $remainingDetail) = $securiaceQuoteSplitTextForHeight(
                 $remainingDetail,

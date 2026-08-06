@@ -227,6 +227,7 @@ function renderQuoteFixture(string $templatePath, string $outputDirectory, strin
         'summary_full_width' => $summaryUsesFullWidth,
         'shows_discount' => $securiaceQuoteShowDiscount,
         'detail_continuations' => $securiaceQuoteDetailContinuationCount,
+        'max_detail_continuation_header_height' => $securiaceQuoteMaxDetailContinuationHeaderHeight,
         'acceptance_height' => $acceptanceHeight,
         'totals_height' => $totalsHeight,
         'sanitized_proposal' => $securiaceQuoteProposalHtml,
@@ -368,7 +369,10 @@ $fixtures = array(
         'proposal' => '',
         'lineitems' => array(array(
             'id' => 1,
-            'description' => 'Discovery and implementation blueprint<br>' . $longDetail,
+            'description' => str_repeat(
+                'Discovery and implementation blueprint for distributed infrastructure, security, and operational governance ',
+                4
+            ) . '<br>' . $longDetail,
             'qty' => 1,
             'unitprice' => 65000,
             'discount' => 0,
@@ -499,6 +503,9 @@ foreach ($fixtures as $name => $fixture) {
     if ($name === 'long-detail-a4') {
         if ($result['pages'] < 2 || $result['detail_continuations'] < 1) {
             throw new RuntimeException('Long quote-item detail did not exercise continuation rendering.');
+        }
+        if ($result['max_detail_continuation_header_height'] <= 10) {
+            throw new RuntimeException('Wrapped continuation title did not expand its measured header.');
         }
     }
     if ($name === 'very-long-subject' && $result['summary_height'] <= 16) {

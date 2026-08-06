@@ -36,6 +36,7 @@ $requiredContracts = array(
     'MultiCell($summaryInnerWidth, 3.6, $securiaceQuoteSubject',
     '$securiaceQuoteShowDiscount',
     '$securiaceQuoteSplitTextForHeight',
+    '$securiaceQuoteMaxDetailContinuationHeaderHeight',
     '$securiaceQuoteUsableWidth - 8',
     'Item details · continued',
     '$footerReference .= \' · Quote \'',
