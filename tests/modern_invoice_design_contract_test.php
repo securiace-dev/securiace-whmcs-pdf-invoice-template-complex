@@ -19,7 +19,8 @@ $requiredContracts = array(
     'Payment received in full',
     'Authorized signature',
     'Pay by bank transfer',
-    'Contact billing for payment instructions',
+    'Payment instructions',
+    "'support_email_valid'",
     'UPI payment',
     '$securiaceModernDrawTransactionHeading',
     'Transaction history',
@@ -31,6 +32,10 @@ $requiredContracts = array(
     'company_msme',
     "\$securiaceModernBatchScript === 'csvdownload.php'",
     "\$securiaceModernBatchRequestType === 'pdfbatch'",
+    "__DIR__ . '/securiace-pdf-profile.php'",
+    "'pay_to' => isset(\$companyaddress) ? \$companyaddress : array()",
+    "\$securiaceModernCurrencyCode === 'INR'",
+    '$securiaceModernRenderedBank',
 );
 
 foreach ($requiredContracts as $requiredContract) {
@@ -44,6 +49,8 @@ $forbiddenContracts = array(
     'DIGITALLY VERIFIED',
     'IT Act 2000 compliant',
     'Invoice QR record',
+    'Securiace Technologies',
+    'Overdue interest may apply at',
 );
 foreach ($forbiddenContracts as $forbiddenContract) {
     if (stripos($template, $forbiddenContract) !== false) {

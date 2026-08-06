@@ -16,16 +16,20 @@ return array(
         'account_name' => 'Example Technologies',
         'account_number' => '0000000000000000',
         'ifsc' => 'DEMO0000001',
+        'branch' => 'Example Branch',
         'account_type' => 'Current',
         'bank_name' => 'Example Bank',
     ),
+    // Used when a Pay To bank section does not declare Currencies explicitly.
+    'bank_currencies' => array('INR'),
     'upi_id' => 'billing@example',
     'verification_secret' => getenv('SECURIACE_INVOICE_VERIFY_SECRET') ?: '',
     // Ambiguous numeric service periods: DMY for India/UK, MDY for US.
     'date_order' => 'DMY',
     'show_it_act_label' => true,
-    'jurisdiction' => 'Pune, Maharashtra',
-    'overdue_interest' => '18% p.a.',
+    'jurisdiction' => '',
+    // Optional reviewed policy override. Empty uses conservative WHMCS-derived copy.
+    'late_fee_text' => '',
     'tds_note' => 'If applicable, deduct TDS under Section 194J and provide Form 16A.',
     'acceptance_note' => 'Acceptance confirms the scope and commercial terms shown in this quote.',
 );
