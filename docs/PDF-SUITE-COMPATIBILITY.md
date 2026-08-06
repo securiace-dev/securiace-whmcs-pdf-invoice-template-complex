@@ -50,6 +50,9 @@ theme template.
   placed in the governed proposal body.
 - Quote line items contain real `qty`, raw `unitprice`, percentage `discount`, and
   formatted line `total`; the renderer uses each for its documented purpose.
+  Zero-only discounts do not consume a column, long item detail spans the full
+  table width, wrapped continuation titles receive a measured header, and
+  continuation pages do not duplicate monetary values.
 - Guest quotes have `userid = 0` and recipient fields from the quote record rather
   than a WHMCS client profile.
 - Proposal content passes through WHMCS decoding. The template removes executable,
@@ -58,6 +61,13 @@ theme template.
 - In the first `sendQuotePDF()` flow, WHMCS generates the PDF attachment before it
   updates the stage to Delivered. The custom template therefore displays the
   valid-until date, which is stable at generation time, and omits stage entirely.
+- The renderer normalizes supported WHMCS date formats, rejects zero/impossible
+  numeric dates, detects validity dates before the issue date, and never exports
+  a raw `00/00/0000` sentinel. If the stored issue date is unusable, the PDF
+  labels its factual generation date and records a source diagnostic. It
+  preserves non-numeric localized output when a strict parse is not possible.
+- The subject, issuer registrations, acceptance instructions, and quote footer
+  are content-driven and remain traceable without invoice-only payment content.
 - Quote-to-invoice conversion serializes quote quantity/rate/discount context into
   the new invoice description while assigning the calculated quote line total as
   the invoice item amount. The invoice renderer preserves that total unchanged.

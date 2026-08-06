@@ -35,8 +35,17 @@ At this handoff closure, production has been verified with:
 - **Securiace PDF Profile Snapshots** activated through WHMCS Addon Modules;
 - the addon version recorded and its invoice hook registered;
 - issuer snapshot storage available at the expected schema version;
-- the protected configuration available; and
-- redacted diagnostics reporting no source warnings or conflicts.
+- the protected configuration available;
+- redacted diagnostics reporting no source warnings or conflicts;
+- the active `templates/twenty-one/quotepdf.tpl` matching quote-fix commit
+  `21273df891b0cff34bacc4b719ad0c01f7fde40b` at SHA-256
+  `8be7a5b40a06ac17c57a035d6f53eff0ff2a0aed9355ace61027886caaee317b`;
+- the prior quote template and hash-guarded rollback retained at
+  `/var/backups/securiace-whmcs-pdf/20260806T091534Z-quote-21273df/`; and
+- and a production-native render of the affected zero-date quote returning a valid
+  one-page PDF under the WHMCS site user, with the fallback date and redesigned
+  hierarchy visually verified before all temporary client-data artifacts were
+  removed.
 
 This section is current environment context, not a substitute for live checks.
 Future deployers must refresh it when any listed state changes. Do not add live
@@ -71,6 +80,17 @@ issuer/payment identifiers or snapshot counts here.
 - Paid, refunded, cancelled, draft, zero-balance, quote, and admin-batch outputs
   do not expose UPI/QR. Quotes and batch PDFs remain free of invoice-specific
   payment instructions and unrelated additions.
+- Quote issue/validity dates fail closed for zero, malformed, missing, or
+  chronologically invalid values. Supported numeric dates use the configured
+  DMY/MDY order and render with an unambiguous abbreviated month. An unusable
+  stored issue date falls back to a labelled generation date plus a diagnostic.
+- Quote subjects never truncate silently. Long line-item detail uses the full
+  commercial-table width and can continue across pages without repeating
+  monetary values; wrapped continuation titles expand their measured header
+  instead of overlapping detail, and zero-only discount columns are omitted.
+- Quote issuer registrations share one compact dynamic block, acceptance points
+  to the WHMCS client area or authorised written confirmation, and every page
+  footer carries the WHMCS-owned quote number.
 - Long and localized dates cannot overlap. Overdue invoices remain visibly
   distinct even though WHMCS keeps the underlying status as `Unpaid`.
 - PAN and Udyam/MSME render when valid. GSTIN remains hidden before GST mode is

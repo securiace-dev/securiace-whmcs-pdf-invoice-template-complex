@@ -65,10 +65,26 @@ paid and payable invoices harder to misread.
 - The PDF presents the valid-until date instead of the internal stage. WHMCS 8.12
   creates the first emailed attachment before changing the stage to Delivered,
   so printing that stage can produce a stale document.
+- Numeric issue/validity dates are normalized to an unambiguous `5 Sep 2026`
+  display using the protected `date_order` setting (`DMY` by default). Missing,
+  zero, malformed, or chronologically invalid dates fail closed. A missing
+  stored issue date is labelled with its factual PDF generation date while a
+  non-sensitive diagnostic records that the WHMCS source value needs repair.
+- Proposal subjects are rendered in full using an adaptive summary card. Item
+  detail spans the table width and continues safely across pages; a discount
+  column appears only when at least one line has a non-zero discount.
+- Acceptance copy directs the recipient to the WHMCS client area or written
+  confirmation from an authorised contact, and every footer carries the quote
+  number for detached-page traceability.
 - Quotes intentionally contain no UPI action, bank-remittance call to action,
   payment receipt, transaction history, invoice verification, or paid balance.
 - Customer notes are omitted so internal commentary is not leaked; essential
   client-facing scope and terms belong in the proposal body.
+- The template never rewrites authored commercial or tax terms. For a currently
+  non-GST-registered supplier, review the proposal wording before delivery and
+  state plainly that GST is not charged because the supplier is not registered
+  under GST as of the quote date; do not describe supplier registration as
+  pending client confirmation.
 - A4 and Letter output, long proposals, many line items, taxes, discounts,
   guest recipients, and missing optional data are covered by TCPDF fixtures.
 

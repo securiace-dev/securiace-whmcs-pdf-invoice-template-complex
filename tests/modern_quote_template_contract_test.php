@@ -25,6 +25,21 @@ $requiredContracts = array(
     "'pay_to' => isset(\$companyaddress) ? \$companyaddress : array()",
     '$securiaceQuoteSellerRegistrations',
     '$securiaceQuotePaymentDetailsRendered = false',
+    "'date_order' => 'DMY'",
+    '$securiaceQuoteParseDate',
+    '$securiaceQuoteIssuedDisplay',
+    '$securiaceQuoteIssuedLabel',
+    '$securiaceQuoteValidUntilDisplay',
+    '$securiaceQuoteDateWarnings',
+    'valid-until-precedes-issue-date',
+    'Proposal summary',
+    'MultiCell($summaryInnerWidth, 3.6, $securiaceQuoteSubject',
+    '$securiaceQuoteShowDiscount',
+    '$securiaceQuoteSplitTextForHeight',
+    '$securiaceQuoteMaxDetailContinuationHeaderHeight',
+    '$securiaceQuoteUsableWidth - 8',
+    'Item details · continued',
+    '$footerReference .= \' · Quote \'',
 );
 foreach ($requiredContracts as $requiredContract) {
     if (strpos($template, $requiredContract) === false) {
@@ -50,6 +65,10 @@ foreach ($invoiceOnlyContracts as $invoiceOnlyContract) {
     if (stripos($template, $invoiceOnlyContract) !== false) {
         throw new RuntimeException('Modern quote template contains invoice-only logic: ' . $invoiceOnlyContract);
     }
+}
+
+if (strpos($template, '$securiaceQuoteTruncate($securiaceQuoteSubject') !== false) {
+    throw new RuntimeException('Modern quote template silently truncates the proposal subject.');
 }
 
 fwrite(STDOUT, "Modern quote template contract tests passed.\n");
