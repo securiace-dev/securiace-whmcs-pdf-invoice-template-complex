@@ -45,6 +45,10 @@ $requiredContracts = array(
     '$securiaceModernFinalNumberMaxLength = 16',
     "'/^[A-Za-z0-9\\/-]+$/'",
     '$securiaceModernNumberingDiagnostics',
+    "'mod_securiace_pdf_issuer_snapshots'",
+    "ROOTDIR . '/includes/securiace-pdf-snapshot.php'",
+    '$securiaceModernSnapshotApplied',
+    "'immutable.invoice'",
 );
 
 foreach ($requiredContracts as $requiredContract) {

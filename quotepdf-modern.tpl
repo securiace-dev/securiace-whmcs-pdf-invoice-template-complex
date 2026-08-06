@@ -184,7 +184,16 @@ if (!isset($clientsdetails) || !is_array($clientsdetails)) {
     $clientsdetails = array();
 }
 
-$securiaceQuoteProfilePath = __DIR__ . '/securiace-pdf-profile.php';
+$securiaceQuoteProfilePath = '';
+foreach (array(
+    defined('ROOTDIR') ? ROOTDIR . '/includes/securiace-pdf-profile.php' : '',
+    __DIR__ . '/securiace-pdf-profile.php',
+) as $securiaceQuoteProfileCandidate) {
+    if ($securiaceQuoteProfileCandidate !== '' && is_readable($securiaceQuoteProfileCandidate)) {
+        $securiaceQuoteProfilePath = $securiaceQuoteProfileCandidate;
+        break;
+    }
+}
 $securiaceQuoteProfileResolver = is_readable($securiaceQuoteProfilePath)
     ? include $securiaceQuoteProfilePath
     : null;

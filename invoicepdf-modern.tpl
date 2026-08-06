@@ -721,7 +721,16 @@ $securiaceModernStatusInk = $securiaceModernRgb($securiaceModernPalette['ink']);
 $securiaceModernStatusSoft = $securiaceModernRgb($securiaceModernPalette['soft']);
 $securiaceModernStatusLine = $securiaceModernRgb($securiaceModernPalette['line']);
 
-$securiaceModernProfilePath = __DIR__ . '/securiace-pdf-profile.php';
+$securiaceModernProfilePath = '';
+foreach (array(
+    defined('ROOTDIR') ? ROOTDIR . '/includes/securiace-pdf-profile.php' : '',
+    __DIR__ . '/securiace-pdf-profile.php',
+) as $securiaceModernProfileCandidate) {
+    if ($securiaceModernProfileCandidate !== '' && is_readable($securiaceModernProfileCandidate)) {
+        $securiaceModernProfilePath = $securiaceModernProfileCandidate;
+        break;
+    }
+}
 $securiaceModernProfileResolver = is_readable($securiaceModernProfilePath)
     ? include $securiaceModernProfilePath
     : null;
@@ -783,6 +792,77 @@ if ($securiaceModernProfileResolver instanceof Closure) {
     );
 }
 
+$securiaceModernSnapshotApplied = false;
+$securiaceModernSnapshotWarning = '';
+$securiaceModernSnapshotRow = isset($securiacePdfSnapshotRow) && is_array($securiacePdfSnapshotRow)
+    ? $securiacePdfSnapshotRow
+    : array();
+if (empty($securiaceModernSnapshotRow)
+    && !$securiaceModernIsProforma
+    && $securiaceModernInvoiceId !== ''
+    && class_exists('\\WHMCS\\Database\\Capsule')
+) {
+    try {
+        if (\WHMCS\Database\Capsule::schema()->hasTable('mod_securiace_pdf_issuer_snapshots')) {
+            $securiaceModernSnapshotRecord = \WHMCS\Database\Capsule::table(
+                'mod_securiace_pdf_issuer_snapshots'
+            )->where('invoice_id', (int) $securiaceModernInvoiceId)->first();
+            if ($securiaceModernSnapshotRecord) {
+                $securiaceModernSnapshotRow = (array) $securiaceModernSnapshotRecord;
+            }
+        }
+    } catch (Throwable $securiaceModernSnapshotReadException) {
+        $securiaceModernSnapshotWarning = 'snapshot-read-failed';
+    }
+}
+
+if (!$securiaceModernIsProforma && !empty($securiaceModernSnapshotRow)) {
+    $securiaceModernSnapshotValidatorPath = '';
+    foreach (array(
+        defined('ROOTDIR') ? ROOTDIR . '/includes/securiace-pdf-snapshot.php' : '',
+        __DIR__ . '/securiace-pdf-snapshot.php',
+    ) as $securiaceModernSnapshotValidatorCandidate) {
+        if ($securiaceModernSnapshotValidatorCandidate !== ''
+            && is_readable($securiaceModernSnapshotValidatorCandidate)
+        ) {
+            $securiaceModernSnapshotValidatorPath = $securiaceModernSnapshotValidatorCandidate;
+            break;
+        }
+    }
+    $securiaceModernSnapshotValidator = $securiaceModernSnapshotValidatorPath !== ''
+        ? include $securiaceModernSnapshotValidatorPath
+        : null;
+    if ($securiaceModernSnapshotValidator instanceof Closure) {
+        $securiaceModernSnapshotResult = $securiaceModernSnapshotValidator($securiaceModernSnapshotRow);
+        if (!empty($securiaceModernSnapshotResult['valid'])) {
+            $securiaceModernSnapshot = $securiaceModernSnapshotResult['snapshot'];
+            $securiaceModernIssuerProfile['identity'] = $securiaceModernSnapshot['issuer']['identity'];
+            $securiaceModernIssuerProfile['registrations'] =
+                $securiaceModernSnapshot['issuer']['registrations'];
+            $securiaceModernDocumentTitle = $securiaceModernSnapshot['document']['title'];
+            $securiaceModernDocumentKicker = strtoupper($securiaceModernDocumentTitle);
+            $securiaceModernGstActive = !empty($securiaceModernSnapshot['document']['gst_active']);
+            $securiaceModernCommercialInvoiceActive =
+                $securiaceModernDocumentTitle === 'Commercial Invoice';
+            $securiaceModernSnapshotApplied = true;
+            $securiaceModernSnapshotFinalNumber = isset(
+                $securiaceModernSnapshot['document']['final_invoice_number']
+            ) ? trim((string) $securiaceModernSnapshot['document']['final_invoice_number']) : '';
+            if ($securiaceModernSnapshotFinalNumber !== ''
+                && $securiaceModernSnapshotFinalNumber !== $securiaceModernStoredInvoiceNumber
+            ) {
+                $securiaceModernSnapshotWarning = 'snapshot-final-number-mismatch';
+            }
+        } else {
+            $securiaceModernSnapshotWarning = isset($securiaceModernSnapshotResult['warning'])
+                ? (string) $securiaceModernSnapshotResult['warning']
+                : 'snapshot-invalid';
+        }
+    } else {
+        $securiaceModernSnapshotWarning = 'snapshot-validator-unavailable';
+    }
+}
+
 $securiaceModernCompanyName = $securiaceModernIssuerProfile['identity']['business_name'];
 $securiaceModernCompanyAddress = $securiaceModernIssuerProfile['identity']['address_lines'];
 $securiaceModernIssuerDiagnostics = $securiaceModernIssuerProfile['diagnostics'];
@@ -804,6 +884,12 @@ $securiaceModernIssuerDiagnostics['warnings'] = array_merge(
 );
 if (!$securiaceModernNumberingDiagnostics['valid']) {
     $securiaceModernIssuerDiagnostics['warnings'][] = 'final-invoice-number-invalid';
+}
+if ($securiaceModernSnapshotWarning !== '') {
+    $securiaceModernIssuerDiagnostics['warnings'][] = $securiaceModernSnapshotWarning;
+}
+if ($securiaceModernSnapshotApplied) {
+    $securiaceModernIssuerDiagnostics['sources']['issuer.snapshot'] = 'immutable.invoice';
 }
 $securiaceModernIssuerDiagnostics['warnings'] = array_values(array_unique(
     $securiaceModernIssuerDiagnostics['warnings']
