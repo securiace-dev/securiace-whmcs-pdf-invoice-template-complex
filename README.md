@@ -101,9 +101,10 @@ and WHMCS settings are in
    WHMCS_ROOT/templates/twenty-one/invoicepdf.tpl
    ```
 
-2. Copy `invoicepdf-modern.tpl` into that directory as `invoicepdf.tpl`.
-   WHMCS selects this exact filename; the separate repository name exists to
-   preserve the rollback template.
+2. Copy `invoicepdf-modern.tpl` into that directory as `invoicepdf.tpl`, and
+   copy `securiace-pdf-profile.php` beside it. WHMCS selects the exact template
+   filename; the helper is shared by invoice and quote PDFs and fails closed if
+   a partial deployment omits it.
 
 3. Copy `config/securiace-invoice-config.example.php` to the protected runtime
    path below and replace every example value:
@@ -111,6 +112,13 @@ and WHMCS settings are in
    ```text
    WHMCS_ROOT/includes/securiace-invoice-config.php
    ```
+
+   Keep `gst_registered` false until registration is effective. Future tax
+   titles require `gst_registered=true`, a valid GSTIN in the WHMCS Tax Code
+   setting, and an invoice issue date on or after `gst_effective_date`.
+   `commercial_invoice_currencies` remains empty unless a reviewed workflow
+   explicitly needs that title; foreign currency alone does not change the
+   document type.
 
 4. Provide the verification secret through the
    `SECURIACE_INVOICE_VERIFY_SECRET` environment variable. Do not commit bank
@@ -138,7 +146,9 @@ file changes are required.
 
 1. Back up the active system-theme file, usually
    `WHMCS_ROOT/templates/twenty-one/quotepdf.tpl`.
-2. Copy `quotepdf-modern.tpl` to that directory as `quotepdf.tpl`.
+2. Copy `quotepdf-modern.tpl` to that directory as `quotepdf.tpl`, and ensure
+   `securiace-pdf-profile.php` is present beside it. The quote consumes only the
+   resolved identity and registration projection; payment data is discarded.
 3. Generate a quote for a registered client and a guest recipient. Download each
    PDF, email one through WHMCS, and convert an accepted test quote to an invoice.
 4. Confirm that proposal formatting, line-item discounts, one/two taxes, totals,
