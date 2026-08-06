@@ -35,8 +35,17 @@ At this handoff closure, production has been verified with:
 - **Securiace PDF Profile Snapshots** activated through WHMCS Addon Modules;
 - the addon version recorded and its invoice hook registered;
 - issuer snapshot storage available at the expected schema version;
-- the protected configuration available; and
-- redacted diagnostics reporting no source warnings or conflicts.
+- the protected configuration available;
+- redacted diagnostics reporting no source warnings or conflicts;
+- the active `templates/twenty-one/quotepdf.tpl` matching quote-fix commit
+  `21273df891b0cff34bacc4b719ad0c01f7fde40b` at SHA-256
+  `8be7a5b40a06ac17c57a035d6f53eff0ff2a0aed9355ace61027886caaee317b`;
+- the prior quote template and hash-guarded rollback retained at
+  `/var/backups/securiace-whmcs-pdf/20260806T091534Z-quote-21273df/`; and
+- and a production-native render of the affected zero-date quote returning a valid
+  one-page PDF under the WHMCS site user, with the fallback date and redesigned
+  hierarchy visually verified before all temporary client-data artifacts were
+  removed.
 
 This section is current environment context, not a substitute for live checks.
 Future deployers must refresh it when any listed state changes. Do not add live
