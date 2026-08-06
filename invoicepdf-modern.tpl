@@ -24,16 +24,27 @@ $securiaceModernDefaults = array(
         'account_name' => '',
         'account_number' => '',
         'ifsc' => '',
+        'branch' => '',
         'account_type' => '',
         'bank_name' => '',
     ),
+    'bank_currencies' => array('INR'),
     'upi_id' => '',
     'verification_secret' => getenv('SECURIACE_INVOICE_VERIFY_SECRET') ?: '',
     'date_order' => 'DMY',
     'show_it_act_label' => true,
-    'jurisdiction' => 'Pune, Maharashtra',
-    'overdue_interest' => '18% p.a.',
-    'tds_note' => 'If applicable, deduct TDS under Section 194J and provide Form 16A.',
+    'jurisdiction' => '',
+    'overdue_interest' => '',
+    'late_fee_text' => '',
+    'tds_note' => '',
+    // Non-GST is the safe default. GST mode requires the explicit boolean,
+    // a valid GSTIN, and an issue date on/after the effective date.
+    'gst_registered' => false,
+    'gst_effective_date' => '',
+    'gst_final_title' => 'Tax Invoice',
+    // Commercial Invoice is a controlled exception, not an international
+    // default. Add only currencies reviewed for that document treatment.
+    'commercial_invoice_currencies' => array(),
 );
 
 $securiaceModernConfig = $securiaceModernDefaults;
@@ -70,7 +81,8 @@ if (!isset($securiaceModernConfig['bank']) || !is_array($securiaceModernConfig['
 
 $securiaceModernConfigStringKeys = array(
     'company_email', 'company_phone', 'company_pan', 'company_msme', 'upi_id',
-    'verification_secret', 'date_order', 'jurisdiction', 'overdue_interest', 'tds_note'
+    'verification_secret', 'date_order', 'jurisdiction', 'overdue_interest',
+    'late_fee_text', 'tds_note', 'gst_effective_date', 'gst_final_title'
 );
 foreach ($securiaceModernConfigStringKeys as $securiaceModernConfigStringKey) {
     $securiaceModernConfigValue = isset($securiaceModernConfig[$securiaceModernConfigStringKey])
@@ -83,6 +95,24 @@ foreach ($securiaceModernConfigStringKeys as $securiaceModernConfigStringKey) {
     }
     $securiaceModernConfig[$securiaceModernConfigStringKey] = (string) $securiaceModernConfigValue;
 }
+$securiaceModernGstRegisteredValue = isset($securiaceModernConfig['gst_registered'])
+    ? $securiaceModernConfig['gst_registered']
+    : false;
+if (is_bool($securiaceModernGstRegisteredValue)) {
+    $securiaceModernConfig['gst_registered'] = $securiaceModernGstRegisteredValue;
+} else {
+    $securiaceModernGstRegisteredValue = is_scalar($securiaceModernGstRegisteredValue)
+        ? filter_var($securiaceModernGstRegisteredValue, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE)
+        : null;
+    $securiaceModernConfig['gst_registered'] = $securiaceModernGstRegisteredValue === true;
+}
+if (!in_array(
+    $securiaceModernConfig['gst_final_title'],
+    array('Tax Invoice', 'Tax Invoice — Export of Services'),
+    true
+)) {
+    $securiaceModernConfig['gst_final_title'] = $securiaceModernDefaults['gst_final_title'];
+}
 foreach ($securiaceModernConfig['bank'] as $securiaceModernBankConfigKey => $securiaceModernBankConfigValue) {
     if (!is_scalar($securiaceModernBankConfigValue)
         && !(is_object($securiaceModernBankConfigValue) && method_exists($securiaceModernBankConfigValue, '__toString'))
@@ -90,6 +120,78 @@ foreach ($securiaceModernConfig['bank'] as $securiaceModernBankConfigKey => $sec
         $securiaceModernBankConfigValue = '';
     }
     $securiaceModernConfig['bank'][$securiaceModernBankConfigKey] = (string) $securiaceModernBankConfigValue;
+}
+
+$securiaceModernBankCurrencies = isset($securiaceModernConfig['bank_currencies'])
+    && is_array($securiaceModernConfig['bank_currencies'])
+    ? $securiaceModernConfig['bank_currencies']
+    : $securiaceModernDefaults['bank_currencies'];
+$securiaceModernConfig['bank_currencies'] = array();
+foreach ($securiaceModernBankCurrencies as $securiaceModernBankCurrency) {
+    if (!is_scalar($securiaceModernBankCurrency)
+        && !(is_object($securiaceModernBankCurrency) && method_exists($securiaceModernBankCurrency, '__toString'))
+    ) {
+        continue;
+    }
+    $securiaceModernBankCurrency = strtoupper(trim((string) $securiaceModernBankCurrency));
+    if (preg_match('/^[A-Z]{3}$/', $securiaceModernBankCurrency)
+        && !in_array($securiaceModernBankCurrency, $securiaceModernConfig['bank_currencies'], true)
+    ) {
+        $securiaceModernConfig['bank_currencies'][] = $securiaceModernBankCurrency;
+    }
+}
+
+$securiaceModernCommercialCurrencies = isset($securiaceModernConfig['commercial_invoice_currencies'])
+    && is_array($securiaceModernConfig['commercial_invoice_currencies'])
+    ? $securiaceModernConfig['commercial_invoice_currencies']
+    : array();
+$securiaceModernConfig['commercial_invoice_currencies'] = array();
+foreach ($securiaceModernCommercialCurrencies as $securiaceModernCommercialCurrency) {
+    if (!is_scalar($securiaceModernCommercialCurrency)
+        && !(is_object($securiaceModernCommercialCurrency)
+            && method_exists($securiaceModernCommercialCurrency, '__toString'))
+    ) {
+        continue;
+    }
+    $securiaceModernCommercialCurrency = strtoupper(trim((string) $securiaceModernCommercialCurrency));
+    if (preg_match('/^[A-Z]{3}$/', $securiaceModernCommercialCurrency)
+        && !in_array(
+            $securiaceModernCommercialCurrency,
+            $securiaceModernConfig['commercial_invoice_currencies'],
+            true
+        )
+    ) {
+        $securiaceModernConfig['commercial_invoice_currencies'][] = $securiaceModernCommercialCurrency;
+    }
+}
+
+// WHMCS passes Company Name, Domain, Pay To, and tax values to the template,
+// but not every General/Invoice setting needed for robust fallbacks. Resolve
+// those through the supported setting model when available. Fixtures and other
+// integrations can inject the same non-secret map without a database.
+$securiaceModernWhmcsSettings = isset($securiacePdfSettings) && is_array($securiacePdfSettings)
+    ? $securiacePdfSettings
+    : array();
+$securiaceModernSettingNames = array(
+    'company_email' => 'Email',
+    'company_url' => 'Domain',
+    'tax_code' => 'TaxCode',
+    'late_fee_type' => 'LateFeeType',
+    'late_fee_amount' => 'InvoiceLateFeeAmount',
+    'late_fee_minimum' => 'LateFeeMinimum',
+);
+if (class_exists('\\WHMCS\\Config\\Setting')) {
+    foreach ($securiaceModernSettingNames as $securiaceModernSettingKey => $securiaceModernSettingName) {
+        if (array_key_exists($securiaceModernSettingKey, $securiaceModernWhmcsSettings)) {
+            continue;
+        }
+        try {
+            $securiaceModernWhmcsSettings[$securiaceModernSettingKey] =
+                \WHMCS\Config\Setting::getValue($securiaceModernSettingName);
+        } catch (Throwable $securiaceModernSettingException) {
+            $securiaceModernWhmcsSettings[$securiaceModernSettingKey] = '';
+        }
+    }
 }
 
 $securiaceModernInputCurrencyFormat = isset($currencyformat) && is_numeric($currencyformat)
@@ -356,6 +458,7 @@ $securiaceModernInvoiceNumber = isset($invoicenum) && trim((string) $invoicenum)
 if ($securiaceModernInvoiceNumber === '') {
     $securiaceModernInvoiceNumber = '—';
 }
+$securiaceModernStoredInvoiceNumber = $securiaceModernInvoiceNumber;
 
 $securiaceModernPageTitle = isset($pagetitle) ? $securiaceModernPlainText($pagetitle) : '';
 $securiaceModernIsProforma = stripos($securiaceModernPageTitle, 'proforma') !== false;
@@ -374,10 +477,82 @@ $securiaceModernProformaReference = $securiaceModernInvoiceId !== ''
 if ($securiaceModernIsProforma) {
     $securiaceModernInvoiceNumber = $securiaceModernProformaReference;
 }
-$securiaceModernDocumentTitle = $securiaceModernIsProforma ? 'Proforma Invoice' : 'Invoice';
-$securiaceModernDocumentKicker = $securiaceModernIsProforma
-    ? 'PROFORMA'
-    : (isset($taxCode) && trim((string) $taxCode) !== '' ? 'TAX INVOICE' : 'INVOICE');
+
+$securiaceModernGstinCandidate = isset($taxCode) && trim((string) $taxCode) !== ''
+    ? strtoupper(trim((string) $taxCode))
+    : (isset($securiaceModernWhmcsSettings['tax_code'])
+        ? strtoupper(trim((string) $securiaceModernWhmcsSettings['tax_code']))
+        : '');
+$securiaceModernGstinValid = preg_match(
+    '/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][A-Z0-9]Z[A-Z0-9]$/',
+    $securiaceModernGstinCandidate
+) === 1;
+$securiaceModernIssueDateForPolicy = isset($datecreated)
+    ? $securiaceModernParseDate($datecreated)
+    : null;
+$securiaceModernGstEffectiveDate = trim((string) $securiaceModernConfig['gst_effective_date']) !== ''
+    ? $securiaceModernParseDate($securiaceModernConfig['gst_effective_date'])
+    : null;
+$securiaceModernGstGateWarnings = array();
+if ($securiaceModernConfig['gst_registered'] && !$securiaceModernGstinValid) {
+    $securiaceModernGstGateWarnings[] = 'gst-gate-invalid-gstin';
+}
+if ($securiaceModernConfig['gst_registered']
+    && !($securiaceModernGstEffectiveDate instanceof DateTimeImmutable)
+) {
+    $securiaceModernGstGateWarnings[] = 'gst-gate-effective-date-unavailable';
+}
+if ($securiaceModernConfig['gst_registered']
+    && !($securiaceModernIssueDateForPolicy instanceof DateTimeImmutable)
+) {
+    $securiaceModernGstGateWarnings[] = 'gst-gate-issue-date-unavailable';
+}
+$securiaceModernGstActive = $securiaceModernConfig['gst_registered']
+    && $securiaceModernGstinValid
+    && $securiaceModernGstEffectiveDate instanceof DateTimeImmutable
+    && $securiaceModernIssueDateForPolicy instanceof DateTimeImmutable
+    && $securiaceModernIssueDateForPolicy >= $securiaceModernGstEffectiveDate;
+$securiaceModernCommercialInvoiceActive = !$securiaceModernGstActive
+    && in_array(
+        $securiaceModernCurrencyCode,
+        $securiaceModernConfig['commercial_invoice_currencies'],
+        true
+    );
+
+if ($securiaceModernIsProforma) {
+    $securiaceModernDocumentTitle = 'Proforma Invoice';
+} elseif ($securiaceModernGstActive) {
+    $securiaceModernDocumentTitle = $securiaceModernConfig['gst_final_title'];
+} elseif ($securiaceModernCommercialInvoiceActive) {
+    $securiaceModernDocumentTitle = 'Commercial Invoice';
+} else {
+    $securiaceModernDocumentTitle = 'Invoice';
+}
+$securiaceModernDocumentKicker = strtoupper($securiaceModernDocumentTitle);
+
+// WHMCS owns assignment and sequence uniqueness. The template only preflights
+// final display numbers against the future GST Rule 46(b) shape and never
+// rewrites a number, which would break reconciliation with the database.
+$securiaceModernFinalNumberMaxLength = 16;
+$securiaceModernFinalNumberLength = function_exists('mb_strlen')
+    ? mb_strlen($securiaceModernStoredInvoiceNumber, 'UTF-8')
+    : strlen($securiaceModernStoredInvoiceNumber);
+$securiaceModernFinalNumberAllowed = preg_match(
+    '/^[A-Za-z0-9\/-]+$/',
+    $securiaceModernStoredInvoiceNumber
+) === 1;
+$securiaceModernFinalNumberWithinLimit = $securiaceModernFinalNumberLength > 0
+    && $securiaceModernFinalNumberLength <= $securiaceModernFinalNumberMaxLength;
+$securiaceModernNumberingDiagnostics = array(
+    'applicable' => !$securiaceModernIsProforma,
+    'number' => $securiaceModernStoredInvoiceNumber,
+    'length' => $securiaceModernFinalNumberLength,
+    'max_length' => $securiaceModernFinalNumberMaxLength,
+    'allowed_characters' => $securiaceModernFinalNumberAllowed,
+    'within_limit' => $securiaceModernFinalNumberWithinLimit,
+    'valid' => $securiaceModernIsProforma
+        || ($securiaceModernFinalNumberAllowed && $securiaceModernFinalNumberWithinLimit),
+);
 
 $securiaceModernItems = isset($invoiceitems) && is_array($invoiceitems) ? $invoiceitems : array();
 $securiaceModernRawTransactions = isset($transactions) && is_array($transactions) ? $transactions : array();
@@ -517,6 +692,7 @@ $securiaceModernRenderedRenewals = false;
 $securiaceModernRenderedNotes = false;
 $securiaceModernRenderedAuthorization = false;
 $securiaceModernRenderedUpi = false;
+$securiaceModernRenderedBank = false;
 $securiaceModernRenderedSettlement = false;
 
 $securiaceModernStatusPalette = array(
@@ -545,22 +721,181 @@ $securiaceModernStatusInk = $securiaceModernRgb($securiaceModernPalette['ink']);
 $securiaceModernStatusSoft = $securiaceModernRgb($securiaceModernPalette['soft']);
 $securiaceModernStatusLine = $securiaceModernRgb($securiaceModernPalette['line']);
 
-$securiaceModernCompanyName = isset($companyname) && trim((string) $companyname) !== ''
-    ? trim((string) $companyname)
-    : 'Securiace Technologies';
-$securiaceModernCompanyAddress = array();
-if (isset($companyaddress) && is_array($companyaddress)) {
-    foreach ($companyaddress as $securiaceModernCompanyAddressLine) {
-        if (is_scalar($securiaceModernCompanyAddressLine)
-            || (is_object($securiaceModernCompanyAddressLine) && method_exists($securiaceModernCompanyAddressLine, '__toString'))
-        ) {
-            $securiaceModernCompanyAddressLine = trim((string) $securiaceModernCompanyAddressLine);
-            if ($securiaceModernCompanyAddressLine !== '') {
-                $securiaceModernCompanyAddress[] = $securiaceModernCompanyAddressLine;
-            }
-        }
+$securiaceModernProfilePath = '';
+foreach (array(
+    defined('ROOTDIR') ? ROOTDIR . '/includes/securiace-pdf-profile.php' : '',
+    __DIR__ . '/securiace-pdf-profile.php',
+) as $securiaceModernProfileCandidate) {
+    if ($securiaceModernProfileCandidate !== '' && is_readable($securiaceModernProfileCandidate)) {
+        $securiaceModernProfilePath = $securiaceModernProfileCandidate;
+        break;
     }
 }
+$securiaceModernProfileResolver = is_readable($securiaceModernProfilePath)
+    ? include $securiaceModernProfilePath
+    : null;
+$securiaceModernCompanyNameInput = isset($companyname) ? $companyname : '';
+$securiaceModernCompanyUrlInput = isset($companyurl) && trim((string) $companyurl) !== ''
+    ? $companyurl
+    : (isset($securiaceModernWhmcsSettings['company_url']) ? $securiaceModernWhmcsSettings['company_url'] : '');
+$securiaceModernCompanyEmailInput = isset($securiaceModernWhmcsSettings['company_email'])
+    ? $securiaceModernWhmcsSettings['company_email']
+    : '';
+$securiaceModernTaxCodeInput = isset($taxCode) && trim((string) $taxCode) !== ''
+    ? $taxCode
+    : (isset($securiaceModernWhmcsSettings['tax_code']) ? $securiaceModernWhmcsSettings['tax_code'] : '');
+
+if ($securiaceModernProfileResolver instanceof Closure) {
+    $securiaceModernIssuerProfile = $securiaceModernProfileResolver(array(
+        'company_name' => $securiaceModernCompanyNameInput,
+        'company_email' => $securiaceModernCompanyEmailInput,
+        'company_url' => $securiaceModernCompanyUrlInput,
+        'tax_code' => $securiaceModernTaxCodeInput,
+        'tax_label' => isset($taxIdLabel) ? $taxIdLabel : 'GSTIN',
+        'pay_to' => isset($companyaddress) ? $companyaddress : array(),
+        'default_bank_currencies' => $securiaceModernConfig['bank_currencies'],
+        'fallback' => $securiaceModernConfig,
+    ));
+} else {
+    // A partial deployment must not leak raw Pay To payment lines into the
+    // issuer card. Degrade to safe identity fallbacks and disable payment data.
+    $securiaceModernFallbackCompanyName = trim((string) $securiaceModernCompanyNameInput);
+    if ($securiaceModernFallbackCompanyName === '') {
+        $securiaceModernFallbackCompanyName = 'Issuer';
+    }
+    $securiaceModernIssuerProfile = array(
+        'identity' => array(
+            'business_name' => $securiaceModernFallbackCompanyName,
+            'address_lines' => array(),
+            'support_email' => trim((string) $securiaceModernCompanyEmailInput),
+            'support_email_valid' => true,
+            'mobile' => trim((string) $securiaceModernConfig['company_phone']),
+            'website' => trim((string) $securiaceModernCompanyUrlInput),
+            'website_valid' => true,
+        ),
+        'registrations' => array(),
+        'payment' => array(
+            'upi' => array('id' => '', 'payee_name' => $securiaceModernFallbackCompanyName, 'valid' => false),
+            'bank_accounts' => array(),
+        ),
+        'policy' => array(
+            'jurisdiction' => trim((string) $securiaceModernConfig['jurisdiction']),
+            'tds_note' => trim((string) $securiaceModernConfig['tds_note']),
+            'late_fee_text' => trim((string) $securiaceModernConfig['late_fee_text']),
+        ),
+        'diagnostics' => array(
+            'sources' => array(),
+            'conflicts' => array(),
+            'warnings' => array('profile-helper-unavailable'),
+            'unknown_labels' => array(),
+        ),
+    );
+}
+
+$securiaceModernSnapshotApplied = false;
+$securiaceModernSnapshotWarning = '';
+$securiaceModernSnapshotRow = isset($securiacePdfSnapshotRow) && is_array($securiacePdfSnapshotRow)
+    ? $securiacePdfSnapshotRow
+    : array();
+if (empty($securiaceModernSnapshotRow)
+    && !$securiaceModernIsProforma
+    && $securiaceModernInvoiceId !== ''
+    && class_exists('\\WHMCS\\Database\\Capsule')
+) {
+    try {
+        if (\WHMCS\Database\Capsule::schema()->hasTable('mod_securiace_pdf_issuer_snapshots')) {
+            $securiaceModernSnapshotRecord = \WHMCS\Database\Capsule::table(
+                'mod_securiace_pdf_issuer_snapshots'
+            )->where('invoice_id', (int) $securiaceModernInvoiceId)->first();
+            if ($securiaceModernSnapshotRecord) {
+                $securiaceModernSnapshotRow = (array) $securiaceModernSnapshotRecord;
+            }
+        }
+    } catch (Throwable $securiaceModernSnapshotReadException) {
+        $securiaceModernSnapshotWarning = 'snapshot-read-failed';
+    }
+}
+
+if (!$securiaceModernIsProforma && !empty($securiaceModernSnapshotRow)) {
+    $securiaceModernSnapshotValidatorPath = '';
+    foreach (array(
+        defined('ROOTDIR') ? ROOTDIR . '/includes/securiace-pdf-snapshot.php' : '',
+        __DIR__ . '/securiace-pdf-snapshot.php',
+    ) as $securiaceModernSnapshotValidatorCandidate) {
+        if ($securiaceModernSnapshotValidatorCandidate !== ''
+            && is_readable($securiaceModernSnapshotValidatorCandidate)
+        ) {
+            $securiaceModernSnapshotValidatorPath = $securiaceModernSnapshotValidatorCandidate;
+            break;
+        }
+    }
+    $securiaceModernSnapshotValidator = $securiaceModernSnapshotValidatorPath !== ''
+        ? include $securiaceModernSnapshotValidatorPath
+        : null;
+    if ($securiaceModernSnapshotValidator instanceof Closure) {
+        $securiaceModernSnapshotResult = $securiaceModernSnapshotValidator($securiaceModernSnapshotRow);
+        if (!empty($securiaceModernSnapshotResult['valid'])) {
+            $securiaceModernSnapshot = $securiaceModernSnapshotResult['snapshot'];
+            $securiaceModernIssuerProfile['identity'] = $securiaceModernSnapshot['issuer']['identity'];
+            $securiaceModernIssuerProfile['registrations'] =
+                $securiaceModernSnapshot['issuer']['registrations'];
+            $securiaceModernDocumentTitle = $securiaceModernSnapshot['document']['title'];
+            $securiaceModernDocumentKicker = strtoupper($securiaceModernDocumentTitle);
+            $securiaceModernGstActive = !empty($securiaceModernSnapshot['document']['gst_active']);
+            $securiaceModernCommercialInvoiceActive =
+                $securiaceModernDocumentTitle === 'Commercial Invoice';
+            $securiaceModernSnapshotApplied = true;
+            $securiaceModernSnapshotFinalNumber = isset(
+                $securiaceModernSnapshot['document']['final_invoice_number']
+            ) ? trim((string) $securiaceModernSnapshot['document']['final_invoice_number']) : '';
+            if ($securiaceModernSnapshotFinalNumber !== ''
+                && $securiaceModernSnapshotFinalNumber !== $securiaceModernStoredInvoiceNumber
+            ) {
+                $securiaceModernSnapshotWarning = 'snapshot-final-number-mismatch';
+            }
+        } else {
+            $securiaceModernSnapshotWarning = isset($securiaceModernSnapshotResult['warning'])
+                ? (string) $securiaceModernSnapshotResult['warning']
+                : 'snapshot-invalid';
+        }
+    } else {
+        $securiaceModernSnapshotWarning = 'snapshot-validator-unavailable';
+    }
+}
+
+$securiaceModernCompanyName = $securiaceModernIssuerProfile['identity']['business_name'];
+$securiaceModernCompanyAddress = $securiaceModernIssuerProfile['identity']['address_lines'];
+$securiaceModernIssuerDiagnostics = $securiaceModernIssuerProfile['diagnostics'];
+$securiaceModernLifecycleDiagnostics = array(
+    'gst_registered' => $securiaceModernConfig['gst_registered'],
+    'gstin_valid' => $securiaceModernGstinValid,
+    'gst_effective_date_valid' => $securiaceModernGstEffectiveDate instanceof DateTimeImmutable,
+    'issue_date_valid' => $securiaceModernIssueDateForPolicy instanceof DateTimeImmutable,
+    'gst_active' => $securiaceModernGstActive,
+    'commercial_invoice_active' => $securiaceModernCommercialInvoiceActive,
+);
+$securiaceModernIssuerDiagnostics['warnings'] = isset($securiaceModernIssuerDiagnostics['warnings'])
+    && is_array($securiaceModernIssuerDiagnostics['warnings'])
+    ? $securiaceModernIssuerDiagnostics['warnings']
+    : array();
+$securiaceModernIssuerDiagnostics['warnings'] = array_merge(
+    $securiaceModernIssuerDiagnostics['warnings'],
+    $securiaceModernGstGateWarnings
+);
+if (!$securiaceModernNumberingDiagnostics['valid']) {
+    $securiaceModernIssuerDiagnostics['warnings'][] = 'final-invoice-number-invalid';
+}
+if ($securiaceModernSnapshotWarning !== '') {
+    $securiaceModernIssuerDiagnostics['warnings'][] = $securiaceModernSnapshotWarning;
+}
+if ($securiaceModernSnapshotApplied) {
+    $securiaceModernIssuerDiagnostics['sources']['issuer.snapshot'] = 'immutable.invoice';
+}
+$securiaceModernIssuerDiagnostics['warnings'] = array_values(array_unique(
+    $securiaceModernIssuerDiagnostics['warnings']
+));
+$securiaceModernBankAccounts = $securiaceModernIssuerProfile['payment']['bank_accounts'];
+$securiaceModernUpiProfile = $securiaceModernIssuerProfile['payment']['upi'];
 
 $securiaceModernClientName = '';
 if (!empty($clientsdetails['companyname'])) {
@@ -613,22 +948,26 @@ foreach ($securiaceModernCustomFields as $securiaceModernCustomField) {
 }
 
 $securiaceModernSellerLines = $securiaceModernCompanyAddress;
-foreach (array('company_email', 'company_phone') as $securiaceModernSellerConfigKey) {
-    if (trim((string) $securiaceModernConfig[$securiaceModernSellerConfigKey]) !== '') {
-        $securiaceModernSellerLines[] = trim((string) $securiaceModernConfig[$securiaceModernSellerConfigKey]);
-    }
+if ($securiaceModernIssuerProfile['identity']['support_email'] !== ''
+    && $securiaceModernIssuerProfile['identity']['support_email_valid']
+) {
+    $securiaceModernSellerLines[] = 'Helpdesk · ' . $securiaceModernIssuerProfile['identity']['support_email'];
+}
+if ($securiaceModernIssuerProfile['identity']['mobile'] !== '') {
+    $securiaceModernSellerLines[] = 'Mobile · ' . $securiaceModernIssuerProfile['identity']['mobile'];
 }
 $securiaceModernSellerRegistrations = array();
-if (trim((string) $securiaceModernConfig['company_pan']) !== '') {
-    $securiaceModernSellerRegistrations[] = 'PAN · ' . trim((string) $securiaceModernConfig['company_pan']);
-}
-if (trim((string) $securiaceModernConfig['company_msme']) !== '') {
-    $securiaceModernSellerRegistrations[] = 'MSME · ' . trim((string) $securiaceModernConfig['company_msme']);
-}
-if (isset($taxCode) && trim((string) $taxCode) !== '') {
-    $securiaceModernSellerRegistrations[] = (isset($taxIdLabel) && trim((string) $taxIdLabel) !== ''
-        ? trim((string) $taxIdLabel)
-        : 'Tax ID') . ' · ' . trim((string) $taxCode);
+foreach ($securiaceModernIssuerProfile['registrations'] as $securiaceModernRegistrationKey => $securiaceModernRegistration) {
+    if ($securiaceModernRegistrationKey === 'gstin' && !$securiaceModernGstActive) {
+        continue;
+    }
+    if (!empty($securiaceModernRegistration['valid'])
+        && !empty($securiaceModernRegistration['label'])
+        && !empty($securiaceModernRegistration['value'])
+    ) {
+        $securiaceModernSellerRegistrations[] = trim((string) $securiaceModernRegistration['label'])
+            . ' · ' . trim((string) $securiaceModernRegistration['value']);
+    }
 }
 
 // Stable verification: immutable invoice fields only. The generation timestamp
@@ -791,7 +1130,13 @@ $pdf->SetFont($securiaceModernFont, 'B', 6.5);
 $pdf->SetTextColor($securiaceModernBrand[0], $securiaceModernBrand[1], $securiaceModernBrand[2]);
 $pdf->SetXY($securiaceModernPageWidth - $securiaceModernMargin - 66, $securiaceModernHeaderY);
 $pdf->Cell(66, 4, $securiaceModernDocumentKicker, 0, 1, 'R');
-$pdf->SetFont($securiaceModernFont, 'B', 22);
+$securiaceModernDocumentTitleLength = function_exists('mb_strlen')
+    ? mb_strlen($securiaceModernDocumentTitle, 'UTF-8')
+    : strlen($securiaceModernDocumentTitle);
+$securiaceModernDocumentTitleFontSize = $securiaceModernDocumentTitleLength > 28
+    ? 14
+    : ($securiaceModernDocumentTitleLength > 20 ? 17 : 22);
+$pdf->SetFont($securiaceModernFont, 'B', $securiaceModernDocumentTitleFontSize);
 $pdf->SetTextColor($securiaceModernInk[0], $securiaceModernInk[1], $securiaceModernInk[2]);
 $pdf->SetX($securiaceModernPageWidth - $securiaceModernMargin - 66);
 $pdf->Cell(66, 8, $securiaceModernDocumentTitle, 0, 1, 'R');
@@ -1501,7 +1846,21 @@ $securiaceModernNotesRenderedInTerms = $securiaceModernIsBatch
     || ($securiaceModernNotesText !== ''
         && strlen($securiaceModernNotesText) <= 220
         && substr_count($securiaceModernNotesText, "\n") <= 2);
-$securiaceModernUpiId = trim((string) $securiaceModernConfig['upi_id']);
+$securiaceModernSelectedBankAccount = array();
+foreach ($securiaceModernBankAccounts as $securiaceModernBankAccount) {
+    if (empty($securiaceModernBankAccount['valid'])
+        || empty($securiaceModernBankAccount['currencies'])
+        || !in_array($securiaceModernCurrencyCode, $securiaceModernBankAccount['currencies'], true)
+    ) {
+        continue;
+    }
+    $securiaceModernSelectedBankAccount = $securiaceModernBankAccount;
+    break;
+}
+$securiaceModernHasBankDetails = !empty($securiaceModernSelectedBankAccount);
+$securiaceModernUpiId = !empty($securiaceModernUpiProfile['valid'])
+    ? trim((string) $securiaceModernUpiProfile['id'])
+    : '';
 $securiaceModernCanUseUpi = !$securiaceModernIsBatch
     && in_array($securiaceModernStatusKey, array('unpaid', 'overdue'), true)
     && $securiaceModernIsPayable
@@ -1516,14 +1875,22 @@ if ($securiaceModernNotesRenderedInTerms && $securiaceModernNotesText !== '') {
 $securiaceModernSupportHeight = 43;
 $securiaceModernEnsureSpace($securiaceModernSupportHeight + 3);
 $securiaceModernSupportY = $pdf->GetY();
-$securiaceModernTermsWidth = $securiaceModernUsableWidth * 0.42;
-$securiaceModernBankWidth = $securiaceModernUsableWidth * 0.31;
-$securiaceModernActionWidth = $securiaceModernUsableWidth - $securiaceModernTermsWidth - $securiaceModernBankWidth - 6;
+$securiaceModernTermsWidth = $securiaceModernUsableWidth * ($securiaceModernHasBankDetails ? 0.42 : 0.55);
+$securiaceModernBankWidth = $securiaceModernHasBankDetails ? $securiaceModernUsableWidth * 0.31 : 0;
+$securiaceModernSupportGaps = $securiaceModernHasBankDetails ? 6 : 3;
+$securiaceModernActionWidth = $securiaceModernUsableWidth
+    - $securiaceModernTermsWidth
+    - $securiaceModernBankWidth
+    - $securiaceModernSupportGaps;
 $securiaceModernBankX = $securiaceModernMargin + $securiaceModernTermsWidth + 3;
-$securiaceModernActionX = $securiaceModernBankX + $securiaceModernBankWidth + 3;
+$securiaceModernActionX = $securiaceModernHasBankDetails
+    ? $securiaceModernBankX + $securiaceModernBankWidth + 3
+    : $securiaceModernBankX;
 
 $securiaceModernDrawCard($securiaceModernMargin, $securiaceModernSupportY, $securiaceModernTermsWidth, $securiaceModernSupportHeight, $securiaceModernSurface, $securiaceModernLine);
-$securiaceModernDrawCard($securiaceModernBankX, $securiaceModernSupportY, $securiaceModernBankWidth, $securiaceModernSupportHeight, $securiaceModernSurface, $securiaceModernLine);
+if ($securiaceModernHasBankDetails) {
+    $securiaceModernDrawCard($securiaceModernBankX, $securiaceModernSupportY, $securiaceModernBankWidth, $securiaceModernSupportHeight, $securiaceModernSurface, $securiaceModernLine);
+}
 $securiaceModernDrawCard(
     $securiaceModernActionX,
     $securiaceModernSupportY,
@@ -1545,12 +1912,32 @@ if ($securiaceModernIsOverdue) {
 } elseif ($securiaceModernIsPayable && $securiaceModernDueDateDisplay !== '—') {
     $securiaceModernTerms[] = 'Payment is due by ' . $securiaceModernDueDateDisplay . '.';
 }
-$securiaceModernTerms[] = 'Overdue interest may apply at ' . trim((string) $securiaceModernConfig['overdue_interest']) . '.';
-if (trim((string) $securiaceModernConfig['tds_note']) !== '') {
-    $securiaceModernTerms[] = trim((string) $securiaceModernConfig['tds_note']);
+$securiaceModernLateFeeText = trim((string) $securiaceModernIssuerProfile['policy']['late_fee_text']);
+if ($securiaceModernLateFeeText === '') {
+    $securiaceModernLateFeeType = isset($securiaceModernWhmcsSettings['late_fee_type'])
+        ? strtolower(trim((string) $securiaceModernWhmcsSettings['late_fee_type']))
+        : '';
+    $securiaceModernLateFeeAmount = isset($securiaceModernWhmcsSettings['late_fee_amount'])
+        && is_numeric($securiaceModernWhmcsSettings['late_fee_amount'])
+        ? (float) $securiaceModernWhmcsSettings['late_fee_amount']
+        : 0.0;
+    if ($securiaceModernLateFeeAmount > 0 && strpos($securiaceModernLateFeeType, 'percent') !== false) {
+        $securiaceModernLateFeeRate = rtrim(rtrim(number_format($securiaceModernLateFeeAmount, 2, '.', ''), '0'), '.');
+        $securiaceModernLateFeeText = 'Late fees may apply at ' . $securiaceModernLateFeeRate
+            . '% after the due date; the configured minimum applies.';
+    } elseif ($securiaceModernLateFeeAmount > 0) {
+        $securiaceModernLateFeeText = 'A configured fixed late fee may apply after the due date.';
+    }
 }
-if (trim((string) $securiaceModernConfig['jurisdiction']) !== '') {
-    $securiaceModernTerms[] = 'Jurisdiction: ' . trim((string) $securiaceModernConfig['jurisdiction']) . '.';
+if ($securiaceModernLateFeeText !== '') {
+    $securiaceModernTerms[] = $securiaceModernLateFeeText;
+}
+if (trim((string) $securiaceModernIssuerProfile['policy']['tds_note']) !== '') {
+    $securiaceModernTerms[] = trim((string) $securiaceModernIssuerProfile['policy']['tds_note']);
+}
+if (trim((string) $securiaceModernIssuerProfile['policy']['jurisdiction']) !== '') {
+    $securiaceModernTerms[] = 'Jurisdiction: '
+        . trim((string) $securiaceModernIssuerProfile['policy']['jurisdiction']) . '.';
 }
 $securiaceModernTermsText = '';
 foreach ($securiaceModernTerms as $securiaceModernTermIndex => $securiaceModernTerm) {
@@ -1564,35 +1951,31 @@ $pdf->SetTextColor($securiaceModernMuted[0], $securiaceModernMuted[1], $securiac
 $pdf->SetXY($securiaceModernMargin + 3, $securiaceModernSupportY + 8);
 $pdf->MultiCell($securiaceModernTermsWidth - 6, 3.5, trim($securiaceModernTermsText), 0, 'L');
 
-$securiaceModernDrawLabel('Bank details', $securiaceModernBankX + 3, $securiaceModernSupportY + 3, $securiaceModernBankWidth - 6);
-$securiaceModernBankRows = array(
-    'Account' => $securiaceModernConfig['bank']['account_name'],
-    'Number' => $securiaceModernConfig['bank']['account_number'],
-    'IFSC' => $securiaceModernConfig['bank']['ifsc'],
-    'Type' => $securiaceModernConfig['bank']['account_type'],
-    'Bank' => $securiaceModernConfig['bank']['bank_name'],
-);
-$securiaceModernBankY = $securiaceModernSupportY + 8;
-$securiaceModernHasBankDetails = false;
-foreach ($securiaceModernBankRows as $securiaceModernBankLabel => $securiaceModernBankValue) {
-    if (trim((string) $securiaceModernBankValue) === '') {
-        continue;
+if ($securiaceModernHasBankDetails) {
+    $securiaceModernRenderedBank = true;
+    $securiaceModernDrawLabel('Bank details', $securiaceModernBankX + 3, $securiaceModernSupportY + 3, $securiaceModernBankWidth - 6);
+    $securiaceModernBankRows = array(
+        'Account' => $securiaceModernSelectedBankAccount['account_name'],
+        'Number' => $securiaceModernSelectedBankAccount['account_number'],
+        'IFSC' => $securiaceModernSelectedBankAccount['routing_code'],
+        'Branch' => $securiaceModernSelectedBankAccount['branch'],
+        'Type' => $securiaceModernSelectedBankAccount['account_type'],
+        'Bank' => $securiaceModernSelectedBankAccount['bank_name'],
+    );
+    $securiaceModernBankY = $securiaceModernSupportY + 8;
+    foreach ($securiaceModernBankRows as $securiaceModernBankLabel => $securiaceModernBankValue) {
+        if (trim((string) $securiaceModernBankValue) === '') {
+            continue;
+        }
+        $pdf->SetFont($securiaceModernFont, '', 6);
+        $pdf->SetTextColor($securiaceModernMuted[0], $securiaceModernMuted[1], $securiaceModernMuted[2]);
+        $pdf->SetXY($securiaceModernBankX + 3, $securiaceModernBankY);
+        $pdf->Cell($securiaceModernBankWidth * 0.32, 4, $securiaceModernBankLabel, 0, 0, 'L');
+        $pdf->SetFont($securiaceModernFont, 'B', 6);
+        $pdf->SetTextColor($securiaceModernInk[0], $securiaceModernInk[1], $securiaceModernInk[2]);
+        $pdf->Cell($securiaceModernBankWidth * 0.58, 4, (string) $securiaceModernBankValue, 0, 1, 'R');
+        $securiaceModernBankY += 5;
     }
-    $securiaceModernHasBankDetails = true;
-    $pdf->SetFont($securiaceModernFont, '', 6);
-    $pdf->SetTextColor($securiaceModernMuted[0], $securiaceModernMuted[1], $securiaceModernMuted[2]);
-    $pdf->SetXY($securiaceModernBankX + 3, $securiaceModernBankY);
-    $pdf->Cell($securiaceModernBankWidth * 0.32, 4, $securiaceModernBankLabel, 0, 0, 'L');
-    $pdf->SetFont($securiaceModernFont, 'B', 6);
-    $pdf->SetTextColor($securiaceModernInk[0], $securiaceModernInk[1], $securiaceModernInk[2]);
-    $pdf->Cell($securiaceModernBankWidth * 0.58, 4, (string) $securiaceModernBankValue, 0, 1, 'R');
-    $securiaceModernBankY += 5;
-}
-if (!$securiaceModernHasBankDetails) {
-    $pdf->SetFont($securiaceModernFont, '', 6.5);
-    $pdf->SetTextColor($securiaceModernMuted[0], $securiaceModernMuted[1], $securiaceModernMuted[2]);
-    $pdf->SetXY($securiaceModernBankX + 3, $securiaceModernSupportY + 9);
-    $pdf->MultiCell($securiaceModernBankWidth - 6, 3.5, 'Configure protected bank details before deployment.', 0, 'L');
 }
 
 if ($securiaceModernCanUseUpi && method_exists($pdf, 'write2DBarcode')) {
@@ -1600,7 +1983,7 @@ if ($securiaceModernCanUseUpi && method_exists($pdf, 'write2DBarcode')) {
     $securiaceModernDrawLabel('UPI payment', $securiaceModernActionX + 3, $securiaceModernSupportY + 3, $securiaceModernActionWidth - 6);
     $securiaceModernUpiParams = array(
         'pa' => $securiaceModernUpiId,
-        'pn' => $securiaceModernCompanyName,
+        'pn' => trim((string) $securiaceModernUpiProfile['payee_name']),
         'am' => number_format($securiaceModernBalanceNumeric, 2, '.', ''),
         'cu' => 'INR',
         'tr' => $securiaceModernInvoiceNumber,
@@ -1662,7 +2045,12 @@ if ($securiaceModernCanUseUpi && method_exists($pdf, 'write2DBarcode')) {
         3.4,
         $securiaceModernHasBankDetails
             ? 'Use the bank details and reference ' . $securiaceModernInvoiceNumber . '.'
-            : 'Contact billing for payment instructions and quote reference ' . $securiaceModernInvoiceNumber . '.',
+            : 'Contact '
+                . ($securiaceModernIssuerProfile['identity']['support_email'] !== ''
+                    && $securiaceModernIssuerProfile['identity']['support_email_valid']
+                    ? $securiaceModernIssuerProfile['identity']['support_email']
+                    : 'billing support')
+                . ' and quote reference ' . $securiaceModernInvoiceNumber . '.',
         0,
         'L'
     );

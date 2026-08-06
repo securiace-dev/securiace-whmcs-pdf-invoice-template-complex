@@ -21,6 +21,10 @@ $requiredContracts = array(
     'Validity and acceptance',
     '$securiaceQuoteStartPage',
     '$securiaceQuoteStampedPages',
+    "__DIR__ . '/securiace-pdf-profile.php'",
+    "'pay_to' => isset(\$companyaddress) ? \$companyaddress : array()",
+    '$securiaceQuoteSellerRegistrations',
+    '$securiaceQuotePaymentDetailsRendered = false',
 );
 foreach ($requiredContracts as $requiredContract) {
     if (strpos($template, $requiredContract) === false) {
@@ -37,6 +41,10 @@ $invoiceOnlyContracts = array(
     'Authenticated invoice record',
     'Client notes',
     '$notes',
+    'upi://pay?',
+    "'Bank details'",
+    '$securiaceQuotePaymentDetailsRendered = true',
+    'Securiace Technologies',
 );
 foreach ($invoiceOnlyContracts as $invoiceOnlyContract) {
     if (stripos($template, $invoiceOnlyContract) !== false) {

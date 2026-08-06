@@ -187,14 +187,30 @@ function renderFixture(string $templatePath, string $outputDirectory, string $na
             'invoice_number' => $securiaceModernInvoiceNumber,
             'proforma_reference' => $securiaceModernProformaReference,
             'document_title' => $securiaceModernDocumentTitle,
+            'document_kicker' => $securiaceModernDocumentKicker,
+            'document_title_font_size' => $securiaceModernDocumentTitleFontSize,
+            'gst_active' => $securiaceModernGstActive,
+            'commercial_invoice_active' => $securiaceModernCommercialInvoiceActive,
+            'numbering_valid' => $securiaceModernNumberingDiagnostics['valid'],
+            'numbering_length' => $securiaceModernNumberingDiagnostics['length'],
+            'numbering_max_length' => $securiaceModernNumberingDiagnostics['max_length'],
             'status_key' => $securiaceModernStatusKey,
             'is_overdue' => $securiaceModernIsOverdue,
             'days_overdue' => $securiaceModernDaysOverdue,
             'issue_date_display' => $securiaceModernIssueDateDisplay,
             'due_date_display' => $securiaceModernDueDateDisplay,
             'seller_registrations' => $securiaceModernSellerRegistrations,
+            'issuer_name' => $securiaceModernCompanyName,
+            'issuer_lines' => $securiaceModernSellerLines,
+            'issuer_sources' => $securiaceModernIssuerDiagnostics['sources'],
+            'issuer_warnings' => $securiaceModernIssuerDiagnostics['warnings'],
+            'snapshot_applied' => $securiaceModernSnapshotApplied,
             'is_payable' => $securiaceModernIsPayable,
             'has_upi' => $securiaceModernCanUseUpi,
+            'has_bank' => $securiaceModernHasBankDetails,
+            'bank_branch' => isset($securiaceModernSelectedBankAccount['branch'])
+                ? $securiaceModernSelectedBankAccount['branch']
+                : null,
             'currency_code' => $securiaceModernCurrencyCode,
             'amount_paid_display' => $securiaceModernAmountPaidDisplay,
             'core_qr_present' => $securiaceModernCoreQrHtml !== '',
@@ -205,6 +221,7 @@ function renderFixture(string $templatePath, string $outputDirectory, string $na
             'rendered_renewals' => $securiaceModernRenderedRenewals,
             'rendered_authorization' => $securiaceModernRenderedAuthorization,
             'rendered_upi' => $securiaceModernRenderedUpi,
+            'rendered_bank' => $securiaceModernRenderedBank,
             'rendered_settlement' => $securiaceModernRenderedSettlement,
             'transaction_reference' => isset($securiaceModernTransactions[0]['reference'])
                 ? $securiaceModernTransactions[0]['reference']
@@ -302,6 +319,7 @@ function renderBatchFixtures(string $templatePath, string $outputDirectory, arra
             'rendered_renewals' => $securiaceModernRenderedRenewals,
             'rendered_authorization' => $securiaceModernRenderedAuthorization,
             'rendered_upi' => $securiaceModernRenderedUpi,
+            'rendered_bank' => $securiaceModernRenderedBank,
             'rendered_settlement' => $securiaceModernRenderedSettlement,
         );
     }
@@ -334,14 +352,71 @@ function assertFixtureValue(string $fixture, string $field, $actual, $expected):
     }
 }
 
+/** @param array<string, mixed> $overrides @return array<string, string> */
+function invoiceSnapshotRow(array $overrides = array()): array
+{
+    $payload = array_replace_recursive(array(
+        'schema_version' => 1,
+        'issuer' => array(
+            'identity' => array(
+                'business_name' => 'Historical Example Technologies',
+                'address_lines' => array('10 Archive Road', 'Pune, Maharashtra 411002', 'India'),
+                'support_email' => 'archive@example.invalid',
+                'mobile' => '+91 40000 00000',
+                'website' => 'https://archive.example.invalid',
+            ),
+            'registrations' => array(
+                'pan' => array('value' => 'FGHIJ5678K'),
+                'udyam' => array('value' => 'UDYAM-MH-99-9999999'),
+            ),
+        ),
+        'document' => array(
+            'title' => 'Invoice',
+            'gst_active' => false,
+            'final_invoice_number' => 'ST/2073',
+            'issue_date' => '2026-08-05',
+        ),
+    ), $overrides);
+    $json = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    if (!is_string($json)) {
+        throw new RuntimeException('Unable to encode invoice snapshot fixture.');
+    }
+    return array('payload' => $json, 'checksum' => hash('sha256', $json));
+}
+
 /** @param array<string, mixed> $overrides */
 function invoiceFixture(array $overrides = array()): array
 {
     $base = array(
         'pdfFont' => 'dejavusans',
         'securiaceInvoiceToday' => '5 Aug 2026',
-        'companyname' => 'Securiace Technologies',
-        'companyaddress' => array('88 Secure Cloud Avenue', 'Pune, Maharashtra 411001', 'India'),
+        'companyname' => 'Example Technologies',
+        'companyurl' => 'https://portal.example.invalid',
+        'companyaddress' => array(
+            'UPI: billing@example.invalid',
+            '[Bank Account: INR]',
+            'Account Name: EXAMPLE TECHNOLOGIES',
+            'Account Number: 0000000000000000',
+            'IFSC: DEMO0000001',
+            'Bank Branch: Example Branch',
+            'Account Type: Current',
+            'Bank Name: Example Bank',
+            '',
+            'Company Address: 88 Secure Cloud Avenue',
+            'Pune, Maharashtra 411001',
+            'India',
+            'Mobile: +91 20000 00000',
+            'PAN: ABCDE1234F',
+            'MSME: UDYAM-MH-00-0000000',
+        ),
+        'securiacePdfSettings' => array(
+            'company_email' => 'helpdesk@example.invalid',
+            'company_url' => 'https://portal.example.invalid',
+            'tax_code' => '',
+            'late_fee_type' => 'Percentage',
+            'late_fee_amount' => '10.00',
+            'late_fee_minimum' => '100.00',
+        ),
         'taxCode' => '27ABCDE1234F1Z5',
         'taxIdLabel' => 'GSTIN',
         'currencycode' => 'INR',
@@ -398,25 +473,27 @@ function invoiceFixture(array $overrides = array()): array
         'total' => '₹ 9,990.00 INR',
         'balance' => '₹ 9,990.00 INR',
         'transactions' => array(),
-        'notes' => 'Thank you for choosing Securiace. Please quote the invoice number with every payment.',
+        'notes' => 'Thank you for choosing Example Technologies. Please quote the invoice number with every payment.',
         'securiaceInvoiceConfig' => array(
             'company_email' => 'billing@example.invalid',
             'company_phone' => '+91 20000 00000',
             'company_pan' => 'ABCDE1234F',
             'company_msme' => 'UDYAM-MH-00-0000000',
             'bank' => array(
-                'account_name' => 'Securiace Technologies',
+                'account_name' => 'Fallback Technologies',
                 'account_number' => '0000000000000000',
                 'ifsc' => 'DEMO0000001',
+                'branch' => 'Fallback Branch',
                 'account_type' => 'Current',
-                'bank_name' => 'Example Bank',
+                'bank_name' => 'Fallback Bank',
             ),
+            'bank_currencies' => array('INR'),
             'upi_id' => 'billing@example.invalid',
             'verification_secret' => 'fixture-only-secret',
             'date_order' => 'DMY',
             'show_it_act_label' => true,
-            'jurisdiction' => 'Pune, Maharashtra',
-            'overdue_interest' => '18% p.a.',
+            'jurisdiction' => 'Example Jurisdiction',
+            'late_fee_text' => '',
             'tds_note' => 'If applicable, deduct TDS under Section 194J and provide Form 16A.',
         ),
     );
@@ -482,6 +559,10 @@ $fixtures = array(
             'suffix' => 'INR',
             'format' => 1,
         ), true),
+        'securiaceInvoiceConfig' => array(
+            'gst_registered' => true,
+            'gst_effective_date' => '2026-08-01',
+        ),
     )),
     'paid-adjusted' => invoiceFixture(array(
         'status' => 'Paid',
@@ -554,6 +635,75 @@ $fixtures = array(
         'tax' => '€ 0,00 EUR',
         'total' => '€ 1.234,56 EUR',
         'balance' => '€ 1.234,56 EUR',
+        'securiaceInvoiceConfig' => array(
+            'commercial_invoice_currencies' => array('EUR'),
+        ),
+    )),
+    'gst-active' => invoiceFixture(array(
+        'invoiceid' => 300000133,
+        'invoicenum' => 'ST/1234567890123',
+        'status' => 'Paid',
+        'datepaid' => '5 Aug 2026',
+        'balance' => '₹ 0.00 INR',
+        'transactions' => array($paidTransaction),
+        'securiaceInvoiceConfig' => array(
+            'gst_registered' => true,
+            'gst_effective_date' => '2026-08-01',
+        ),
+    )),
+    'gst-not-effective' => invoiceFixture(array(
+        'invoiceid' => 300000134,
+        'invoicenum' => 'ST/2071',
+        'securiaceInvoiceConfig' => array(
+            'gst_registered' => true,
+            'gst_effective_date' => '2026-09-01',
+        ),
+    )),
+    'gst-export-title' => invoiceFixture(array(
+        'invoiceid' => 300000136,
+        'invoicenum' => 'ST/2072',
+        'status' => 'Paid',
+        'datepaid' => '5 Aug 2026',
+        'balance' => '₹ 0.00 INR',
+        'transactions' => array($paidTransaction),
+        'securiaceInvoiceConfig' => array(
+            'gst_registered' => true,
+            'gst_effective_date' => '2026-08-01',
+            'gst_final_title' => 'Tax Invoice — Export of Services',
+        ),
+    )),
+    'invalid-final-number' => invoiceFixture(array(
+        'invoiceid' => 300000135,
+        'invoicenum' => 'ST/12345678901234',
+    )),
+    'snapshot-paid' => invoiceFixture(array(
+        'invoiceid' => 300000137,
+        'invoicenum' => 'ST/2073',
+        'status' => 'Paid',
+        'datepaid' => '5 Aug 2026',
+        'balance' => '₹ 0.00 INR',
+        'transactions' => array($paidTransaction),
+        'securiacePdfSnapshotRow' => invoiceSnapshotRow(),
+    )),
+    'snapshot-proforma-ignored' => invoiceFixture(array(
+        'invoiceid' => 300000138,
+        'invoicenum' => '',
+        'pagetitle' => 'Proforma Invoice #300000138',
+        'model' => new FixtureInvoiceModel(array(
+            'code' => 'INR',
+            'prefix' => '₹',
+            'suffix' => 'INR',
+            'format' => 1,
+        ), true),
+        'securiacePdfSnapshotRow' => invoiceSnapshotRow(),
+    )),
+    'snapshot-corrupt' => invoiceFixture(array(
+        'invoiceid' => 300000139,
+        'invoicenum' => 'ST/2074',
+        'securiacePdfSnapshotRow' => array(
+            'payload' => '{}',
+            'checksum' => str_repeat('0', 64),
+        ),
     )),
     'unknown-currency' => invoiceFixture(array(
         'invoiceid' => 300000129,
@@ -641,11 +791,51 @@ $fixtures = array(
 );
 
 $expectations = array(
-    'paid' => array('is_payable' => false, 'has_upi' => false, 'rendered_authorization' => true, 'rendered_support' => false, 'rendered_renewals' => true, 'settlement_mismatch' => false, 'document_title' => 'Invoice', 'renewal_date' => '4 Sep 2026', 'pages' => 1, 'seller_registrations' => array('PAN · ABCDE1234F', 'MSME · UDYAM-MH-00-0000000', 'GSTIN · 27ABCDE1234F1Z5')),
-    'unpaid' => array('is_payable' => true, 'has_upi' => true, 'rendered_upi' => true, 'rendered_support' => true, 'settlement_mismatch' => false, 'document_title' => 'Invoice'),
+    'paid' => array(
+        'is_payable' => false,
+        'has_upi' => false,
+        'has_bank' => true,
+        'rendered_bank' => false,
+        'rendered_authorization' => true,
+        'rendered_support' => false,
+        'rendered_renewals' => true,
+        'settlement_mismatch' => false,
+        'document_title' => 'Invoice',
+        'document_kicker' => 'INVOICE',
+        'gst_active' => false,
+        'numbering_valid' => true,
+        'renewal_date' => '4 Sep 2026',
+        'pages' => 1,
+        'issuer_name' => 'Example Technologies',
+        'issuer_lines' => array(
+            '88 Secure Cloud Avenue',
+            'Pune, Maharashtra 411001',
+            'India',
+            'Helpdesk · helpdesk@example.invalid',
+            'Mobile · +91 20000 00000',
+        ),
+        'issuer_sources' => array(
+            'identity.business_name' => 'whmcs.company_name',
+            'identity.address_lines' => 'pay_to.address',
+            'identity.support_email' => 'whmcs.company_email',
+            'identity.mobile' => 'pay_to.mobile',
+            'identity.website' => 'whmcs.company_url',
+            'registrations.pan' => 'pay_to.pan',
+            'registrations.udyam' => 'pay_to.udyam',
+            'registrations.gstin' => 'whmcs.tax_code',
+            'payment.bank_accounts' => 'pay_to.bank',
+            'payment.upi' => 'pay_to.upi_id',
+            'payment.upi.payee_name' => 'whmcs.company_name',
+        ),
+        'seller_registrations' => array(
+            'PAN · ABCDE1234F',
+            'MSME · UDYAM-MH-00-0000000',
+        ),
+    ),
+    'unpaid' => array('is_payable' => true, 'has_upi' => true, 'has_bank' => true, 'bank_branch' => 'Example Branch', 'rendered_upi' => true, 'rendered_bank' => true, 'rendered_support' => true, 'settlement_mismatch' => false, 'document_title' => 'Invoice'),
     'partial' => array('is_payable' => true, 'has_upi' => true, 'settlement_mismatch' => false, 'document_title' => 'Invoice'),
     'refunded' => array('is_payable' => false, 'has_upi' => false, 'rendered_support' => false, 'settlement_mismatch' => false, 'document_title' => 'Invoice'),
-    'proforma' => array('is_payable' => true, 'has_upi' => true, 'rendered_upi' => true, 'settlement_mismatch' => false, 'document_title' => 'Proforma Invoice', 'invoice_number' => 'PI/300000124', 'proforma_reference' => 'PI/300000124'),
+    'proforma' => array('is_payable' => true, 'has_upi' => true, 'rendered_upi' => true, 'settlement_mismatch' => false, 'document_title' => 'Proforma Invoice', 'document_kicker' => 'PROFORMA INVOICE', 'invoice_number' => 'PI/300000124', 'proforma_reference' => 'PI/300000124', 'gst_active' => true, 'numbering_valid' => true),
     'paid-adjusted' => array('is_payable' => false, 'has_upi' => false, 'settlement_mismatch' => true, 'document_title' => 'Invoice'),
     'reconciled-adjustment' => array('is_payable' => true, 'has_upi' => true, 'settlement_mismatch' => false, 'document_title' => 'Invoice', 'reconciliation_delta' => 9990.0, 'renewal_date' => '2 Aug 2027'),
     'overdue' => array('is_payable' => true, 'has_upi' => true, 'rendered_upi' => true, 'settlement_mismatch' => false, 'document_title' => 'Proforma Invoice', 'invoice_number' => 'PI/300000123', 'status_key' => 'overdue', 'is_overdue' => true, 'days_overdue' => 2, 'issue_date_display' => '4 Jul 2026', 'due_date_display' => '3 Aug 2026'),
@@ -653,7 +843,14 @@ $expectations = array(
     'collections' => array('is_payable' => false, 'has_upi' => false, 'settlement_mismatch' => false, 'document_title' => 'Invoice'),
     'draft' => array('is_payable' => false, 'has_upi' => false, 'settlement_mismatch' => false, 'document_title' => 'Invoice'),
     'zero-total' => array('is_payable' => false, 'has_upi' => false, 'settlement_mismatch' => false, 'document_title' => 'Invoice', 'total_numeric' => 0.0, 'balance_numeric' => 0.0),
-    'euro-format2' => array('is_payable' => true, 'has_upi' => false, 'rendered_support' => true, 'settlement_mismatch' => false, 'document_title' => 'Invoice', 'total_numeric' => 1234.56, 'balance_numeric' => 1234.56),
+    'euro-format2' => array('is_payable' => true, 'has_upi' => false, 'has_bank' => false, 'rendered_bank' => false, 'rendered_support' => true, 'settlement_mismatch' => false, 'document_title' => 'Commercial Invoice', 'document_kicker' => 'COMMERCIAL INVOICE', 'commercial_invoice_active' => true, 'numbering_valid' => true, 'total_numeric' => 1234.56, 'balance_numeric' => 1234.56),
+    'gst-active' => array('is_payable' => false, 'has_upi' => false, 'document_title' => 'Tax Invoice', 'document_kicker' => 'TAX INVOICE', 'gst_active' => true, 'numbering_valid' => true, 'numbering_length' => 16, 'numbering_max_length' => 16, 'seller_registrations' => array('PAN · ABCDE1234F', 'MSME · UDYAM-MH-00-0000000', 'GSTIN · 27ABCDE1234F1Z5')),
+    'gst-not-effective' => array('is_payable' => true, 'document_title' => 'Invoice', 'document_kicker' => 'INVOICE', 'gst_active' => false, 'numbering_valid' => true, 'seller_registrations' => array('PAN · ABCDE1234F', 'MSME · UDYAM-MH-00-0000000')),
+    'gst-export-title' => array('is_payable' => false, 'document_title' => 'Tax Invoice — Export of Services', 'document_kicker' => 'TAX INVOICE — EXPORT OF SERVICES', 'document_title_font_size' => 14, 'gst_active' => true, 'numbering_valid' => true),
+    'invalid-final-number' => array('is_payable' => true, 'document_title' => 'Invoice', 'numbering_valid' => false, 'numbering_length' => 17, 'numbering_max_length' => 16, 'issuer_warnings' => array('final-invoice-number-invalid')),
+    'snapshot-paid' => array('is_payable' => false, 'document_title' => 'Invoice', 'snapshot_applied' => true, 'issuer_name' => 'Historical Example Technologies', 'issuer_lines' => array('10 Archive Road', 'Pune, Maharashtra 411002', 'India', 'Helpdesk · archive@example.invalid', 'Mobile · +91 40000 00000'), 'seller_registrations' => array('PAN · FGHIJ5678K', 'MSME · UDYAM-MH-99-9999999'), 'rendered_bank' => false, 'rendered_upi' => false),
+    'snapshot-proforma-ignored' => array('is_payable' => true, 'document_title' => 'Proforma Invoice', 'snapshot_applied' => false, 'issuer_name' => 'Example Technologies'),
+    'snapshot-corrupt' => array('is_payable' => true, 'document_title' => 'Invoice', 'snapshot_applied' => false, 'issuer_name' => 'Example Technologies', 'issuer_warnings' => array('snapshot-checksum-mismatch')),
     'unknown-currency' => array('is_payable' => true, 'has_upi' => false, 'rendered_support' => true, 'currency_code' => '', 'document_title' => 'Invoice'),
     'entity-description' => array('is_payable' => true, 'has_upi' => true, 'first_item_description' => "Security R&D <managed>\nService period: 05/08/2026 - 04/09/2026", 'document_title' => 'Invoice'),
     'whmcs9-ledger' => array('is_payable' => false, 'has_upi' => false, 'currency_code' => 'INR', 'core_qr_present' => true, 'rendered_core_qr' => false, 'transaction_reference' => 'WHMCS9-REFERENCE-00131', 'amount_paid_display' => '₹ 9,990.00 INR', 'document_title' => 'Invoice'),
@@ -714,6 +911,7 @@ try {
                 'rendered_renewals',
                 'rendered_authorization',
                 'rendered_upi',
+                'rendered_bank',
                 'rendered_settlement',
             ) as $suppressedField) {
                 assertFixtureValue($batchRange['name'], $suppressedField, $batchRange[$suppressedField], false);
