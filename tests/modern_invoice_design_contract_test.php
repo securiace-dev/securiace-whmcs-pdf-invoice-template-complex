@@ -36,6 +36,15 @@ $requiredContracts = array(
     "'pay_to' => isset(\$companyaddress) ? \$companyaddress : array()",
     "\$securiaceModernCurrencyCode === 'INR'",
     '$securiaceModernRenderedBank',
+    "'gst_registered' => false",
+    "'gst_effective_date' => ''",
+    "'commercial_invoice_currencies' => array()",
+    '$securiaceModernGstActive',
+    '$securiaceModernCommercialInvoiceActive',
+    "'Commercial Invoice'",
+    '$securiaceModernFinalNumberMaxLength = 16',
+    "'/^[A-Za-z0-9\\/-]+$/'",
+    '$securiaceModernNumberingDiagnostics',
 );
 
 foreach ($requiredContracts as $requiredContract) {
@@ -51,6 +60,7 @@ $forbiddenContracts = array(
     'Invoice QR record',
     'Securiace Technologies',
     'Overdue interest may apply at',
+    "trim((string) \$taxCode) !== '' ? 'TAX INVOICE' : 'INVOICE'",
 );
 foreach ($forbiddenContracts as $forbiddenContract) {
     if (stripos($template, $forbiddenContract) !== false) {

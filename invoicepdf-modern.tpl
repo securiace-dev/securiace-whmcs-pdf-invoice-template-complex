@@ -37,6 +37,14 @@ $securiaceModernDefaults = array(
     'overdue_interest' => '',
     'late_fee_text' => '',
     'tds_note' => '',
+    // Non-GST is the safe default. GST mode requires the explicit boolean,
+    // a valid GSTIN, and an issue date on/after the effective date.
+    'gst_registered' => false,
+    'gst_effective_date' => '',
+    'gst_final_title' => 'Tax Invoice',
+    // Commercial Invoice is a controlled exception, not an international
+    // default. Add only currencies reviewed for that document treatment.
+    'commercial_invoice_currencies' => array(),
 );
 
 $securiaceModernConfig = $securiaceModernDefaults;
@@ -74,7 +82,7 @@ if (!isset($securiaceModernConfig['bank']) || !is_array($securiaceModernConfig['
 $securiaceModernConfigStringKeys = array(
     'company_email', 'company_phone', 'company_pan', 'company_msme', 'upi_id',
     'verification_secret', 'date_order', 'jurisdiction', 'overdue_interest',
-    'late_fee_text', 'tds_note'
+    'late_fee_text', 'tds_note', 'gst_effective_date', 'gst_final_title'
 );
 foreach ($securiaceModernConfigStringKeys as $securiaceModernConfigStringKey) {
     $securiaceModernConfigValue = isset($securiaceModernConfig[$securiaceModernConfigStringKey])
@@ -86,6 +94,24 @@ foreach ($securiaceModernConfigStringKeys as $securiaceModernConfigStringKey) {
         $securiaceModernConfigValue = $securiaceModernDefaults[$securiaceModernConfigStringKey];
     }
     $securiaceModernConfig[$securiaceModernConfigStringKey] = (string) $securiaceModernConfigValue;
+}
+$securiaceModernGstRegisteredValue = isset($securiaceModernConfig['gst_registered'])
+    ? $securiaceModernConfig['gst_registered']
+    : false;
+if (is_bool($securiaceModernGstRegisteredValue)) {
+    $securiaceModernConfig['gst_registered'] = $securiaceModernGstRegisteredValue;
+} else {
+    $securiaceModernGstRegisteredValue = is_scalar($securiaceModernGstRegisteredValue)
+        ? filter_var($securiaceModernGstRegisteredValue, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE)
+        : null;
+    $securiaceModernConfig['gst_registered'] = $securiaceModernGstRegisteredValue === true;
+}
+if (!in_array(
+    $securiaceModernConfig['gst_final_title'],
+    array('Tax Invoice', 'Tax Invoice — Export of Services'),
+    true
+)) {
+    $securiaceModernConfig['gst_final_title'] = $securiaceModernDefaults['gst_final_title'];
 }
 foreach ($securiaceModernConfig['bank'] as $securiaceModernBankConfigKey => $securiaceModernBankConfigValue) {
     if (!is_scalar($securiaceModernBankConfigValue)
@@ -112,6 +138,30 @@ foreach ($securiaceModernBankCurrencies as $securiaceModernBankCurrency) {
         && !in_array($securiaceModernBankCurrency, $securiaceModernConfig['bank_currencies'], true)
     ) {
         $securiaceModernConfig['bank_currencies'][] = $securiaceModernBankCurrency;
+    }
+}
+
+$securiaceModernCommercialCurrencies = isset($securiaceModernConfig['commercial_invoice_currencies'])
+    && is_array($securiaceModernConfig['commercial_invoice_currencies'])
+    ? $securiaceModernConfig['commercial_invoice_currencies']
+    : array();
+$securiaceModernConfig['commercial_invoice_currencies'] = array();
+foreach ($securiaceModernCommercialCurrencies as $securiaceModernCommercialCurrency) {
+    if (!is_scalar($securiaceModernCommercialCurrency)
+        && !(is_object($securiaceModernCommercialCurrency)
+            && method_exists($securiaceModernCommercialCurrency, '__toString'))
+    ) {
+        continue;
+    }
+    $securiaceModernCommercialCurrency = strtoupper(trim((string) $securiaceModernCommercialCurrency));
+    if (preg_match('/^[A-Z]{3}$/', $securiaceModernCommercialCurrency)
+        && !in_array(
+            $securiaceModernCommercialCurrency,
+            $securiaceModernConfig['commercial_invoice_currencies'],
+            true
+        )
+    ) {
+        $securiaceModernConfig['commercial_invoice_currencies'][] = $securiaceModernCommercialCurrency;
     }
 }
 
@@ -408,6 +458,7 @@ $securiaceModernInvoiceNumber = isset($invoicenum) && trim((string) $invoicenum)
 if ($securiaceModernInvoiceNumber === '') {
     $securiaceModernInvoiceNumber = '—';
 }
+$securiaceModernStoredInvoiceNumber = $securiaceModernInvoiceNumber;
 
 $securiaceModernPageTitle = isset($pagetitle) ? $securiaceModernPlainText($pagetitle) : '';
 $securiaceModernIsProforma = stripos($securiaceModernPageTitle, 'proforma') !== false;
@@ -426,10 +477,82 @@ $securiaceModernProformaReference = $securiaceModernInvoiceId !== ''
 if ($securiaceModernIsProforma) {
     $securiaceModernInvoiceNumber = $securiaceModernProformaReference;
 }
-$securiaceModernDocumentTitle = $securiaceModernIsProforma ? 'Proforma Invoice' : 'Invoice';
-$securiaceModernDocumentKicker = $securiaceModernIsProforma
-    ? 'PROFORMA'
-    : (isset($taxCode) && trim((string) $taxCode) !== '' ? 'TAX INVOICE' : 'INVOICE');
+
+$securiaceModernGstinCandidate = isset($taxCode) && trim((string) $taxCode) !== ''
+    ? strtoupper(trim((string) $taxCode))
+    : (isset($securiaceModernWhmcsSettings['tax_code'])
+        ? strtoupper(trim((string) $securiaceModernWhmcsSettings['tax_code']))
+        : '');
+$securiaceModernGstinValid = preg_match(
+    '/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][A-Z0-9]Z[A-Z0-9]$/',
+    $securiaceModernGstinCandidate
+) === 1;
+$securiaceModernIssueDateForPolicy = isset($datecreated)
+    ? $securiaceModernParseDate($datecreated)
+    : null;
+$securiaceModernGstEffectiveDate = trim((string) $securiaceModernConfig['gst_effective_date']) !== ''
+    ? $securiaceModernParseDate($securiaceModernConfig['gst_effective_date'])
+    : null;
+$securiaceModernGstGateWarnings = array();
+if ($securiaceModernConfig['gst_registered'] && !$securiaceModernGstinValid) {
+    $securiaceModernGstGateWarnings[] = 'gst-gate-invalid-gstin';
+}
+if ($securiaceModernConfig['gst_registered']
+    && !($securiaceModernGstEffectiveDate instanceof DateTimeImmutable)
+) {
+    $securiaceModernGstGateWarnings[] = 'gst-gate-effective-date-unavailable';
+}
+if ($securiaceModernConfig['gst_registered']
+    && !($securiaceModernIssueDateForPolicy instanceof DateTimeImmutable)
+) {
+    $securiaceModernGstGateWarnings[] = 'gst-gate-issue-date-unavailable';
+}
+$securiaceModernGstActive = $securiaceModernConfig['gst_registered']
+    && $securiaceModernGstinValid
+    && $securiaceModernGstEffectiveDate instanceof DateTimeImmutable
+    && $securiaceModernIssueDateForPolicy instanceof DateTimeImmutable
+    && $securiaceModernIssueDateForPolicy >= $securiaceModernGstEffectiveDate;
+$securiaceModernCommercialInvoiceActive = !$securiaceModernGstActive
+    && in_array(
+        $securiaceModernCurrencyCode,
+        $securiaceModernConfig['commercial_invoice_currencies'],
+        true
+    );
+
+if ($securiaceModernIsProforma) {
+    $securiaceModernDocumentTitle = 'Proforma Invoice';
+} elseif ($securiaceModernGstActive) {
+    $securiaceModernDocumentTitle = $securiaceModernConfig['gst_final_title'];
+} elseif ($securiaceModernCommercialInvoiceActive) {
+    $securiaceModernDocumentTitle = 'Commercial Invoice';
+} else {
+    $securiaceModernDocumentTitle = 'Invoice';
+}
+$securiaceModernDocumentKicker = strtoupper($securiaceModernDocumentTitle);
+
+// WHMCS owns assignment and sequence uniqueness. The template only preflights
+// final display numbers against the future GST Rule 46(b) shape and never
+// rewrites a number, which would break reconciliation with the database.
+$securiaceModernFinalNumberMaxLength = 16;
+$securiaceModernFinalNumberLength = function_exists('mb_strlen')
+    ? mb_strlen($securiaceModernStoredInvoiceNumber, 'UTF-8')
+    : strlen($securiaceModernStoredInvoiceNumber);
+$securiaceModernFinalNumberAllowed = preg_match(
+    '/^[A-Za-z0-9\/-]+$/',
+    $securiaceModernStoredInvoiceNumber
+) === 1;
+$securiaceModernFinalNumberWithinLimit = $securiaceModernFinalNumberLength > 0
+    && $securiaceModernFinalNumberLength <= $securiaceModernFinalNumberMaxLength;
+$securiaceModernNumberingDiagnostics = array(
+    'applicable' => !$securiaceModernIsProforma,
+    'number' => $securiaceModernStoredInvoiceNumber,
+    'length' => $securiaceModernFinalNumberLength,
+    'max_length' => $securiaceModernFinalNumberMaxLength,
+    'allowed_characters' => $securiaceModernFinalNumberAllowed,
+    'within_limit' => $securiaceModernFinalNumberWithinLimit,
+    'valid' => $securiaceModernIsProforma
+        || ($securiaceModernFinalNumberAllowed && $securiaceModernFinalNumberWithinLimit),
+);
 
 $securiaceModernItems = isset($invoiceitems) && is_array($invoiceitems) ? $invoiceitems : array();
 $securiaceModernRawTransactions = isset($transactions) && is_array($transactions) ? $transactions : array();
@@ -663,6 +786,28 @@ if ($securiaceModernProfileResolver instanceof Closure) {
 $securiaceModernCompanyName = $securiaceModernIssuerProfile['identity']['business_name'];
 $securiaceModernCompanyAddress = $securiaceModernIssuerProfile['identity']['address_lines'];
 $securiaceModernIssuerDiagnostics = $securiaceModernIssuerProfile['diagnostics'];
+$securiaceModernLifecycleDiagnostics = array(
+    'gst_registered' => $securiaceModernConfig['gst_registered'],
+    'gstin_valid' => $securiaceModernGstinValid,
+    'gst_effective_date_valid' => $securiaceModernGstEffectiveDate instanceof DateTimeImmutable,
+    'issue_date_valid' => $securiaceModernIssueDateForPolicy instanceof DateTimeImmutable,
+    'gst_active' => $securiaceModernGstActive,
+    'commercial_invoice_active' => $securiaceModernCommercialInvoiceActive,
+);
+$securiaceModernIssuerDiagnostics['warnings'] = isset($securiaceModernIssuerDiagnostics['warnings'])
+    && is_array($securiaceModernIssuerDiagnostics['warnings'])
+    ? $securiaceModernIssuerDiagnostics['warnings']
+    : array();
+$securiaceModernIssuerDiagnostics['warnings'] = array_merge(
+    $securiaceModernIssuerDiagnostics['warnings'],
+    $securiaceModernGstGateWarnings
+);
+if (!$securiaceModernNumberingDiagnostics['valid']) {
+    $securiaceModernIssuerDiagnostics['warnings'][] = 'final-invoice-number-invalid';
+}
+$securiaceModernIssuerDiagnostics['warnings'] = array_values(array_unique(
+    $securiaceModernIssuerDiagnostics['warnings']
+));
 $securiaceModernBankAccounts = $securiaceModernIssuerProfile['payment']['bank_accounts'];
 $securiaceModernUpiProfile = $securiaceModernIssuerProfile['payment']['upi'];
 
@@ -726,7 +871,10 @@ if ($securiaceModernIssuerProfile['identity']['mobile'] !== '') {
     $securiaceModernSellerLines[] = 'Mobile · ' . $securiaceModernIssuerProfile['identity']['mobile'];
 }
 $securiaceModernSellerRegistrations = array();
-foreach ($securiaceModernIssuerProfile['registrations'] as $securiaceModernRegistration) {
+foreach ($securiaceModernIssuerProfile['registrations'] as $securiaceModernRegistrationKey => $securiaceModernRegistration) {
+    if ($securiaceModernRegistrationKey === 'gstin' && !$securiaceModernGstActive) {
+        continue;
+    }
     if (!empty($securiaceModernRegistration['valid'])
         && !empty($securiaceModernRegistration['label'])
         && !empty($securiaceModernRegistration['value'])
@@ -896,7 +1044,13 @@ $pdf->SetFont($securiaceModernFont, 'B', 6.5);
 $pdf->SetTextColor($securiaceModernBrand[0], $securiaceModernBrand[1], $securiaceModernBrand[2]);
 $pdf->SetXY($securiaceModernPageWidth - $securiaceModernMargin - 66, $securiaceModernHeaderY);
 $pdf->Cell(66, 4, $securiaceModernDocumentKicker, 0, 1, 'R');
-$pdf->SetFont($securiaceModernFont, 'B', 22);
+$securiaceModernDocumentTitleLength = function_exists('mb_strlen')
+    ? mb_strlen($securiaceModernDocumentTitle, 'UTF-8')
+    : strlen($securiaceModernDocumentTitle);
+$securiaceModernDocumentTitleFontSize = $securiaceModernDocumentTitleLength > 28
+    ? 14
+    : ($securiaceModernDocumentTitleLength > 20 ? 17 : 22);
+$pdf->SetFont($securiaceModernFont, 'B', $securiaceModernDocumentTitleFontSize);
 $pdf->SetTextColor($securiaceModernInk[0], $securiaceModernInk[1], $securiaceModernInk[2]);
 $pdf->SetX($securiaceModernPageWidth - $securiaceModernMargin - 66);
 $pdf->Cell(66, 8, $securiaceModernDocumentTitle, 0, 1, 'R');

@@ -31,5 +31,13 @@ return array(
     // Optional reviewed policy override. Empty uses conservative WHMCS-derived copy.
     'late_fee_text' => '',
     'tds_note' => 'If applicable, deduct TDS under Section 194J and provide Form 16A.',
+    // Leave disabled until registration is effective and the WHMCS Tax Code is
+    // the valid GSTIN that applied on the invoice issue date.
+    'gst_registered' => false,
+    'gst_effective_date' => '', // YYYY-MM-DD, for example 2027-04-01.
+    'gst_final_title' => 'Tax Invoice',
+    // Empty keeps all non-GST final documents titled Invoice. Add a currency
+    // only after review confirms Commercial Invoice is the intended document.
+    'commercial_invoice_currencies' => array(),
     'acceptance_note' => 'Acceptance confirms the scope and commercial terms shown in this quote.',
 );
