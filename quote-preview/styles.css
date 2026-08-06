@@ -55,6 +55,42 @@
   line-height: 1.35;
 }
 
+.issuer-registrations {
+  display: grid;
+  gap: 3px;
+  margin: 7px 0 0;
+  padding: 6px 8px;
+  color: var(--brand-dark);
+  background: var(--brand-soft);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+}
+
+.issuer-registrations div {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: 7px;
+  align-items: baseline;
+}
+
+.issuer-registrations dt,
+.issuer-registrations dd {
+  margin: 0;
+  color: inherit;
+  font-size: 6.7pt;
+  line-height: 1.35;
+}
+
+.issuer-registrations dt {
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.issuer-registrations dd {
+  overflow-wrap: anywhere;
+  font-weight: 700;
+}
+
 .proposal-section {
   margin-top: 6mm;
 }
@@ -96,14 +132,27 @@
   margin-top: 6mm;
 }
 
-.quote-items .description-column { width: 46%; }
-.quote-items .qty-column { width: 8%; }
-.quote-items .unit-column { width: 17%; }
-.quote-items .discount-column { width: 12%; }
-.quote-items .amount-column { width: 17%; }
+.quote-items .description-column { width: 52%; }
+.quote-items .qty-column { width: 7%; }
+.quote-items .unit-column { width: 15%; }
+.quote-items .discount-column { width: 11%; }
+.quote-items .amount-column { width: 15%; }
 
 .quote-items tbody tr:nth-child(even) {
   background: var(--surface);
+}
+
+.quote-items .item-price-row td {
+  padding-bottom: 7px;
+}
+
+.quote-items .item-detail-row td {
+  padding: 7px 10px 9px;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--surface) 72%, var(--paper));
+  border-left: 0;
+  font-size: 7.4pt;
+  line-height: 1.45;
 }
 
 .quote-financial {

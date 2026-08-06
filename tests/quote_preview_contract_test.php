@@ -15,8 +15,13 @@ $requiredHtml = array(
     'id="quote-document" tabindex="-1"',
     'Commercial proposal',
     'Valid until 19 Aug 2026',
+    'Proposal summary',
     'Prepared for',
     'Prepared by',
+    'class="issuer-registrations"',
+    'Email · accounts@example.invalid',
+    'class="item-detail-row"',
+    'colspan="5"',
     '<th scope="col" class="numeric">Qty</th>',
     '<th scope="col" class="numeric">Unit price</th>',
     '<th scope="col" class="numeric">Discount</th>',
@@ -34,7 +39,7 @@ foreach (array('UPI payment', 'Payment transactions', 'Amount paid', 'Authentica
     }
 }
 
-foreach (array('@import url("../preview/styles.css")', '.validity-pill', '.proposal-copy', '.quote-financial', '@media print') as $required) {
+foreach (array('@import url("../preview/styles.css")', '.validity-pill', '.proposal-copy', '.issuer-registrations', '.item-detail-row', '.quote-financial', '@media print') as $required) {
     if (strpos($css, $required) === false) {
         throw new RuntimeException('Quote preview stylesheet contract is missing: ' . $required);
     }
