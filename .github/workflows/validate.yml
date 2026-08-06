@@ -50,12 +50,18 @@ jobs:
             invoicepdf-modern.tpl \
             quotepdf-modern.tpl \
             securiace-pdf-profile.php \
+            securiace-pdf-snapshot.php \
             config/securiace-invoice-config.example.php \
+            modules/addons/securiace_pdf_profile/securiace_pdf_profile.php \
+            modules/addons/securiace_pdf_profile/hooks.php \
+            modules/addons/securiace_pdf_profile/lib/SnapshotService.php \
             scripts/audit-whmcs-pdf-surface.php \
             scripts/repair-whmcs-invoice-template.php \
             tests/modern_invoice_design_contract_test.php \
             tests/modern_quote_template_contract_test.php \
+            tests/addon_module_contract_test.php \
             tests/pdf_profile_resolver_test.php \
+            tests/pdf_snapshot_test.php \
             tests/preview_contract_test.php \
             tests/quote_preview_contract_test.php \
             tests/render_modern_invoice_fixtures.php \
@@ -74,7 +80,9 @@ jobs:
           php tests/quote_preview_contract_test.php
           php tests/modern_invoice_design_contract_test.php
           php tests/modern_quote_template_contract_test.php
+          php tests/addon_module_contract_test.php
           php tests/pdf_profile_resolver_test.php
+          php tests/pdf_snapshot_test.php
 
       - name: Install a clean TCPDF test dependency
         shell: bash

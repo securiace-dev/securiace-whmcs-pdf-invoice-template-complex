@@ -101,10 +101,10 @@ and WHMCS settings are in
    WHMCS_ROOT/templates/twenty-one/invoicepdf.tpl
    ```
 
-2. Copy `invoicepdf-modern.tpl` into that directory as `invoicepdf.tpl`, and
-   copy `securiace-pdf-profile.php` beside it. WHMCS selects the exact template
-   filename; the helper is shared by invoice and quote PDFs and fails closed if
-   a partial deployment omits it.
+2. Copy `invoicepdf-modern.tpl` into that directory as `invoicepdf.tpl`. Copy
+   `securiace-pdf-profile.php` and `securiace-pdf-snapshot.php` to
+   `WHMCS_ROOT/includes/`. WHMCS selects the exact template filename; the shared
+   helpers fail closed if a partial deployment omits them.
 
 3. Copy `config/securiace-invoice-config.example.php` to the protected runtime
    path below and replace every example value:
@@ -120,11 +120,17 @@ and WHMCS settings are in
    explicitly needs that title; foreign currency alone does not change the
    document type.
 
-4. Provide the verification secret through the
+4. For immutable historical issuer details, copy
+   `modules/addons/securiace_pdf_profile/` into `WHMCS_ROOT/modules/addons/` and
+   activate **Securiace PDF Profile Snapshots** in WHMCS. Its redacted health
+   screen must report the helpers and snapshot table as available. See
+   [`docs/PDF-SNAPSHOT-OPERATIONS.md`](docs/PDF-SNAPSHOT-OPERATIONS.md).
+
+5. Provide the verification secret through the
    `SECURIACE_INVOICE_VERIFY_SECRET` environment variable. Do not commit bank
    account values, the secret, signatures, or production client data.
 
-5. Place optional visual assets in WHMCS:
+6. Place optional visual assets in WHMCS:
 
    ```text
    WHMCS_ROOT/assets/img/logo.png
@@ -136,19 +142,21 @@ and WHMCS settings are in
    the company name replaces the logo, and absent signature/stamp images do not
    stop PDF generation.
 
-6. Generate and download one paid and one unpaid test invoice in staging. Also
+7. Generate and download one paid and one unpaid test invoice in staging. Also
    send each as an email attachment before production activation.
 
-To roll back, restore the backed-up `invoicepdf.tpl`. No database or WHMCS core
-file changes are required.
+To roll back the rendering layer, restore the backed-up `invoicepdf.tpl`. The
+addon never edits WHMCS core and retains historical snapshot rows when it is
+deactivated.
 
 ## Install the modern quote template
 
 1. Back up the active system-theme file, usually
    `WHMCS_ROOT/templates/twenty-one/quotepdf.tpl`.
 2. Copy `quotepdf-modern.tpl` to that directory as `quotepdf.tpl`, and ensure
-   `securiace-pdf-profile.php` is present beside it. The quote consumes only the
-   resolved identity and registration projection; payment data is discarded.
+   `WHMCS_ROOT/includes/securiace-pdf-profile.php` is present. The quote consumes
+   only the resolved identity and registration projection; payment data is
+   discarded.
 3. Generate a quote for a registered client and a guest recipient. Download each
    PDF, email one through WHMCS, and convert an accepted test quote to an invoice.
 4. Confirm that proposal formatting, line-item discounts, one/two taxes, totals,
@@ -166,7 +174,8 @@ The public example exposes this contract:
 - bank account details and UPI ID;
 - HMAC verification secret;
 - ambiguous numeric-date order (`DMY` by default, or `MDY`);
-- electronic-record label, jurisdiction, overdue-interest copy, and TDS note.
+- electronic-record label, jurisdiction, reviewed late-fee copy, and TDS note;
+- explicit GST activation date/title gates and opt-in commercial currencies.
 
 The verification ID is a stable keyed integrity identifier over immutable
 invoice fields when a secret is configured. It is not a cryptographic PDF

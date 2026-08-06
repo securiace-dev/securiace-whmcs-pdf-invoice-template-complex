@@ -204,6 +204,7 @@ function renderFixture(string $templatePath, string $outputDirectory, string $na
             'issuer_lines' => $securiaceModernSellerLines,
             'issuer_sources' => $securiaceModernIssuerDiagnostics['sources'],
             'issuer_warnings' => $securiaceModernIssuerDiagnostics['warnings'],
+            'snapshot_applied' => $securiaceModernSnapshotApplied,
             'is_payable' => $securiaceModernIsPayable,
             'has_upi' => $securiaceModernCanUseUpi,
             'has_bank' => $securiaceModernHasBankDetails,
@@ -349,6 +350,38 @@ function assertFixtureValue(string $fixture, string $field, $actual, $expected):
             . ', received ' . var_export($actual, true)
         );
     }
+}
+
+/** @param array<string, mixed> $overrides @return array<string, string> */
+function invoiceSnapshotRow(array $overrides = array()): array
+{
+    $payload = array_replace_recursive(array(
+        'schema_version' => 1,
+        'issuer' => array(
+            'identity' => array(
+                'business_name' => 'Historical Example Technologies',
+                'address_lines' => array('10 Archive Road', 'Pune, Maharashtra 411002', 'India'),
+                'support_email' => 'archive@example.invalid',
+                'mobile' => '+91 40000 00000',
+                'website' => 'https://archive.example.invalid',
+            ),
+            'registrations' => array(
+                'pan' => array('value' => 'FGHIJ5678K'),
+                'udyam' => array('value' => 'UDYAM-MH-99-9999999'),
+            ),
+        ),
+        'document' => array(
+            'title' => 'Invoice',
+            'gst_active' => false,
+            'final_invoice_number' => 'ST/2073',
+            'issue_date' => '2026-08-05',
+        ),
+    ), $overrides);
+    $json = json_encode($payload, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    if (!is_string($json)) {
+        throw new RuntimeException('Unable to encode invoice snapshot fixture.');
+    }
+    return array('payload' => $json, 'checksum' => hash('sha256', $json));
 }
 
 /** @param array<string, mixed> $overrides */
@@ -643,6 +676,35 @@ $fixtures = array(
         'invoiceid' => 300000135,
         'invoicenum' => 'ST/12345678901234',
     )),
+    'snapshot-paid' => invoiceFixture(array(
+        'invoiceid' => 300000137,
+        'invoicenum' => 'ST/2073',
+        'status' => 'Paid',
+        'datepaid' => '5 Aug 2026',
+        'balance' => '₹ 0.00 INR',
+        'transactions' => array($paidTransaction),
+        'securiacePdfSnapshotRow' => invoiceSnapshotRow(),
+    )),
+    'snapshot-proforma-ignored' => invoiceFixture(array(
+        'invoiceid' => 300000138,
+        'invoicenum' => '',
+        'pagetitle' => 'Proforma Invoice #300000138',
+        'model' => new FixtureInvoiceModel(array(
+            'code' => 'INR',
+            'prefix' => '₹',
+            'suffix' => 'INR',
+            'format' => 1,
+        ), true),
+        'securiacePdfSnapshotRow' => invoiceSnapshotRow(),
+    )),
+    'snapshot-corrupt' => invoiceFixture(array(
+        'invoiceid' => 300000139,
+        'invoicenum' => 'ST/2074',
+        'securiacePdfSnapshotRow' => array(
+            'payload' => '{}',
+            'checksum' => str_repeat('0', 64),
+        ),
+    )),
     'unknown-currency' => invoiceFixture(array(
         'invoiceid' => 300000129,
         'invoicenum' => 'INV-2026-00129',
@@ -786,6 +848,9 @@ $expectations = array(
     'gst-not-effective' => array('is_payable' => true, 'document_title' => 'Invoice', 'document_kicker' => 'INVOICE', 'gst_active' => false, 'numbering_valid' => true, 'seller_registrations' => array('PAN · ABCDE1234F', 'MSME · UDYAM-MH-00-0000000')),
     'gst-export-title' => array('is_payable' => false, 'document_title' => 'Tax Invoice — Export of Services', 'document_kicker' => 'TAX INVOICE — EXPORT OF SERVICES', 'document_title_font_size' => 14, 'gst_active' => true, 'numbering_valid' => true),
     'invalid-final-number' => array('is_payable' => true, 'document_title' => 'Invoice', 'numbering_valid' => false, 'numbering_length' => 17, 'numbering_max_length' => 16, 'issuer_warnings' => array('final-invoice-number-invalid')),
+    'snapshot-paid' => array('is_payable' => false, 'document_title' => 'Invoice', 'snapshot_applied' => true, 'issuer_name' => 'Historical Example Technologies', 'issuer_lines' => array('10 Archive Road', 'Pune, Maharashtra 411002', 'India', 'Helpdesk · archive@example.invalid', 'Mobile · +91 40000 00000'), 'seller_registrations' => array('PAN · FGHIJ5678K', 'MSME · UDYAM-MH-99-9999999'), 'rendered_bank' => false, 'rendered_upi' => false),
+    'snapshot-proforma-ignored' => array('is_payable' => true, 'document_title' => 'Proforma Invoice', 'snapshot_applied' => false, 'issuer_name' => 'Example Technologies'),
+    'snapshot-corrupt' => array('is_payable' => true, 'document_title' => 'Invoice', 'snapshot_applied' => false, 'issuer_name' => 'Example Technologies', 'issuer_warnings' => array('snapshot-checksum-mismatch')),
     'unknown-currency' => array('is_payable' => true, 'has_upi' => false, 'rendered_support' => true, 'currency_code' => '', 'document_title' => 'Invoice'),
     'entity-description' => array('is_payable' => true, 'has_upi' => true, 'first_item_description' => "Security R&D <managed>\nService period: 05/08/2026 - 04/09/2026", 'document_title' => 'Invoice'),
     'whmcs9-ledger' => array('is_payable' => false, 'has_upi' => false, 'currency_code' => 'INR', 'core_qr_present' => true, 'rendered_core_qr' => false, 'transaction_reference' => 'WHMCS9-REFERENCE-00131', 'amount_paid_display' => '₹ 9,990.00 INR', 'document_title' => 'Invoice'),
