@@ -51,14 +51,22 @@ $securiaceModernConfig = $securiaceModernDefaults;
 $securiaceModernConfigPath = defined('ROOTDIR')
     ? ROOTDIR . '/includes/securiace-invoice-config.php'
     : '';
+$securiaceModernBootstrapWarnings = array();
 
 if ($securiaceModernConfigPath !== '' && is_readable($securiaceModernConfigPath)) {
-    $securiaceModernLoadedConfig = include $securiaceModernConfigPath;
+    try {
+        $securiaceModernLoadedConfig = include $securiaceModernConfigPath;
+    } catch (Throwable $securiaceModernConfigException) {
+        $securiaceModernLoadedConfig = null;
+        $securiaceModernBootstrapWarnings[] = 'protected-config-include-failed';
+    }
     if (is_array($securiaceModernLoadedConfig)) {
         $securiaceModernConfig = array_replace_recursive(
             $securiaceModernConfig,
             $securiaceModernLoadedConfig
         );
+    } elseif ($securiaceModernLoadedConfig !== null) {
+        $securiaceModernBootstrapWarnings[] = 'protected-config-invalid-result';
     }
 }
 
@@ -731,9 +739,210 @@ foreach (array(
         break;
     }
 }
-$securiaceModernProfileResolver = is_readable($securiaceModernProfilePath)
-    ? include $securiaceModernProfilePath
-    : null;
+$securiaceModernProfileWarnings = $securiaceModernBootstrapWarnings;
+$securiaceModernScalarText = static function ($value, $fallback = '') {
+    if (is_scalar($value)
+        || (is_object($value) && method_exists($value, '__toString'))
+    ) {
+        return trim((string) $value);
+    }
+    return (string) $fallback;
+};
+$securiaceModernNormalizeIssuerProfile = static function (
+    $rawProfile,
+    array $baseWarnings = array()
+) use ($securiaceModernScalarText) {
+        $warnings = array();
+        foreach ($baseWarnings as $warning) {
+            $warningText = $securiaceModernScalarText($warning);
+            if ($warningText !== '') {
+                $warnings[] = $warningText;
+            }
+        }
+
+        if (!is_array($rawProfile)) {
+            $rawProfile = array();
+            $warnings[] = 'profile-shape-invalid';
+        }
+
+        $identity = isset($rawProfile['identity']) && is_array($rawProfile['identity']) ? $rawProfile['identity'] : array();
+        if (!isset($rawProfile['identity']) || !is_array($rawProfile['identity'])) {
+            $warnings[] = 'profile-identity-invalid';
+        }
+
+        $normalizedIdentity = array(
+            'business_name' => $securiaceModernScalarText(
+                isset($identity['business_name']) ? $identity['business_name'] : '',
+                'Issuer'
+            ),
+            'address_lines' => array(),
+            'support_email' => $securiaceModernScalarText(isset($identity['support_email']) ? $identity['support_email'] : ''),
+            'mobile' => $securiaceModernScalarText(isset($identity['mobile']) ? $identity['mobile'] : ''),
+            'website' => $securiaceModernScalarText(isset($identity['website']) ? $identity['website'] : ''),
+        );
+        if ($normalizedIdentity['business_name'] === '') {
+            $normalizedIdentity['business_name'] = 'Issuer';
+        }
+        $normalizedIdentity['support_email_valid'] = $normalizedIdentity['support_email'] === ''
+            || filter_var($normalizedIdentity['support_email'], FILTER_VALIDATE_EMAIL) !== false;
+        $normalizedIdentity['website_valid'] = $normalizedIdentity['website'] === ''
+            || filter_var($normalizedIdentity['website'], FILTER_VALIDATE_URL) !== false;
+        $rawAddressLines = isset($identity['address_lines']) && is_array($identity['address_lines'])
+            ? $identity['address_lines']
+            : array();
+        if (!empty($identity) && !isset($identity['address_lines'])) {
+            $warnings[] = 'profile-address-lines-missing';
+        }
+        foreach (array_slice($rawAddressLines, 0, 8) as $identityAddressLine) {
+            if (!is_scalar($identityAddressLine)
+                && !(is_object($identityAddressLine) && method_exists($identityAddressLine, '__toString'))
+            ) {
+                continue;
+            }
+            $normalizedAddressLine = trim((string) $identityAddressLine);
+            if ($normalizedAddressLine !== '') {
+                $normalizedIdentity['address_lines'][] = $normalizedAddressLine;
+            }
+        }
+
+        $rawRegistrations = isset($rawProfile['registrations']) && is_array($rawProfile['registrations'])
+            ? $rawProfile['registrations']
+            : array();
+        if (array_key_exists('registrations', $rawProfile) && !is_array($rawProfile['registrations'])) {
+            $warnings[] = 'profile-registrations-invalid';
+        }
+        $registrations = array();
+        foreach ($rawRegistrations as $registrationType => $registration) {
+            if (!is_array($registration)) {
+                continue;
+            }
+            $registrations[(string) $registrationType] = array(
+                'label' => $securiaceModernScalarText(isset($registration['label']) ? $registration['label'] : ''),
+                'value' => $securiaceModernScalarText(isset($registration['value']) ? $registration['value'] : ''),
+                'valid' => !empty($registration['valid']),
+                'source' => $securiaceModernScalarText(isset($registration['source']) ? $registration['source'] : ''),
+            );
+        }
+
+        $payment = isset($rawProfile['payment']) && is_array($rawProfile['payment']) ? $rawProfile['payment'] : array();
+        if (array_key_exists('payment', $rawProfile) && !is_array($rawProfile['payment'])) {
+            $warnings[] = 'profile-payment-invalid';
+        }
+        $rawBankAccounts = isset($payment['bank_accounts']) && is_array($payment['bank_accounts'])
+            ? $payment['bank_accounts']
+            : array();
+        if (array_key_exists('bank_accounts', $payment) && !is_array($payment['bank_accounts'])) {
+            $warnings[] = 'profile-bank-accounts-invalid';
+        }
+        $bankAccounts = array();
+        foreach ($rawBankAccounts as $bankAccount) {
+            if (!is_array($bankAccount)) {
+                continue;
+            }
+            $bankAccounts[] = array(
+                'account_name' => $securiaceModernScalarText(isset($bankAccount['account_name']) ? $bankAccount['account_name'] : ''),
+                'account_number' => $securiaceModernScalarText(isset($bankAccount['account_number']) ? $bankAccount['account_number'] : ''),
+                'routing_code' => $securiaceModernScalarText(isset($bankAccount['routing_code']) ? $bankAccount['routing_code'] : ''),
+                'branch' => $securiaceModernScalarText(isset($bankAccount['branch']) ? $bankAccount['branch'] : ''),
+                'account_type' => $securiaceModernScalarText(isset($bankAccount['account_type']) ? $bankAccount['account_type'] : ''),
+                'bank_name' => $securiaceModernScalarText(isset($bankAccount['bank_name']) ? $bankAccount['bank_name'] : ''),
+                'currencies' => is_array(isset($bankAccount['currencies']) ? $bankAccount['currencies'] : array())
+                    ? array_values(array_unique(array_map(
+                        'strtoupper',
+                        array_filter(
+                            array_map(
+                                static function ($value) use ($securiaceModernScalarText) {
+                                    return $securiaceModernScalarText($value);
+                                },
+                                array_values(isset($bankAccount['currencies']) ? $bankAccount['currencies'] : array())
+                            ),
+                            static function ($value) { return $value !== ''; }
+                        )
+                    )))
+                    : array(),
+                'source' => $securiaceModernScalarText(isset($bankAccount['source']) ? $bankAccount['source'] : ''),
+                'conflicted' => !empty($bankAccount['conflicted']),
+                'used_default_currencies' => !empty($bankAccount['used_default_currencies']),
+                'valid' => !empty($bankAccount['valid']),
+                'complete' => !empty($bankAccount['complete']),
+            );
+        }
+        $upi = isset($payment['upi']) && is_array($payment['upi']) ? $payment['upi'] : array();
+        if (array_key_exists('upi', $payment) && !is_array($payment['upi'])) {
+            $warnings[] = 'profile-upi-invalid';
+        }
+        $rawUpiCurrencies = isset($upi['currencies']) && is_array($upi['currencies'])
+            ? $upi['currencies']
+            : array();
+        if (array_key_exists('currencies', $upi) && !is_array($upi['currencies'])) {
+            $warnings[] = 'profile-upi-currencies-invalid';
+        }
+        $upiCurrencies = array();
+        foreach ($rawUpiCurrencies as $currency) {
+            if (!is_scalar($currency) && !(is_object($currency) && method_exists($currency, '__toString'))) {
+                continue;
+            }
+            $currency = strtoupper(trim((string) $currency));
+            if ($currency !== '' && !in_array($currency, $upiCurrencies, true)) {
+                $upiCurrencies[] = $currency;
+            }
+        }
+
+        $policy = isset($rawProfile['policy']) && is_array($rawProfile['policy']) ? $rawProfile['policy'] : array();
+        if (array_key_exists('policy', $rawProfile) && !is_array($rawProfile['policy'])) {
+            $warnings[] = 'profile-policy-invalid';
+        }
+        $diagnostics = isset($rawProfile['diagnostics']) && is_array($rawProfile['diagnostics']) ? $rawProfile['diagnostics'] : array();
+
+        $diagnosticWarnings = array();
+        $rawDiagnosticWarnings = isset($diagnostics['warnings']) && is_array($diagnostics['warnings'])
+            ? $diagnostics['warnings']
+            : array();
+        foreach (array_merge($rawDiagnosticWarnings, $warnings) as $diagnosticWarning) {
+            $diagnosticWarning = $securiaceModernScalarText($diagnosticWarning);
+            if ($diagnosticWarning !== '') {
+                $diagnosticWarnings[] = $diagnosticWarning;
+            }
+        }
+        $diagnosticWarnings = array_values(array_unique($diagnosticWarnings));
+
+        return array(
+            'schema_version' => 1,
+            'identity' => $normalizedIdentity,
+            'registrations' => $registrations,
+            'payment' => array(
+                'upi' => array(
+                    'id' => $securiaceModernScalarText(isset($upi['id']) ? $upi['id'] : ''),
+                    'payee_name' => $securiaceModernScalarText(isset($upi['payee_name']) ? $upi['payee_name'] : ''),
+                    'currencies' => $upiCurrencies,
+                    'valid' => !empty($upi['valid']),
+                    'source' => $securiaceModernScalarText(isset($upi['source']) ? $upi['source'] : ''),
+                ),
+                'bank_accounts' => $bankAccounts,
+            ),
+            'policy' => array(
+                'jurisdiction' => $securiaceModernScalarText(isset($policy['jurisdiction']) ? $policy['jurisdiction'] : ''),
+                'tds_note' => $securiaceModernScalarText(isset($policy['tds_note']) ? $policy['tds_note'] : ''),
+                'late_fee_text' => $securiaceModernScalarText(isset($policy['late_fee_text']) ? $policy['late_fee_text'] : ''),
+            ),
+            'diagnostics' => array(
+                'sources' => isset($diagnostics['sources']) && is_array($diagnostics['sources']) ? $diagnostics['sources'] : array(),
+                'conflicts' => isset($diagnostics['conflicts']) && is_array($diagnostics['conflicts']) ? $diagnostics['conflicts'] : array(),
+                'warnings' => $diagnosticWarnings,
+                'unknown_labels' => isset($diagnostics['unknown_labels']) && is_array($diagnostics['unknown_labels']) ? $diagnostics['unknown_labels'] : array(),
+            ),
+        );
+    };
+
+$securiaceModernProfileResolver = null;
+$securiaceModernProfileResolved = false;
+if ($securiaceModernProfilePath !== '') {
+    try {
+        $securiaceModernProfileResolver = include $securiaceModernProfilePath;
+    } catch (Throwable $securiaceModernProfileException) {
+        $securiaceModernProfileWarnings[] = 'profile-helper-include-failed';
+    }
+}
 $securiaceModernCompanyNameInput = isset($companyname) ? $companyname : '';
 $securiaceModernCompanyUrlInput = isset($companyurl) && trim((string) $companyurl) !== ''
     ? $companyurl
@@ -746,17 +955,33 @@ $securiaceModernTaxCodeInput = isset($taxCode) && trim((string) $taxCode) !== ''
     : (isset($securiaceModernWhmcsSettings['tax_code']) ? $securiaceModernWhmcsSettings['tax_code'] : '');
 
 if ($securiaceModernProfileResolver instanceof Closure) {
-    $securiaceModernIssuerProfile = $securiaceModernProfileResolver(array(
-        'company_name' => $securiaceModernCompanyNameInput,
-        'company_email' => $securiaceModernCompanyEmailInput,
-        'company_url' => $securiaceModernCompanyUrlInput,
-        'tax_code' => $securiaceModernTaxCodeInput,
-        'tax_label' => isset($taxIdLabel) ? $taxIdLabel : 'GSTIN',
-        'pay_to' => isset($companyaddress) ? $companyaddress : array(),
-        'default_bank_currencies' => $securiaceModernConfig['bank_currencies'],
-        'fallback' => $securiaceModernConfig,
-    ));
-} else {
+    $securiaceModernProfileResolved = false;
+    try {
+        $securiaceModernIssuerProfile = $securiaceModernProfileResolver(array(
+            'company_name' => $securiaceModernCompanyNameInput,
+            'company_email' => $securiaceModernCompanyEmailInput,
+            'company_url' => $securiaceModernCompanyUrlInput,
+            'tax_code' => $securiaceModernTaxCodeInput,
+            'tax_label' => isset($taxIdLabel) ? $taxIdLabel : 'GSTIN',
+            'pay_to' => isset($companyaddress) ? $companyaddress : array(),
+            'default_bank_currencies' => $securiaceModernConfig['bank_currencies'],
+            'fallback' => $securiaceModernConfig,
+        ));
+        if (is_array($securiaceModernIssuerProfile)) {
+            $securiaceModernProfileResolved = true;
+        } else {
+            $securiaceModernProfileWarnings[] = 'profile-helper-invalid-result';
+        }
+    } catch (Throwable $securiaceModernProfileException) {
+        $securiaceModernProfileWarnings[] = 'profile-helper-runtime-failed';
+    }
+}
+if (empty($securiaceModernProfileWarnings) && empty($securiaceModernProfileResolved)) {
+    $securiaceModernProfileWarnings[] = $securiaceModernProfilePath === ''
+        ? 'profile-helper-unavailable'
+        : 'profile-helper-invalid';
+}
+if (!$securiaceModernProfileResolved) {
     // A partial deployment must not leak raw Pay To payment lines into the
     // issuer card. Degrade to safe identity fallbacks and disable payment data.
     $securiaceModernFallbackCompanyName = trim((string) $securiaceModernCompanyNameInput);
@@ -786,11 +1011,15 @@ if ($securiaceModernProfileResolver instanceof Closure) {
         'diagnostics' => array(
             'sources' => array(),
             'conflicts' => array(),
-            'warnings' => array('profile-helper-unavailable'),
+            'warnings' => array_values(array_unique($securiaceModernProfileWarnings)),
             'unknown_labels' => array(),
         ),
     );
 }
+$securiaceModernIssuerProfile = $securiaceModernNormalizeIssuerProfile(
+    $securiaceModernIssuerProfile,
+    $securiaceModernProfileWarnings
+);
 
 $securiaceModernSnapshotApplied = false;
 $securiaceModernSnapshotWarning = '';
@@ -829,39 +1058,84 @@ if (!$securiaceModernIsProforma && !empty($securiaceModernSnapshotRow)) {
             break;
         }
     }
-    $securiaceModernSnapshotValidator = $securiaceModernSnapshotValidatorPath !== ''
-        ? include $securiaceModernSnapshotValidatorPath
-        : null;
-    if ($securiaceModernSnapshotValidator instanceof Closure) {
-        $securiaceModernSnapshotResult = $securiaceModernSnapshotValidator($securiaceModernSnapshotRow);
-        if (!empty($securiaceModernSnapshotResult['valid'])) {
-            $securiaceModernSnapshot = $securiaceModernSnapshotResult['snapshot'];
-            $securiaceModernIssuerProfile['identity'] = $securiaceModernSnapshot['issuer']['identity'];
-            $securiaceModernIssuerProfile['registrations'] =
-                $securiaceModernSnapshot['issuer']['registrations'];
-            $securiaceModernDocumentTitle = $securiaceModernSnapshot['document']['title'];
-            $securiaceModernDocumentKicker = strtoupper($securiaceModernDocumentTitle);
-            $securiaceModernGstActive = !empty($securiaceModernSnapshot['document']['gst_active']);
-            $securiaceModernCommercialInvoiceActive =
-                $securiaceModernDocumentTitle === 'Commercial Invoice';
-            $securiaceModernSnapshotApplied = true;
-            $securiaceModernSnapshotFinalNumber = isset(
-                $securiaceModernSnapshot['document']['final_invoice_number']
-            ) ? trim((string) $securiaceModernSnapshot['document']['final_invoice_number']) : '';
-            if ($securiaceModernSnapshotFinalNumber !== ''
-                && $securiaceModernSnapshotFinalNumber !== $securiaceModernStoredInvoiceNumber
-            ) {
-                $securiaceModernSnapshotWarning = 'snapshot-final-number-mismatch';
-            }
-        } else {
-            $securiaceModernSnapshotWarning = isset($securiaceModernSnapshotResult['warning'])
-                ? (string) $securiaceModernSnapshotResult['warning']
-                : 'snapshot-invalid';
+    $securiaceModernSnapshotValidator = null;
+    if ($securiaceModernSnapshotValidatorPath !== '') {
+        try {
+            $securiaceModernSnapshotValidator = include $securiaceModernSnapshotValidatorPath;
+        } catch (Throwable $securiaceModernSnapshotValidationException) {
+            $securiaceModernSnapshotWarning = 'snapshot-validator-include-failed';
         }
-    } else {
-        $securiaceModernSnapshotWarning = 'snapshot-validator-unavailable';
+    }
+    if ($securiaceModernSnapshotWarning === '' && $securiaceModernSnapshotValidator instanceof Closure) {
+        try {
+            $securiaceModernSnapshotResult = $securiaceModernSnapshotValidator($securiaceModernSnapshotRow);
+            if (!is_array($securiaceModernSnapshotResult)) {
+                $securiaceModernSnapshotWarning = 'snapshot-validator-invalid-result';
+            } elseif (!empty($securiaceModernSnapshotResult['valid'])) {
+                $securiaceModernSnapshot = isset($securiaceModernSnapshotResult['snapshot'])
+                    && is_array($securiaceModernSnapshotResult['snapshot'])
+                    ? $securiaceModernSnapshotResult['snapshot']
+                    : array();
+                $securiaceModernSnapshotIssuer = isset($securiaceModernSnapshot['issuer'])
+                    && is_array($securiaceModernSnapshot['issuer'])
+                    ? $securiaceModernSnapshot['issuer']
+                    : array();
+                $securiaceModernSnapshotDocument = isset($securiaceModernSnapshot['document'])
+                    && is_array($securiaceModernSnapshot['document'])
+                    ? $securiaceModernSnapshot['document']
+                    : array();
+                $securiaceModernSnapshotIdentity = isset($securiaceModernSnapshotIssuer['identity'])
+                    && is_array($securiaceModernSnapshotIssuer['identity'])
+                    ? $securiaceModernSnapshotIssuer['identity']
+                    : array();
+                $securiaceModernSnapshotRegistrations = isset($securiaceModernSnapshotIssuer['registrations'])
+                    && is_array($securiaceModernSnapshotIssuer['registrations'])
+                    ? $securiaceModernSnapshotIssuer['registrations']
+                    : array();
+                if (!$securiaceModernSnapshotIdentity || empty($securiaceModernSnapshotDocument)) {
+                    $securiaceModernSnapshotWarning = 'snapshot-structure-invalid';
+                } else {
+                    $securiaceModernIssuerProfile['identity'] = $securiaceModernSnapshotIdentity;
+                    $securiaceModernIssuerProfile['registrations'] = $securiaceModernSnapshotRegistrations;
+                    $securiaceModernDocumentTitle = trim(
+                        isset($securiaceModernSnapshotDocument['title'])
+                            ? (string) $securiaceModernSnapshotDocument['title']
+                            : ''
+                    );
+                    if ($securiaceModernDocumentTitle === '') {
+                        $securiaceModernSnapshotWarning = 'snapshot-document-title-invalid';
+                    } else {
+                        $securiaceModernDocumentKicker = strtoupper($securiaceModernDocumentTitle);
+                        $securiaceModernGstActive = !empty($securiaceModernSnapshotDocument['gst_active']);
+                        $securiaceModernCommercialInvoiceActive =
+                            $securiaceModernDocumentTitle === 'Commercial Invoice';
+                        $securiaceModernSnapshotApplied = true;
+                        $securiaceModernSnapshotFinalNumber = isset(
+                            $securiaceModernSnapshotDocument['final_invoice_number']
+                        ) ? trim((string) $securiaceModernSnapshotDocument['final_invoice_number']) : '';
+                        if ($securiaceModernSnapshotFinalNumber !== ''
+                            && $securiaceModernSnapshotFinalNumber !== $securiaceModernStoredInvoiceNumber
+                        ) {
+                            $securiaceModernSnapshotWarning = 'snapshot-final-number-mismatch';
+                        }
+                    }
+                }
+            } else {
+                $securiaceModernSnapshotWarning = isset($securiaceModernSnapshotResult['warning'])
+                    ? (string) $securiaceModernSnapshotResult['warning']
+                    : 'snapshot-invalid';
+            }
+        } catch (Throwable $securiaceModernSnapshotValidationException) {
+            $securiaceModernSnapshotWarning = 'snapshot-validator-runtime-failed';
+        }
+    } elseif ($securiaceModernSnapshotWarning === '') {
+        $securiaceModernSnapshotWarning = $securiaceModernSnapshotValidatorPath === ''
+            ? 'snapshot-validator-unavailable'
+            : 'snapshot-validator-invalid';
     }
 }
+
+$securiaceModernIssuerProfile = $securiaceModernNormalizeIssuerProfile($securiaceModernIssuerProfile);
 
 $securiaceModernCompanyName = $securiaceModernIssuerProfile['identity']['business_name'];
 $securiaceModernCompanyAddress = $securiaceModernIssuerProfile['identity']['address_lines'];
@@ -1117,9 +1391,16 @@ if (defined('ROOTDIR')) {
     }
 }
 
+$securiaceModernLogoRendered = false;
 if ($securiaceModernLogoPath !== '') {
-    $pdf->Image($securiaceModernLogoPath, $securiaceModernMargin, $securiaceModernHeaderY, 42, 0, '', '', '', false, 300);
-} else {
+    try {
+        $pdf->Image($securiaceModernLogoPath, $securiaceModernMargin, $securiaceModernHeaderY, 42, 0, '', '', '', false, 300);
+        $securiaceModernLogoRendered = true;
+    } catch (Throwable $securiaceModernLogoException) {
+        $securiaceModernIssuerDiagnostics['warnings'][] = 'logo-render-failed';
+    }
+}
+if (!$securiaceModernLogoRendered) {
     $pdf->SetFont($securiaceModernFont, 'B', 17);
     $pdf->SetTextColor($securiaceModernInk[0], $securiaceModernInk[1], $securiaceModernInk[2]);
     $pdf->SetXY($securiaceModernMargin, $securiaceModernHeaderY + 1);
@@ -1778,10 +2059,18 @@ if ($securiaceModernIsPaid) {
         $securiaceModernAuthorizationX = $securiaceModernMargin + $securiaceModernSettlementWidth - 42;
         $securiaceModernAuthorizationY = $securiaceModernTotalsY + 9;
         if ($securiaceModernIsUsableImage($securiaceModernStampPath)) {
-            $pdf->Image($securiaceModernStampPath, $securiaceModernAuthorizationX, $securiaceModernAuthorizationY, 16, 16, '', '', '', false, 300);
+            try {
+                $pdf->Image($securiaceModernStampPath, $securiaceModernAuthorizationX, $securiaceModernAuthorizationY, 16, 16, '', '', '', false, 300);
+            } catch (Throwable $securiaceModernStampException) {
+                $securiaceModernIssuerDiagnostics['warnings'][] = 'stamp-render-failed';
+            }
         }
         if ($securiaceModernIsUsableImage($securiaceModernSignaturePath)) {
-            $pdf->Image($securiaceModernSignaturePath, $securiaceModernAuthorizationX + 16, $securiaceModernAuthorizationY + 2, 22, 10, '', '', '', false, 300);
+            try {
+                $pdf->Image($securiaceModernSignaturePath, $securiaceModernAuthorizationX + 16, $securiaceModernAuthorizationY + 2, 22, 10, '', '', '', false, 300);
+            } catch (Throwable $securiaceModernSignatureException) {
+                $securiaceModernIssuerDiagnostics['warnings'][] = 'signature-render-failed';
+            }
         }
         $pdf->SetFont($securiaceModernFont, '', 5.5);
         $pdf->SetTextColor($securiaceModernMuted[0], $securiaceModernMuted[1], $securiaceModernMuted[2]);
@@ -1978,7 +2267,8 @@ if ($securiaceModernHasBankDetails) {
     }
 }
 
-if ($securiaceModernCanUseUpi && method_exists($pdf, 'write2DBarcode')) {
+$securiaceModernCanRenderUpiBarcode = $securiaceModernCanUseUpi && method_exists($pdf, 'write2DBarcode');
+if ($securiaceModernCanRenderUpiBarcode) {
     $securiaceModernRenderedUpi = true;
     $securiaceModernDrawLabel('UPI payment', $securiaceModernActionX + 3, $securiaceModernSupportY + 3, $securiaceModernActionWidth - 6);
     $securiaceModernUpiParams = array(
@@ -1992,24 +2282,34 @@ if ($securiaceModernCanUseUpi && method_exists($pdf, 'write2DBarcode')) {
     $securiaceModernUpiUri = 'upi://pay?' . http_build_query($securiaceModernUpiParams, '', '&', PHP_QUERY_RFC3986);
     $securiaceModernQrSize = min(25, $securiaceModernActionWidth - 8);
     $securiaceModernQrX = $securiaceModernActionX + ($securiaceModernActionWidth - $securiaceModernQrSize) / 2;
-    $pdf->write2DBarcode(
-        $securiaceModernUpiUri,
-        'QRCODE,M',
-        $securiaceModernQrX,
-        $securiaceModernSupportY + 8,
-        $securiaceModernQrSize,
-        $securiaceModernQrSize,
-        array('border' => false, 'padding' => 0, 'fgcolor' => array(32, 28, 36), 'bgcolor' => array(255, 255, 255)),
-        'N'
-    );
-    $pdf->SetFont($securiaceModernFont, 'B', 5.8);
-    $pdf->SetTextColor($securiaceModernStatusInk[0], $securiaceModernStatusInk[1], $securiaceModernStatusInk[2]);
-    $pdf->SetXY($securiaceModernActionX + 2, $securiaceModernSupportY + 34);
-    $pdf->Cell($securiaceModernActionWidth - 4, 3, $securiaceModernUpiId, 0, 1, 'C');
-    $pdf->SetFont($securiaceModernFont, '', 5.5);
-    $pdf->SetX($securiaceModernActionX + 2);
-    $pdf->Cell($securiaceModernActionWidth - 4, 3, 'Ref · ' . $securiaceModernInvoiceNumber, 0, 1, 'C');
-} elseif ($securiaceModernCanUseUpi) {
+    try {
+        $pdf->write2DBarcode(
+            $securiaceModernUpiUri,
+            'QRCODE,M',
+            $securiaceModernQrX,
+            $securiaceModernSupportY + 8,
+            $securiaceModernQrSize,
+            $securiaceModernQrSize,
+            array('border' => false, 'padding' => 0, 'fgcolor' => array(32, 28, 36), 'bgcolor' => array(255, 255, 255)),
+            'N'
+        );
+        $pdf->SetFont($securiaceModernFont, 'B', 5.8);
+        $pdf->SetTextColor($securiaceModernStatusInk[0], $securiaceModernStatusInk[1], $securiaceModernStatusInk[2]);
+        $pdf->SetXY($securiaceModernActionX + 2, $securiaceModernSupportY + 34);
+        $pdf->Cell($securiaceModernActionWidth - 4, 3, $securiaceModernUpiId, 0, 1, 'C');
+        $pdf->SetFont($securiaceModernFont, '', 5.5);
+        $pdf->SetX($securiaceModernActionX + 2);
+        $pdf->Cell($securiaceModernActionWidth - 4, 3, 'Ref · ' . $securiaceModernInvoiceNumber, 0, 1, 'C');
+    } catch (Throwable $securiaceModernUpiBarcodeException) {
+        $securiaceModernCanRenderUpiBarcode = false;
+        $securiaceModernRenderedUpi = false;
+        $securiaceModernIssuerDiagnostics['warnings'][] = 'upi-qr-render-failed';
+        $securiaceModernIssuerDiagnostics['warnings'] = array_values(array_unique(
+            $securiaceModernIssuerDiagnostics['warnings']
+        ));
+    }
+}
+if (!$securiaceModernCanRenderUpiBarcode && $securiaceModernCanUseUpi) {
     $securiaceModernRenderedUpi = true;
     $securiaceModernDrawLabel('UPI payment', $securiaceModernActionX + 3, $securiaceModernSupportY + 3, $securiaceModernActionWidth - 6);
     $pdf->SetFont($securiaceModernFont, 'B', 8);
@@ -2025,7 +2325,7 @@ if ($securiaceModernCanUseUpi && method_exists($pdf, 'write2DBarcode')) {
         0,
         'L'
     );
-} else {
+} elseif (!$securiaceModernCanUseUpi) {
     $securiaceModernDrawLabel('Payment options', $securiaceModernActionX + 3, $securiaceModernSupportY + 3, $securiaceModernActionWidth - 6);
     $pdf->SetFont($securiaceModernFont, 'B', 7.5);
     $pdf->SetTextColor($securiaceModernStatusInk[0], $securiaceModernStatusInk[1], $securiaceModernStatusInk[2]);

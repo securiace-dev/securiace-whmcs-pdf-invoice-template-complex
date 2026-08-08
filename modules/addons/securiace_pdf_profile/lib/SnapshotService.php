@@ -210,23 +210,47 @@ final class SecuriacePdfProfileSnapshotService
                 ),
             );
         }
-        $resolver = include $path;
+        $fallback = static function (string ...$warnings): array {
+            return array(
+                'identity' => array(),
+                'registrations' => array(),
+                'payment' => array('upi' => array(), 'bank_accounts' => array()),
+                'diagnostics' => array(
+                    'sources' => array(),
+                    'warnings' => $warnings,
+                    'conflicts' => array(),
+                ),
+            );
+        };
+        try {
+            $resolver = include $path;
+        } catch (Throwable $exception) {
+            return $fallback('profile-helper-include-failed');
+        }
         if (!($resolver instanceof Closure)) {
-            return array();
+            return $fallback('profile-helper-invalid');
         }
         $runtimeConfig = self::runtimeConfig();
-        return $resolver(array(
-            'company_name' => Setting::getValue('CompanyName'),
-            'company_email' => Setting::getValue('Email'),
-            'company_url' => Setting::getValue('Domain'),
-            'tax_code' => Setting::getValue('TaxCode'),
-            'tax_label' => 'GSTIN',
-            'pay_to' => Setting::getValue('InvoicePayTo'),
-            'default_bank_currencies' => isset($runtimeConfig['bank_currencies'])
-                ? $runtimeConfig['bank_currencies']
-                : array('INR'),
-            'fallback' => $runtimeConfig,
-        ));
+        try {
+            $profile = $resolver(array(
+                'company_name' => Setting::getValue('CompanyName'),
+                'company_email' => Setting::getValue('Email'),
+                'company_url' => Setting::getValue('Domain'),
+                'tax_code' => Setting::getValue('TaxCode'),
+                'tax_label' => 'GSTIN',
+                'pay_to' => Setting::getValue('InvoicePayTo'),
+                'default_bank_currencies' => isset($runtimeConfig['bank_currencies'])
+                    ? $runtimeConfig['bank_currencies']
+                    : array('INR'),
+                'fallback' => $runtimeConfig,
+            ));
+        } catch (Throwable $exception) {
+            return $fallback('profile-helper-runtime-failed');
+        }
+        if (!is_array($profile)) {
+            return $fallback('profile-helper-invalid-result');
+        }
+        return $profile;
     }
 
     /** @return array<string, mixed> */
@@ -236,7 +260,11 @@ final class SecuriacePdfProfileSnapshotService
         if (!is_readable($path)) {
             return array();
         }
-        $config = include $path;
+        try {
+            $config = include $path;
+        } catch (Throwable $exception) {
+            return array();
+        }
         return is_array($config) ? $config : array();
     }
 

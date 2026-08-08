@@ -24,10 +24,18 @@ $securiaceQuoteConfig = $securiaceQuoteDefaults;
 $securiaceQuoteConfigPath = defined('ROOTDIR')
     ? ROOTDIR . '/includes/securiace-invoice-config.php'
     : '';
+$securiaceQuoteBootstrapWarnings = array();
 if ($securiaceQuoteConfigPath !== '' && is_readable($securiaceQuoteConfigPath)) {
-    $securiaceQuoteLoadedConfig = include $securiaceQuoteConfigPath;
+    try {
+        $securiaceQuoteLoadedConfig = include $securiaceQuoteConfigPath;
+    } catch (Throwable $securiaceQuoteConfigException) {
+        $securiaceQuoteLoadedConfig = null;
+        $securiaceQuoteBootstrapWarnings[] = 'protected-config-include-failed';
+    }
     if (is_array($securiaceQuoteLoadedConfig)) {
         $securiaceQuoteConfig = array_replace($securiaceQuoteConfig, $securiaceQuoteLoadedConfig);
+    } elseif ($securiaceQuoteLoadedConfig !== null) {
+        $securiaceQuoteBootstrapWarnings[] = 'protected-config-invalid-result';
     }
 }
 if (isset($securiaceQuoteTemplateConfig) && is_array($securiaceQuoteTemplateConfig)) {
@@ -294,9 +302,210 @@ foreach (array(
         break;
     }
 }
-$securiaceQuoteProfileResolver = is_readable($securiaceQuoteProfilePath)
-    ? include $securiaceQuoteProfilePath
-    : null;
+$securiaceQuoteProfileWarnings = $securiaceQuoteBootstrapWarnings;
+$securiaceQuoteScalarText = static function ($value, $fallback = '') {
+    if (is_scalar($value)
+        || (is_object($value) && method_exists($value, '__toString'))
+    ) {
+        return trim((string) $value);
+    }
+    return (string) $fallback;
+};
+$securiaceQuoteNormalizeIssuerProfile = static function (
+    $rawProfile,
+    array $baseWarnings = array()
+) use ($securiaceQuoteScalarText) {
+    $warnings = array();
+    foreach ($baseWarnings as $warning) {
+        $warningText = $securiaceQuoteScalarText($warning);
+        if ($warningText !== '') {
+            $warnings[] = $warningText;
+        }
+    }
+
+    if (!is_array($rawProfile)) {
+        $rawProfile = array();
+        $warnings[] = 'profile-shape-invalid';
+    }
+
+    $identity = isset($rawProfile['identity']) && is_array($rawProfile['identity']) ? $rawProfile['identity'] : array();
+    if (!isset($rawProfile['identity']) || !is_array($rawProfile['identity'])) {
+        $warnings[] = 'profile-identity-invalid';
+    }
+
+    $normalizedIdentity = array(
+        'business_name' => $securiaceQuoteScalarText(
+            isset($identity['business_name']) ? $identity['business_name'] : '',
+            'Issuer'
+        ),
+        'address_lines' => array(),
+        'support_email' => $securiaceQuoteScalarText(isset($identity['support_email']) ? $identity['support_email'] : ''),
+        'mobile' => $securiaceQuoteScalarText(isset($identity['mobile']) ? $identity['mobile'] : ''),
+        'website' => $securiaceQuoteScalarText(isset($identity['website']) ? $identity['website'] : ''),
+    );
+    if ($normalizedIdentity['business_name'] === '') {
+        $normalizedIdentity['business_name'] = 'Issuer';
+    }
+    $normalizedIdentity['support_email_valid'] = $normalizedIdentity['support_email'] === ''
+        || filter_var($normalizedIdentity['support_email'], FILTER_VALIDATE_EMAIL) !== false;
+    $normalizedIdentity['website_valid'] = $normalizedIdentity['website'] === ''
+        || filter_var($normalizedIdentity['website'], FILTER_VALIDATE_URL) !== false;
+    $rawAddressLines = isset($identity['address_lines']) && is_array($identity['address_lines'])
+        ? $identity['address_lines']
+        : array();
+    if (!empty($identity) && !isset($identity['address_lines'])) {
+        $warnings[] = 'profile-address-lines-missing';
+    }
+    foreach (array_slice($rawAddressLines, 0, 8) as $identityAddressLine) {
+        if (!is_scalar($identityAddressLine)
+            && !(is_object($identityAddressLine) && method_exists($identityAddressLine, '__toString'))
+        ) {
+            continue;
+        }
+        $normalizedAddressLine = trim((string) $identityAddressLine);
+        if ($normalizedAddressLine !== '') {
+            $normalizedIdentity['address_lines'][] = $normalizedAddressLine;
+        }
+    }
+
+    $rawRegistrations = isset($rawProfile['registrations']) && is_array($rawProfile['registrations'])
+        ? $rawProfile['registrations']
+        : array();
+    if (array_key_exists('registrations', $rawProfile) && !is_array($rawProfile['registrations'])) {
+        $warnings[] = 'profile-registrations-invalid';
+    }
+    $registrations = array();
+    foreach ($rawRegistrations as $registrationType => $registration) {
+        if (!is_array($registration)) {
+            continue;
+        }
+        $registrations[(string) $registrationType] = array(
+            'label' => $securiaceQuoteScalarText(isset($registration['label']) ? $registration['label'] : ''),
+            'value' => $securiaceQuoteScalarText(isset($registration['value']) ? $registration['value'] : ''),
+            'valid' => !empty($registration['valid']),
+            'source' => $securiaceQuoteScalarText(isset($registration['source']) ? $registration['source'] : ''),
+        );
+    }
+
+    $payment = isset($rawProfile['payment']) && is_array($rawProfile['payment']) ? $rawProfile['payment'] : array();
+    if (array_key_exists('payment', $rawProfile) && !is_array($rawProfile['payment'])) {
+        $warnings[] = 'profile-payment-invalid';
+    }
+    $rawBankAccounts = isset($payment['bank_accounts']) && is_array($payment['bank_accounts'])
+        ? $payment['bank_accounts']
+        : array();
+    if (array_key_exists('bank_accounts', $payment) && !is_array($payment['bank_accounts'])) {
+        $warnings[] = 'profile-bank-accounts-invalid';
+    }
+    $bankAccounts = array();
+    foreach ($rawBankAccounts as $bankAccount) {
+        if (!is_array($bankAccount)) {
+            continue;
+        }
+        $bankAccounts[] = array(
+            'account_name' => $securiaceQuoteScalarText(isset($bankAccount['account_name']) ? $bankAccount['account_name'] : ''),
+            'account_number' => $securiaceQuoteScalarText(isset($bankAccount['account_number']) ? $bankAccount['account_number'] : ''),
+            'routing_code' => $securiaceQuoteScalarText(isset($bankAccount['routing_code']) ? $bankAccount['routing_code'] : ''),
+            'branch' => $securiaceQuoteScalarText(isset($bankAccount['branch']) ? $bankAccount['branch'] : ''),
+            'account_type' => $securiaceQuoteScalarText(isset($bankAccount['account_type']) ? $bankAccount['account_type'] : ''),
+            'bank_name' => $securiaceQuoteScalarText(isset($bankAccount['bank_name']) ? $bankAccount['bank_name'] : ''),
+            'currencies' => is_array(isset($bankAccount['currencies']) ? $bankAccount['currencies'] : array())
+                ? array_values(array_unique(array_map(
+                    'strtoupper',
+                    array_filter(
+                        array_map(
+                            static function ($value) use ($securiaceQuoteScalarText) {
+                                return $securiaceQuoteScalarText($value);
+                            },
+                            array_values(isset($bankAccount['currencies']) ? $bankAccount['currencies'] : array())
+                        ),
+                        static function ($value) { return $value !== ''; }
+                    )
+                )))
+                : array(),
+            'source' => $securiaceQuoteScalarText(isset($bankAccount['source']) ? $bankAccount['source'] : ''),
+            'conflicted' => !empty($bankAccount['conflicted']),
+            'used_default_currencies' => !empty($bankAccount['used_default_currencies']),
+            'valid' => !empty($bankAccount['valid']),
+            'complete' => !empty($bankAccount['complete']),
+        );
+    }
+    $upi = isset($payment['upi']) && is_array($payment['upi']) ? $payment['upi'] : array();
+    if (array_key_exists('upi', $payment) && !is_array($payment['upi'])) {
+        $warnings[] = 'profile-upi-invalid';
+    }
+    $rawUpiCurrencies = isset($upi['currencies']) && is_array($upi['currencies'])
+        ? $upi['currencies']
+        : array();
+    if (array_key_exists('currencies', $upi) && !is_array($upi['currencies'])) {
+        $warnings[] = 'profile-upi-currencies-invalid';
+    }
+    $upiCurrencies = array();
+    foreach ($rawUpiCurrencies as $currency) {
+        if (!is_scalar($currency) && !(is_object($currency) && method_exists($currency, '__toString'))) {
+            continue;
+        }
+        $currency = strtoupper(trim((string) $currency));
+        if ($currency !== '' && !in_array($currency, $upiCurrencies, true)) {
+            $upiCurrencies[] = $currency;
+        }
+    }
+
+    $policy = isset($rawProfile['policy']) && is_array($rawProfile['policy']) ? $rawProfile['policy'] : array();
+    if (array_key_exists('policy', $rawProfile) && !is_array($rawProfile['policy'])) {
+        $warnings[] = 'profile-policy-invalid';
+    }
+    $diagnostics = isset($rawProfile['diagnostics']) && is_array($rawProfile['diagnostics']) ? $rawProfile['diagnostics'] : array();
+
+    $diagnosticWarnings = array();
+    $rawDiagnosticWarnings = isset($diagnostics['warnings']) && is_array($diagnostics['warnings'])
+        ? $diagnostics['warnings']
+        : array();
+    foreach (array_merge($rawDiagnosticWarnings, $warnings) as $diagnosticWarning) {
+        $diagnosticWarning = $securiaceQuoteScalarText($diagnosticWarning);
+        if ($diagnosticWarning !== '') {
+            $diagnosticWarnings[] = $diagnosticWarning;
+        }
+    }
+    $diagnosticWarnings = array_values(array_unique($diagnosticWarnings));
+
+    return array(
+        'schema_version' => 1,
+        'identity' => $normalizedIdentity,
+        'registrations' => $registrations,
+        'payment' => array(
+            'upi' => array(
+                'id' => $securiaceQuoteScalarText(isset($upi['id']) ? $upi['id'] : ''),
+                'payee_name' => $securiaceQuoteScalarText(isset($upi['payee_name']) ? $upi['payee_name'] : ''),
+                'currencies' => $upiCurrencies,
+                'valid' => !empty($upi['valid']),
+                'source' => $securiaceQuoteScalarText(isset($upi['source']) ? $upi['source'] : ''),
+            ),
+            'bank_accounts' => $bankAccounts,
+        ),
+        'policy' => array(
+            'jurisdiction' => $securiaceQuoteScalarText(isset($policy['jurisdiction']) ? $policy['jurisdiction'] : ''),
+            'tds_note' => $securiaceQuoteScalarText(isset($policy['tds_note']) ? $policy['tds_note'] : ''),
+            'late_fee_text' => $securiaceQuoteScalarText(isset($policy['late_fee_text']) ? $policy['late_fee_text'] : ''),
+        ),
+        'diagnostics' => array(
+            'sources' => isset($diagnostics['sources']) && is_array($diagnostics['sources']) ? $diagnostics['sources'] : array(),
+            'conflicts' => isset($diagnostics['conflicts']) && is_array($diagnostics['conflicts']) ? $diagnostics['conflicts'] : array(),
+            'warnings' => $diagnosticWarnings,
+            'unknown_labels' => isset($diagnostics['unknown_labels']) && is_array($diagnostics['unknown_labels']) ? $diagnostics['unknown_labels'] : array(),
+        ),
+    );
+};
+
+$securiaceQuoteProfileResolver = null;
+$securiaceQuoteProfileResolved = false;
+if ($securiaceQuoteProfilePath !== '') {
+    try {
+        $securiaceQuoteProfileResolver = include $securiaceQuoteProfilePath;
+    } catch (Throwable $securiaceQuoteProfileException) {
+        $securiaceQuoteProfileWarnings[] = 'profile-helper-include-failed';
+    }
+}
 $securiaceQuoteCompanyNameInput = isset($companyname) ? $companyname : '';
 $securiaceQuoteCompanyUrlInput = isset($companyurl) && trim((string) $companyurl) !== ''
     ? $companyurl
@@ -309,17 +518,33 @@ $securiaceQuoteTaxCodeInput = isset($taxCode) && trim((string) $taxCode) !== ''
     : (isset($securiaceQuoteWhmcsSettings['tax_code']) ? $securiaceQuoteWhmcsSettings['tax_code'] : '');
 
 if ($securiaceQuoteProfileResolver instanceof Closure) {
-    $securiaceQuoteIssuerProfile = $securiaceQuoteProfileResolver(array(
-        'company_name' => $securiaceQuoteCompanyNameInput,
-        'company_email' => $securiaceQuoteCompanyEmailInput,
-        'company_url' => $securiaceQuoteCompanyUrlInput,
-        'tax_code' => $securiaceQuoteTaxCodeInput,
-        'tax_label' => isset($taxIdLabel) ? $taxIdLabel : 'GSTIN',
-        'pay_to' => isset($companyaddress) ? $companyaddress : array(),
-        'default_bank_currencies' => array('INR'),
-        'fallback' => $securiaceQuoteConfig,
-    ));
-} else {
+    $securiaceQuoteProfileResolved = false;
+    try {
+        $securiaceQuoteIssuerProfile = $securiaceQuoteProfileResolver(array(
+            'company_name' => $securiaceQuoteCompanyNameInput,
+            'company_email' => $securiaceQuoteCompanyEmailInput,
+            'company_url' => $securiaceQuoteCompanyUrlInput,
+            'tax_code' => $securiaceQuoteTaxCodeInput,
+            'tax_label' => isset($taxIdLabel) ? $taxIdLabel : 'GSTIN',
+            'pay_to' => isset($companyaddress) ? $companyaddress : array(),
+            'default_bank_currencies' => array('INR'),
+            'fallback' => $securiaceQuoteConfig,
+        ));
+        if (is_array($securiaceQuoteIssuerProfile)) {
+            $securiaceQuoteProfileResolved = true;
+        } else {
+            $securiaceQuoteProfileWarnings[] = 'profile-helper-invalid-result';
+        }
+    } catch (Throwable $securiaceQuoteProfileException) {
+        $securiaceQuoteProfileWarnings[] = 'profile-helper-runtime-failed';
+    }
+}
+if (empty($securiaceQuoteProfileWarnings) && empty($securiaceQuoteProfileResolved)) {
+    $securiaceQuoteProfileWarnings[] = $securiaceQuoteProfilePath === ''
+        ? 'profile-helper-unavailable'
+        : 'profile-helper-invalid';
+}
+if (!$securiaceQuoteProfileResolved) {
     // Never render the raw Pay To block when the shared parser is unavailable;
     // it can contain bank and UPI credentials that do not belong on a quote.
     $securiaceQuoteFallbackCompanyName = trim((string) $securiaceQuoteCompanyNameInput);
@@ -335,14 +560,31 @@ if ($securiaceQuoteProfileResolver instanceof Closure) {
             'mobile' => trim((string) $securiaceQuoteConfig['company_phone']),
         ),
         'registrations' => array(),
+        'payment' => array(
+            'upi' => array(
+                'id' => '',
+                'payee_name' => $securiaceQuoteFallbackCompanyName,
+                'valid' => false,
+            ),
+            'bank_accounts' => array(),
+        ),
+        'policy' => array(
+            'jurisdiction' => trim((string) $securiaceQuoteConfig['jurisdiction']),
+            'tds_note' => trim((string) (isset($securiaceQuoteConfig['tds_note']) ? $securiaceQuoteConfig['tds_note'] : '')),
+            'late_fee_text' => trim((string) (isset($securiaceQuoteConfig['late_fee_text']) ? $securiaceQuoteConfig['late_fee_text'] : '')),
+        ),
         'diagnostics' => array(
-            'sources' => array('profile' => 'safe-fallback'),
-            'warnings' => array('profile-helper-unavailable'),
+            'sources' => array(),
+            'warnings' => array_values(array_unique($securiaceQuoteProfileWarnings)),
             'conflicts' => array(),
             'unknown_labels' => array(),
         ),
     );
 }
+$securiaceQuoteIssuerProfile = $securiaceQuoteNormalizeIssuerProfile(
+    $securiaceQuoteIssuerProfile,
+    $securiaceQuoteProfileWarnings
+);
 
 $securiaceQuoteCompanyName = trim((string) $securiaceQuoteIssuerProfile['identity']['business_name']);
 $securiaceQuoteCompanyLines = array();
@@ -493,9 +735,16 @@ if (defined('ROOTDIR')) {
         }
     }
 }
+$securiaceQuoteLogoRendered = false;
 if ($securiaceQuoteLogoPath !== '') {
-    $pdf->Image($securiaceQuoteLogoPath, $securiaceQuoteMargin, $securiaceQuoteHeaderY, 42, 0, '', '', '', false, 300);
-} else {
+    try {
+        $pdf->Image($securiaceQuoteLogoPath, $securiaceQuoteMargin, $securiaceQuoteHeaderY, 42, 0, '', '', '', false, 300);
+        $securiaceQuoteLogoRendered = true;
+    } catch (Throwable $securiaceQuoteLogoException) {
+        $securiaceQuoteIssuerDiagnostics['warnings'][] = 'logo-render-failed';
+    }
+}
+if (!$securiaceQuoteLogoRendered) {
     $pdf->SetFont($securiaceQuoteFont, 'B', 17);
     $pdf->SetTextColor($securiaceQuoteInk[0], $securiaceQuoteInk[1], $securiaceQuoteInk[2]);
     $pdf->SetXY($securiaceQuoteMargin, $securiaceQuoteHeaderY + 1);
