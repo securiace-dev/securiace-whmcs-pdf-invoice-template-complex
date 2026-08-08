@@ -1,0 +1,172 @@
+{
+  "config/securiace-invoice-config.example.php": {
+    "mtime": 1786000477.749767,
+    "ast_hash": "92d4259b91a30a7c75739b80aed7131b",
+    "semantic_hash": ""
+  },
+  "modules/addons/securiace_pdf_profile/hooks.php": {
+    "mtime": 1786000477.7515726,
+    "ast_hash": "5a571ec667339620b5a172c1b50f1602",
+    "semantic_hash": ""
+  },
+  "modules/addons/securiace_pdf_profile/lib/SnapshotService.php": {
+    "mtime": 1786131296.0791323,
+    "ast_hash": "ce648786a61316e7c4bc5118d62fc6de",
+    "semantic_hash": ""
+  },
+  "modules/addons/securiace_pdf_profile/securiace_pdf_profile.php": {
+    "mtime": 1786000477.752445,
+    "ast_hash": "70e2e14e237434cec2652dc00fde358f",
+    "semantic_hash": ""
+  },
+  "preview/app.js": {
+    "mtime": 1785956861.895278,
+    "ast_hash": "a54a5b9a43686e5c6f002a1b2d701111",
+    "semantic_hash": ""
+  },
+  "quote-preview/app.js": {
+    "mtime": 1785952188.9998882,
+    "ast_hash": "ce504c73d1c1858f51e4641f24be4101",
+    "semantic_hash": ""
+  },
+  "scripts/audit-whmcs-pdf-surface.php": {
+    "mtime": 1785952189.0006516,
+    "ast_hash": "3724aadbcab8af0af1bf3fe245f03ad8",
+    "semantic_hash": ""
+  },
+  "scripts/repair-whmcs-invoice-template.php": {
+    "mtime": 1785943791.5404932,
+    "ast_hash": "e6796838111e232a0e04bae37daa0a32",
+    "semantic_hash": ""
+  },
+  "securiace-pdf-profile.php": {
+    "mtime": 1786000477.7539687,
+    "ast_hash": "7399dac3dbe40b0bc162a3ffdb3cfa96",
+    "semantic_hash": ""
+  },
+  "securiace-pdf-snapshot.php": {
+    "mtime": 1786000477.754523,
+    "ast_hash": "ec1da5afb8e0b000406c6c532957b2e8",
+    "semantic_hash": ""
+  },
+  "tests/addon_module_contract_test.php": {
+    "mtime": 1786000477.7549424,
+    "ast_hash": "2f3a9f36655aae1a89be7c4d20a6f438",
+    "semantic_hash": ""
+  },
+  "tests/handoff_contract_test.php": {
+    "mtime": 1786165178.182032,
+    "ast_hash": "067e840e1866e7cf0134d7baaf00d38d",
+    "semantic_hash": ""
+  },
+  "tests/modern_invoice_design_contract_test.php": {
+    "mtime": 1786165173.6743586,
+    "ast_hash": "df583bdd69639beda75cdb956f9c39ee",
+    "semantic_hash": ""
+  },
+  "tests/modern_quote_template_contract_test.php": {
+    "mtime": 1786165173.6747093,
+    "ast_hash": "31c5d5d226611c30d5a3bc78b0989a3a",
+    "semantic_hash": ""
+  },
+  "tests/pdf_profile_resolver_test.php": {
+    "mtime": 1786000477.755853,
+    "ast_hash": "21fcf69846217c7b4c29cac21ab6d23d",
+    "semantic_hash": ""
+  },
+  "tests/pdf_snapshot_test.php": {
+    "mtime": 1786000477.7561035,
+    "ast_hash": "cd96a20df639ad994938af755725f9b4",
+    "semantic_hash": ""
+  },
+  "tests/preview_contract_test.php": {
+    "mtime": 1785956861.8960445,
+    "ast_hash": "0ad63c93aa6f18653c5a98f15027e109",
+    "semantic_hash": ""
+  },
+  "tests/quote_preview_contract_test.php": {
+    "mtime": 1786009175.9504976,
+    "ast_hash": "93877daae2d69447f8e758b19e9035e7",
+    "semantic_hash": ""
+  },
+  "tests/render_modern_invoice_fixtures.php": {
+    "mtime": 1786165059.3520467,
+    "ast_hash": "61335a1281d9431d5ca9222acfede418",
+    "semantic_hash": ""
+  },
+  "tests/render_modern_quote_fixtures.php": {
+    "mtime": 1786165333.9116442,
+    "ast_hash": "c44ebd592b218fff08231a28082f3c9b",
+    "semantic_hash": ""
+  },
+  "tests/whmcs_invoice_template_repair_test.php": {
+    "mtime": 1785943791.5412734,
+    "ast_hash": "a2b3d82a2adb06a0f024e95ba0f8f850",
+    "semantic_hash": ""
+  },
+  "tests/whmcs_pdf_surface_audit_test.php": {
+    "mtime": 1785952189.0017853,
+    "ast_hash": "a9a58a210e622c591db9af9efa1c75ff",
+    "semantic_hash": ""
+  },
+  ".github/pull_request_template.md": {
+    "mtime": 1786009175.946775,
+    "ast_hash": "8fb61441a123cf1cdbcce1c57f758f84",
+    "semantic_hash": ""
+  },
+  ".github/workflows/validate.yml": {
+    "mtime": 1786009175.947114,
+    "ast_hash": "3e83e541042ee13fc782293d7e412e56",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1786009175.9476013,
+    "ast_hash": "5ba78b50c33a9312f643f83ef715fd4b",
+    "semantic_hash": ""
+  },
+  "docs/HANDOFF.md": {
+    "mtime": 1786165173.6751292,
+    "ast_hash": "5869dd1e769c51d66d7657835ab36499",
+    "semantic_hash": ""
+  },
+  "docs/INVOICE-NAMING-AND-NUMBERING.md": {
+    "mtime": 1785956861.8941905,
+    "ast_hash": "32382d6cbb7b289282e3c2ab2132f546",
+    "semantic_hash": ""
+  },
+  "docs/INVOICE-UX-AUDIT.md": {
+    "mtime": 1785956861.8944042,
+    "ast_hash": "d1fb6b0fffb36e4fcf7a8a88cbae0746",
+    "semantic_hash": ""
+  },
+  "docs/PDF-SNAPSHOT-OPERATIONS.md": {
+    "mtime": 1786000477.750049,
+    "ast_hash": "d2a4d3f5e2696a56e94eb1e1491f3086",
+    "semantic_hash": ""
+  },
+  "docs/PDF-SUITE-COMPATIBILITY.md": {
+    "mtime": 1786009175.948517,
+    "ast_hash": "2b1856d5e9bf74cdc2332aa928d7235e",
+    "semantic_hash": ""
+  },
+  "plans/001-dynamic-whmcs-pdf-suite.md": {
+    "mtime": 1786000477.7527864,
+    "ast_hash": "53c875f9de8bf101c221a815c5f89744",
+    "semantic_hash": ""
+  },
+  "plans/README.md": {
+    "mtime": 1786000477.753082,
+    "ast_hash": "66b8a658a4d0a89cad99d9303edfd8f2",
+    "semantic_hash": ""
+  },
+  "preview/index.html": {
+    "mtime": 1785956861.8954937,
+    "ast_hash": "cb641fba14da8c3a0d0486e78621f767",
+    "semantic_hash": ""
+  },
+  "quote-preview/index.html": {
+    "mtime": 1786009175.949021,
+    "ast_hash": "411527fcc123e6fc0e79cd35cd1fdbc8",
+    "semantic_hash": ""
+  }
+}
