@@ -38,6 +38,20 @@ $fixtureAssetDirectory = $fixtureRoot . '/assets/img';
 if (!mkdir($fixtureAssetDirectory, 0775, true) && !is_dir($fixtureAssetDirectory)) {
     throw new RuntimeException('Unable to create the fixture asset directory.');
 }
+$fixtureIncludesDirectory = $fixtureRoot . '/includes';
+if (!mkdir($fixtureIncludesDirectory, 0775, true) && !is_dir($fixtureIncludesDirectory)) {
+    throw new RuntimeException('Unable to create the fixture includes directory.');
+}
+$fixtureProfileHelperSource = realpath(__DIR__ . '/../securiace-pdf-profile.php');
+$fixtureSnapshotValidatorSource = realpath(__DIR__ . '/../securiace-pdf-snapshot.php');
+if ($fixtureProfileHelperSource === false || $fixtureSnapshotValidatorSource === false) {
+    throw new RuntimeException('Unable to resolve invoice runtime helper sources.');
+}
+$GLOBALS['fixtureInvoiceProfileHelperPath'] = $fixtureIncludesDirectory . '/securiace-pdf-profile.php';
+$GLOBALS['fixtureInvoiceSnapshotValidatorPath'] = $fixtureIncludesDirectory . '/securiace-pdf-snapshot.php';
+$GLOBALS['fixtureInvoiceProtectedConfigPath'] = $fixtureIncludesDirectory . '/securiace-invoice-config.php';
+$GLOBALS['fixtureInvoiceProfileHelperSource'] = $fixtureProfileHelperSource;
+$GLOBALS['fixtureInvoiceSnapshotValidatorSource'] = $fixtureSnapshotValidatorSource;
 
 define('ROOTDIR', $fixtureRoot);
 
@@ -66,6 +80,107 @@ final class FixtureInvoiceModel
     {
         return $this->proforma;
     }
+}
+
+final class FixtureThrowingBarcodePdf extends TCPDF
+{
+    public function write2DBarcode(
+        $code,
+        $type,
+        $x = '',
+        $y = '',
+        $w = '',
+        $h = '',
+        $style = array(),
+        $align = '',
+        $distort = false
+    ) {
+        throw new RuntimeException('Fixture barcode renderer failure.');
+    }
+}
+
+/** @param array<string, mixed> $fixture */
+function prepareInvoiceRuntimeFixture(array &$fixture): bool
+{
+    $profileMode = isset($fixture['_invoice_profile_helper_mode'])
+        ? (string) $fixture['_invoice_profile_helper_mode']
+        : 'normal';
+    $snapshotMode = isset($fixture['_invoice_snapshot_validator_mode'])
+        ? (string) $fixture['_invoice_snapshot_validator_mode']
+        : 'normal';
+    $configMode = isset($fixture['_invoice_protected_config_mode'])
+        ? (string) $fixture['_invoice_protected_config_mode']
+        : 'normal';
+    $throwBarcode = !empty($fixture['_invoice_throw_barcode']);
+    unset(
+        $fixture['_invoice_profile_helper_mode'],
+        $fixture['_invoice_snapshot_validator_mode'],
+        $fixture['_invoice_protected_config_mode'],
+        $fixture['_invoice_throw_barcode']
+    );
+
+    switch ($profileMode) {
+        case 'normal':
+            $profilePhp = "<?php\nreturn include '"
+                . addslashes($GLOBALS['fixtureInvoiceProfileHelperSource']) . "';\n";
+            break;
+        case 'invalid-result':
+            $profilePhp = "<?php\nreturn static function (array \$input = array()) { return 'invalid'; };\n";
+            break;
+        case 'runtime-failed':
+            $profilePhp = "<?php\nreturn static function (array \$input = array()) { throw new RuntimeException('fixture profile failure'); };\n";
+            break;
+        case 'invalid-shape':
+            $profilePhp = "<?php\nreturn static function (array \$input = array()) { return array('identity' => 'invalid', 'payment' => null); };\n";
+            break;
+        case 'invalid-nested-fields':
+            $profilePhp = "<?php\nreturn static function (array \$input = array()) { return array(\n"
+                . "'identity' => array('business_name' => array('invalid'), 'address_lines' => array(array('invalid')), 'support_email' => array('invalid')),\n"
+                . "'registrations' => array('pan' => array('value' => array('invalid'))),\n"
+                . "'payment' => array('upi' => array('id' => array('invalid'), 'valid' => true), 'bank_accounts' => array()),\n"
+                . "'diagnostics' => array('warnings' => array('profile-field-invalid'))\n"
+                . "); };\n";
+            break;
+        default:
+            throw new RuntimeException('Unknown invoice profile helper fixture mode: ' . $profileMode);
+    }
+
+    switch ($snapshotMode) {
+        case 'normal':
+            $snapshotPhp = "<?php\nreturn include '"
+                . addslashes($GLOBALS['fixtureInvoiceSnapshotValidatorSource']) . "';\n";
+            break;
+        case 'invalid-result':
+            $snapshotPhp = "<?php\nreturn static function (array \$row) { return 'invalid'; };\n";
+            break;
+        case 'runtime-failed':
+            $snapshotPhp = "<?php\nreturn static function (array \$row) { throw new RuntimeException('fixture snapshot failure'); };\n";
+            break;
+        default:
+            throw new RuntimeException('Unknown invoice snapshot validator fixture mode: ' . $snapshotMode);
+    }
+
+    if ($configMode === 'normal') {
+        $configPhp = "<?php\nreturn array();\n";
+    } elseif ($configMode === 'invalid-result') {
+        $configPhp = "<?php\nreturn 'invalid';\n";
+    } elseif ($configMode === 'runtime-failed') {
+        $configPhp = "<?php\nthrow new RuntimeException('fixture config failure');\n";
+    } else {
+        throw new RuntimeException('Unknown invoice protected config fixture mode: ' . $configMode);
+    }
+
+    foreach (array(
+        $GLOBALS['fixtureInvoiceProfileHelperPath'] => $profilePhp,
+        $GLOBALS['fixtureInvoiceSnapshotValidatorPath'] => $snapshotPhp,
+        $GLOBALS['fixtureInvoiceProtectedConfigPath'] => $configPhp,
+    ) as $path => $source) {
+        if (file_put_contents($path, $source) === false) {
+            throw new RuntimeException('Unable to write invoice runtime fixture: ' . $path);
+        }
+    }
+
+    return $throwBarcode;
 }
 
 if (!function_exists('getTodaysDate')) {
@@ -150,8 +265,11 @@ function renderFixture(string $templatePath, string $outputDirectory, string $na
 {
     $paper = isset($fixture['_paper']) ? $fixture['_paper'] : 'A4';
     unset($fixture['_paper']);
+    $throwBarcode = prepareInvoiceRuntimeFixture($fixture);
 
-    $pdf = new TCPDF('P', 'mm', $paper, true, 'UTF-8', false);
+    $pdf = $throwBarcode
+        ? new FixtureThrowingBarcodePdf('P', 'mm', $paper, true, 'UTF-8', false)
+        : new TCPDF('P', 'mm', $paper, true, 'UTF-8', false);
     $pdf->setPrintHeader(false);
     $pdf->setPrintFooter(false);
     $pdf->SetCreator('Securiace fixture renderer');
@@ -277,6 +395,7 @@ function renderBatchFixtures(string $templatePath, string $outputDirectory, arra
     foreach ($fixtures as $name => $fixture) {
         $paper = isset($fixture['_paper']) ? $fixture['_paper'] : 'A4';
         unset($fixture['_paper']);
+        prepareInvoiceRuntimeFixture($fixture);
         if (strtoupper((string) $paper) !== 'A4') {
             throw new RuntimeException('Batch fixtures must use the same A4 PDF instance.');
         }
@@ -705,6 +824,49 @@ $fixtures = array(
             'checksum' => str_repeat('0', 64),
         ),
     )),
+    'profile-helper-invalid-result' => invoiceFixture(array(
+        'invoiceid' => 300000140,
+        'companyname' => 'Profile Fallback Issuer',
+        '_invoice_profile_helper_mode' => 'invalid-result',
+    )),
+    'profile-helper-runtime-failed' => invoiceFixture(array(
+        'invoiceid' => 300000141,
+        'companyname' => 'Runtime Fallback Issuer',
+        '_invoice_profile_helper_mode' => 'runtime-failed',
+    )),
+    'profile-helper-invalid-shape' => invoiceFixture(array(
+        'invoiceid' => 300000142,
+        'companyname' => 'Shape Fallback Issuer',
+        '_invoice_profile_helper_mode' => 'invalid-shape',
+    )),
+    'profile-helper-invalid-nested-fields' => invoiceFixture(array(
+        'invoiceid' => 300000143,
+        '_invoice_profile_helper_mode' => 'invalid-nested-fields',
+    )),
+    'snapshot-validator-invalid-result' => invoiceFixture(array(
+        'invoiceid' => 300000144,
+        'invoicenum' => 'ST/2075',
+        'securiacePdfSnapshotRow' => invoiceSnapshotRow(),
+        '_invoice_snapshot_validator_mode' => 'invalid-result',
+    )),
+    'snapshot-validator-runtime-failed' => invoiceFixture(array(
+        'invoiceid' => 300000145,
+        'invoicenum' => 'ST/2076',
+        'securiacePdfSnapshotRow' => invoiceSnapshotRow(),
+        '_invoice_snapshot_validator_mode' => 'runtime-failed',
+    )),
+    'protected-config-invalid-result' => invoiceFixture(array(
+        'invoiceid' => 300000146,
+        '_invoice_protected_config_mode' => 'invalid-result',
+    )),
+    'protected-config-runtime-failed' => invoiceFixture(array(
+        'invoiceid' => 300000147,
+        '_invoice_protected_config_mode' => 'runtime-failed',
+    )),
+    'upi-barcode-runtime-failed' => invoiceFixture(array(
+        'invoiceid' => 300000148,
+        '_invoice_throw_barcode' => true,
+    )),
     'unknown-currency' => invoiceFixture(array(
         'invoiceid' => 300000129,
         'invoicenum' => 'INV-2026-00129',
@@ -851,6 +1013,15 @@ $expectations = array(
     'snapshot-paid' => array('is_payable' => false, 'document_title' => 'Invoice', 'snapshot_applied' => true, 'issuer_name' => 'Historical Example Technologies', 'issuer_lines' => array('10 Archive Road', 'Pune, Maharashtra 411002', 'India', 'Helpdesk · archive@example.invalid', 'Mobile · +91 40000 00000'), 'seller_registrations' => array('PAN · FGHIJ5678K', 'MSME · UDYAM-MH-99-9999999'), 'rendered_bank' => false, 'rendered_upi' => false),
     'snapshot-proforma-ignored' => array('is_payable' => true, 'document_title' => 'Proforma Invoice', 'snapshot_applied' => false, 'issuer_name' => 'Example Technologies'),
     'snapshot-corrupt' => array('is_payable' => true, 'document_title' => 'Invoice', 'snapshot_applied' => false, 'issuer_name' => 'Example Technologies', 'issuer_warnings' => array('snapshot-checksum-mismatch')),
+    'profile-helper-invalid-result' => array('is_payable' => true, 'issuer_name' => 'Profile Fallback Issuer', 'has_upi' => false, 'issuer_warnings' => array('profile-helper-invalid-result')),
+    'profile-helper-runtime-failed' => array('is_payable' => true, 'issuer_name' => 'Runtime Fallback Issuer', 'has_upi' => false, 'issuer_warnings' => array('profile-helper-runtime-failed')),
+    'profile-helper-invalid-shape' => array('is_payable' => true, 'issuer_name' => 'Issuer', 'has_upi' => false, 'issuer_warnings' => array('profile-identity-invalid', 'profile-payment-invalid')),
+    'profile-helper-invalid-nested-fields' => array('is_payable' => true, 'issuer_name' => 'Issuer', 'has_upi' => false, 'issuer_warnings' => array('profile-field-invalid')),
+    'snapshot-validator-invalid-result' => array('is_payable' => true, 'snapshot_applied' => false, 'issuer_name' => 'Example Technologies', 'issuer_warnings' => array('snapshot-validator-invalid-result')),
+    'snapshot-validator-runtime-failed' => array('is_payable' => true, 'snapshot_applied' => false, 'issuer_name' => 'Example Technologies', 'issuer_warnings' => array('snapshot-validator-runtime-failed')),
+    'protected-config-invalid-result' => array('is_payable' => true, 'issuer_name' => 'Example Technologies', 'issuer_warnings' => array('protected-config-invalid-result')),
+    'protected-config-runtime-failed' => array('is_payable' => true, 'issuer_name' => 'Example Technologies', 'issuer_warnings' => array('protected-config-include-failed')),
+    'upi-barcode-runtime-failed' => array('is_payable' => true, 'has_upi' => true, 'rendered_upi' => true, 'issuer_warnings' => array('upi-qr-render-failed')),
     'unknown-currency' => array('is_payable' => true, 'has_upi' => false, 'rendered_support' => true, 'currency_code' => '', 'document_title' => 'Invoice'),
     'entity-description' => array('is_payable' => true, 'has_upi' => true, 'first_item_description' => "Security R&D <managed>\nService period: 05/08/2026 - 04/09/2026", 'document_title' => 'Invoice'),
     'whmcs9-ledger' => array('is_payable' => false, 'has_upi' => false, 'currency_code' => 'INR', 'core_qr_present' => true, 'rendered_core_qr' => false, 'transaction_reference' => 'WHMCS9-REFERENCE-00131', 'amount_paid_display' => '₹ 9,990.00 INR', 'document_title' => 'Invoice'),

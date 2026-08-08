@@ -49,6 +49,11 @@ $requiredContracts = array(
     "ROOTDIR . '/includes/securiace-pdf-snapshot.php'",
     '$securiaceModernSnapshotApplied',
     "'immutable.invoice'",
+    "'protected-config-include-failed'",
+    "'profile-helper-runtime-failed'",
+    "'snapshot-validator-runtime-failed'",
+    "'upi-qr-render-failed'",
+    '$securiaceModernNormalizeIssuerProfile',
 );
 
 foreach ($requiredContracts as $requiredContract) {

@@ -40,6 +40,9 @@ $requiredContracts = array(
     '$securiaceQuoteUsableWidth - 8',
     'Item details · continued',
     '$footerReference .= \' · Quote \'',
+    "'protected-config-include-failed'",
+    "'profile-helper-runtime-failed'",
+    '$securiaceQuoteNormalizeIssuerProfile',
 );
 foreach ($requiredContracts as $requiredContract) {
     if (strpos($template, $requiredContract) === false) {

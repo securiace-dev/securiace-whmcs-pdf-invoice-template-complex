@@ -32,6 +32,15 @@ $fixtureAssetDirectory = $fixtureRoot . '/assets/img';
 if (!mkdir($fixtureAssetDirectory, 0775, true) && !is_dir($fixtureAssetDirectory)) {
     throw new RuntimeException('Unable to create quote fixture assets.');
 }
+$fixtureProfileHelperPath = $fixtureRoot . '/includes/securiace-pdf-profile.php';
+$fixtureProtectedConfigPath = $fixtureRoot . '/includes/securiace-invoice-config.php';
+if (!is_dir($fixtureRoot . '/includes') && !mkdir($fixtureRoot . '/includes', 0775, true) && !is_dir($fixtureRoot . '/includes')) {
+    throw new RuntimeException('Unable to create quote profile helper fixture directory.');
+}
+$securiaceQuoteProfileHelperSource = realpath(__DIR__ . '/../securiace-pdf-profile.php');
+if ($securiaceQuoteProfileHelperSource === false || !is_readable($securiaceQuoteProfileHelperSource)) {
+    throw new RuntimeException('Modern quote profile helper source is not readable.');
+}
 define('ROOTDIR', $fixtureRoot);
 
 if (!function_exists('getTodaysDate')) {
@@ -192,6 +201,53 @@ function renderQuoteFixture(string $templatePath, string $outputDirectory, strin
     $pdf->SetAuthor('Securiace Technologies');
     $pdf->SetTitle($name);
     $pdf->AddPage();
+    $profileMode = isset($fixture['_quote_profile_helper_mode'])
+        ? (string) $fixture['_quote_profile_helper_mode']
+        : '';
+    $configMode = isset($fixture['_quote_protected_config_mode'])
+        ? (string) $fixture['_quote_protected_config_mode']
+        : 'normal';
+    unset($fixture['_quote_profile_helper_mode'], $fixture['_quote_protected_config_mode']);
+    $profileHelperPath = $GLOBALS['fixtureProfileHelperPath'];
+    $profileHelperSource = $GLOBALS['securiaceQuoteProfileHelperSource'];
+    $mode = trim($profileMode);
+    if ($mode === '' || $mode === 'default') {
+        $mode = 'normal';
+    }
+    switch ($mode) {
+        case 'normal':
+            $profileHelperPhp = "<?php\nreturn include '" . addslashes($profileHelperSource) . "';\n";
+            break;
+        case 'invalid-result':
+            $profileHelperPhp = "<?php\nreturn function (array \$input = array()) {\n    return 'not-an-array';\n};\n";
+            break;
+        case 'runtime-failed':
+            $profileHelperPhp = "<?php\nreturn function (array \$input = array()) {\n    throw new RuntimeException('Profile helper runtime failure for fixture.');\n};\n";
+            break;
+        case 'invalid-shape':
+            $profileHelperPhp = "<?php\nreturn function (array \$input = array()) {\n    return array('identity' => 'broken', 'registrations' => 'broken', 'payment' => null);\n};\n";
+            break;
+        default:
+            throw new RuntimeException(
+                $name . ' has unknown _quote_profile_helper_mode: ' . var_export($mode, true)
+            );
+    }
+    if (file_put_contents($profileHelperPath, $profileHelperPhp) === false) {
+        throw new RuntimeException($name . ' failed to write quote profile helper override.');
+    }
+    if ($configMode === 'normal') {
+        $protectedConfigPhp = "<?php\nreturn array();\n";
+    } elseif ($configMode === 'invalid-result') {
+        $protectedConfigPhp = "<?php\nreturn 'invalid';\n";
+    } elseif ($configMode === 'runtime-failed') {
+        $protectedConfigPhp = "<?php\nthrow new RuntimeException('Quote config failure for fixture.');\n";
+    } else {
+        throw new RuntimeException($name . ' has unknown _quote_protected_config_mode: ' . $configMode);
+    }
+    if (file_put_contents($GLOBALS['fixtureProtectedConfigPath'], $protectedConfigPhp) === false) {
+        throw new RuntimeException($name . ' failed to write quote protected config override.');
+    }
+
     extract($fixture, EXTR_SKIP);
 
     $previousHandler = set_error_handler(
@@ -242,6 +298,7 @@ function renderQuoteFixture(string $templatePath, string $outputDirectory, strin
         'issuer_registrations' => $securiaceQuoteSellerRegistrations,
         'issuer_sources' => $securiaceQuoteIssuerDiagnostics['sources'],
         'payment_details_rendered' => $securiaceQuotePaymentDetailsRendered,
+        'issuer_warnings' => $securiaceQuoteIssuerDiagnostics['warnings'],
         'stamped_pages' => $securiaceQuoteStampedPages,
         'output' => $outputPath,
     );
@@ -394,6 +451,29 @@ $fixtures = array(
         'tax1' => '₹ 34,200.00 INR',
         'total' => '₹ 224,200.00 INR',
     )),
+    'profile-helper-invalid-result' => quoteFixture(array(
+        'quotenumber' => 'Q-2026-00229',
+        'companyname' => 'Resolver Invalid Profile',
+        '_quote_profile_helper_mode' => 'invalid-result',
+    )),
+    'profile-helper-runtime-failed' => quoteFixture(array(
+        'quotenumber' => 'Q-2026-00230',
+        'companyname' => 'Resolver Runtime Failure',
+        '_quote_profile_helper_mode' => 'runtime-failed',
+    )),
+    'profile-helper-invalid-shape' => quoteFixture(array(
+        'quotenumber' => 'Q-2026-00231',
+        'companyname' => 'Resolver Invalid Shape',
+        '_quote_profile_helper_mode' => 'invalid-shape',
+    )),
+    'protected-config-invalid-result' => quoteFixture(array(
+        'quotenumber' => 'Q-2026-00232',
+        '_quote_protected_config_mode' => 'invalid-result',
+    )),
+    'protected-config-runtime-failed' => quoteFixture(array(
+        'quotenumber' => 'Q-2026-00233',
+        '_quote_protected_config_mode' => 'runtime-failed',
+    )),
 );
 
 $expectations = array(
@@ -479,6 +559,33 @@ $expectations = array(
         'shows_discount' => false,
     ),
     'long-letter' => array('number' => 'Q-2026-00222', 'currency_code' => 'INR', 'item_count' => 42, 'shows_discount' => true),
+    'profile-helper-invalid-result' => array(
+        'number' => 'Q-2026-00229',
+        'issuer_name' => 'Resolver Invalid Profile',
+        'issuer_warnings' => array('profile-helper-invalid-result'),
+    ),
+    'profile-helper-runtime-failed' => array(
+        'number' => 'Q-2026-00230',
+        'issuer_name' => 'Resolver Runtime Failure',
+        'issuer_warnings' => array('profile-helper-runtime-failed'),
+    ),
+    'profile-helper-invalid-shape' => array(
+        'number' => 'Q-2026-00231',
+        'issuer_name' => 'Issuer',
+        'issuer_warnings' => array(
+            'profile-identity-invalid',
+            'profile-registrations-invalid',
+            'profile-payment-invalid',
+        ),
+    ),
+    'protected-config-invalid-result' => array(
+        'number' => 'Q-2026-00232',
+        'issuer_warnings' => array('protected-config-invalid-result'),
+    ),
+    'protected-config-runtime-failed' => array(
+        'number' => 'Q-2026-00233',
+        'issuer_warnings' => array('protected-config-include-failed'),
+    ),
 );
 
 foreach ($fixtures as $name => $fixture) {
