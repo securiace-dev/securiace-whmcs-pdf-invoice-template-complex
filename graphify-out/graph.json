@@ -1,0 +1,3170 @@
+{
+  "directed": false,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "label": "securiace-invoice-config.example.php",
+      "file_type": "code",
+      "source_file": "config/securiace-invoice-config.example.php",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "config_securiace_invoice_config_example",
+      "community": 19,
+      "norm_label": "securiace-invoice-config.example.php"
+    },
+    {
+      "label": "hooks.php",
+      "file_type": "code",
+      "source_file": "modules/addons/securiace_pdf_profile/hooks.php",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "securiace_pdf_profile_hooks",
+      "community": 21,
+      "norm_label": "hooks.php"
+    },
+    {
+      "label": "SnapshotService.php",
+      "file_type": "code",
+      "source_file": "modules/addons/securiace_pdf_profile/lib/SnapshotService.php",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "lib_snapshotservice",
+      "community": 0,
+      "norm_label": "snapshotservice.php"
+    },
+    {
+      "label": "SecuriacePdfProfileSnapshotService",
+      "file_type": "code",
+      "source_file": "modules/addons/securiace_pdf_profile/lib/SnapshotService.php",
+      "source_location": "L6",
+      "_origin": "ast",
+      "id": "lib_snapshotservice_securiacepdfprofilesnapshotservice",
+      "community": 0,
+      "norm_label": "securiacepdfprofilesnapshotservice"
+    },
+    {
+      "label": ".ensureSchema()",
+      "file_type": "code",
+      "source_file": "modules/addons/securiace_pdf_profile/lib/SnapshotService.php",
+      "source_location": "L11",
+      "_origin": "ast",
+      "id": "lib_snapshotservice_securiacepdfprofilesnapshotservice_ensureschema",
+      "community": 0,
+      "norm_label": ".ensureschema()"
+    },
+    {
+      "label": ".shouldCaptureCreatedInvoice()",
+      "file_type": "code",
+      "source_file": "modules/addons/securiace_pdf_profile/lib/SnapshotService.php",
+      "source_location": "L29",
+      "_origin": "ast",
+      "id": "lib_snapshotservice_securiacepdfprofilesnapshotservice_shouldcapturecreatedinvoice",
+      "community": 0,
+      "norm_label": ".shouldcapturecreatedinvoice()"
+    },
+    {
+      "label": ".capture()",
+      "file_type": "code",
+      "source_file": "modules/addons/securiace_pdf_profile/lib/SnapshotService.php",
+      "source_location": "L42",
+      "_origin": "ast",
+      "id": "lib_snapshotservice_securiacepdfprofilesnapshotservice_capture",
+      "community": 0,
+      "norm_label": ".capture()"
+    },
+    {
+      "label": ".diagnostics()",
+      "file_type": "code",
+      "source_file": "modules/addons/securiace_pdf_profile/lib/SnapshotService.php",
+      "source_location": "L152",
+      "_origin": "ast",
+      "id": "lib_snapshotservice_securiacepdfprofilesnapshotservice_diagnostics",
+      "community": 0,
+      "norm_label": ".diagnostics()"
+    },
+    {
+      "label": ".resolveCurrentProfile()",
+      "file_type": "code",
+      "source_file": "modules/addons/securiace_pdf_profile/lib/SnapshotService.php",
+      "source_location": "L198",
+      "_origin": "ast",
+      "id": "lib_snapshotservice_securiacepdfprofilesnapshotservice_resolvecurrentprofile",
+      "community": 0,
+      "norm_label": ".resolvecurrentprofile()"
+    },
+    {
+      "label": ".runtimeConfig()",
+      "file_type": "code",
+      "source_file": "modules/addons/securiace_pdf_profile/lib/SnapshotService.php",
+      "source_location": "L257",
+      "_origin": "ast",
+      "id": "lib_snapshotservice_securiacepdfprofilesnapshotservice_runtimeconfig",
+      "community": 0,
+      "norm_label": ".runtimeconfig()"
+    },
+    {
+      "label": ".profileHelperPath()",
+      "file_type": "code",
+      "source_file": "modules/addons/securiace_pdf_profile/lib/SnapshotService.php",
+      "source_location": "L271",
+      "_origin": "ast",
+      "id": "lib_snapshotservice_securiacepdfprofilesnapshotservice_profilehelperpath",
+      "community": 0,
+      "norm_label": ".profilehelperpath()"
+    },
+    {
+      "label": ".invoiceCurrencyCode()",
+      "file_type": "code",
+      "source_file": "modules/addons/securiace_pdf_profile/lib/SnapshotService.php",
+      "source_location": "L277",
+      "_origin": "ast",
+      "id": "lib_snapshotservice_securiacepdfprofilesnapshotservice_invoicecurrencycode",
+      "community": 0,
+      "norm_label": ".invoicecurrencycode()"
+    },
+    {
+      "label": ".dateValue()",
+      "file_type": "code",
+      "source_file": "modules/addons/securiace_pdf_profile/lib/SnapshotService.php",
+      "source_location": "L289",
+      "_origin": "ast",
+      "id": "lib_snapshotservice_securiacepdfprofilesnapshotservice_datevalue",
+      "community": 0,
+      "norm_label": ".datevalue()"
+    },
+    {
+      "label": "DateTimeImmutable",
+      "file_type": "code",
+      "source_file": "modules/addons/securiace_pdf_profile/lib/SnapshotService.php",
+      "source_location": "L289",
+      "_origin": "ast",
+      "id": "datetimeimmutable",
+      "community": 0,
+      "norm_label": "datetimeimmutable"
+    },
+    {
+      "label": ".booleanValue()",
+      "file_type": "code",
+      "source_file": "modules/addons/securiace_pdf_profile/lib/SnapshotService.php",
+      "source_location": "L302",
+      "_origin": "ast",
+      "id": "lib_snapshotservice_securiacepdfprofilesnapshotservice_booleanvalue",
+      "community": 0,
+      "norm_label": ".booleanvalue()"
+    },
+    {
+      "label": ".currencies()",
+      "file_type": "code",
+      "source_file": "modules/addons/securiace_pdf_profile/lib/SnapshotService.php",
+      "source_location": "L314",
+      "_origin": "ast",
+      "id": "lib_snapshotservice_securiacepdfprofilesnapshotservice_currencies",
+      "community": 0,
+      "norm_label": ".currencies()"
+    },
+    {
+      "label": ".registrationStatus()",
+      "file_type": "code",
+      "source_file": "modules/addons/securiace_pdf_profile/lib/SnapshotService.php",
+      "source_location": "L333",
+      "_origin": "ast",
+      "id": "lib_snapshotservice_securiacepdfprofilesnapshotservice_registrationstatus",
+      "community": 0,
+      "norm_label": ".registrationstatus()"
+    },
+    {
+      "label": "securiace_pdf_profile.php",
+      "file_type": "code",
+      "source_file": "modules/addons/securiace_pdf_profile/securiace_pdf_profile.php",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "securiace_pdf_profile_securiace_pdf_profile",
+      "community": 0,
+      "norm_label": "securiace_pdf_profile.php"
+    },
+    {
+      "label": "securiace_pdf_profile_config()",
+      "file_type": "code",
+      "source_file": "modules/addons/securiace_pdf_profile/securiace_pdf_profile.php",
+      "source_location": "L10",
+      "_origin": "ast",
+      "id": "securiace_pdf_profile_securiace_pdf_profile_securiace_pdf_profile_config",
+      "community": 0,
+      "norm_label": "securiace_pdf_profile_config()"
+    },
+    {
+      "label": "securiace_pdf_profile_activate()",
+      "file_type": "code",
+      "source_file": "modules/addons/securiace_pdf_profile/securiace_pdf_profile.php",
+      "source_location": "L22",
+      "_origin": "ast",
+      "id": "securiace_pdf_profile_securiace_pdf_profile_securiace_pdf_profile_activate",
+      "community": 0,
+      "norm_label": "securiace_pdf_profile_activate()"
+    },
+    {
+      "label": "securiace_pdf_profile_deactivate()",
+      "file_type": "code",
+      "source_file": "modules/addons/securiace_pdf_profile/securiace_pdf_profile.php",
+      "source_location": "L39",
+      "_origin": "ast",
+      "id": "securiace_pdf_profile_securiace_pdf_profile_securiace_pdf_profile_deactivate",
+      "community": 0,
+      "norm_label": "securiace_pdf_profile_deactivate()"
+    },
+    {
+      "label": "securiace_pdf_profile_upgrade()",
+      "file_type": "code",
+      "source_file": "modules/addons/securiace_pdf_profile/securiace_pdf_profile.php",
+      "source_location": "L48",
+      "_origin": "ast",
+      "id": "securiace_pdf_profile_securiace_pdf_profile_securiace_pdf_profile_upgrade",
+      "community": 0,
+      "norm_label": "securiace_pdf_profile_upgrade()"
+    },
+    {
+      "label": "securiace_pdf_profile_output()",
+      "file_type": "code",
+      "source_file": "modules/addons/securiace_pdf_profile/securiace_pdf_profile.php",
+      "source_location": "L55",
+      "_origin": "ast",
+      "id": "securiace_pdf_profile_securiace_pdf_profile_securiace_pdf_profile_output",
+      "community": 0,
+      "norm_label": "securiace_pdf_profile_output()"
+    },
+    {
+      "label": "app.js",
+      "file_type": "code",
+      "source_file": "preview/app.js",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "preview_app",
+      "community": 8,
+      "norm_label": "app.js"
+    },
+    {
+      "label": "states",
+      "file_type": "code",
+      "source_file": "preview/app.js",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "preview_app_states",
+      "community": 8,
+      "norm_label": "states"
+    },
+    {
+      "label": "stateButtons",
+      "file_type": "code",
+      "source_file": "preview/app.js",
+      "source_location": "L104",
+      "_origin": "ast",
+      "id": "preview_app_statebuttons",
+      "community": 8,
+      "norm_label": "statebuttons"
+    },
+    {
+      "label": "paidOnly",
+      "file_type": "code",
+      "source_file": "preview/app.js",
+      "source_location": "L105",
+      "_origin": "ast",
+      "id": "preview_app_paidonly",
+      "community": 8,
+      "norm_label": "paidonly"
+    },
+    {
+      "label": "outstandingOnly",
+      "file_type": "code",
+      "source_file": "preview/app.js",
+      "source_location": "L106",
+      "_origin": "ast",
+      "id": "preview_app_outstandingonly",
+      "community": 8,
+      "norm_label": "outstandingonly"
+    },
+    {
+      "label": "taxRows",
+      "file_type": "code",
+      "source_file": "preview/app.js",
+      "source_location": "L107",
+      "_origin": "ast",
+      "id": "preview_app_taxrows",
+      "community": 8,
+      "norm_label": "taxrows"
+    },
+    {
+      "label": "creditRows",
+      "file_type": "code",
+      "source_file": "preview/app.js",
+      "source_location": "L108",
+      "_origin": "ast",
+      "id": "preview_app_creditrows",
+      "community": 8,
+      "norm_label": "creditrows"
+    },
+    {
+      "label": "setState()",
+      "file_type": "code",
+      "source_file": "preview/app.js",
+      "source_location": "L110",
+      "_origin": "ast",
+      "id": "preview_app_setstate",
+      "community": 8,
+      "norm_label": "setstate()"
+    },
+    {
+      "label": "app.js",
+      "file_type": "code",
+      "source_file": "quote-preview/app.js",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "quote_preview_app",
+      "community": 14,
+      "norm_label": "app.js"
+    },
+    {
+      "label": "printButton",
+      "file_type": "code",
+      "source_file": "quote-preview/app.js",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "quote_preview_app_printbutton",
+      "community": 14,
+      "norm_label": "printbutton"
+    },
+    {
+      "label": "quoteDocument",
+      "file_type": "code",
+      "source_file": "quote-preview/app.js",
+      "source_location": "L4",
+      "_origin": "ast",
+      "id": "quote_preview_app_quotedocument",
+      "community": 14,
+      "norm_label": "quotedocument"
+    },
+    {
+      "label": "audit-whmcs-pdf-surface.php",
+      "file_type": "code",
+      "source_file": "scripts/audit-whmcs-pdf-surface.php",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "scripts_audit_whmcs_pdf_surface",
+      "community": 17,
+      "norm_label": "audit-whmcs-pdf-surface.php"
+    },
+    {
+      "label": "auditWhmcsPdfSurface()",
+      "file_type": "code",
+      "source_file": "scripts/audit-whmcs-pdf-surface.php",
+      "source_location": "L12",
+      "_origin": "ast",
+      "id": "scripts_audit_whmcs_pdf_surface_auditwhmcspdfsurface",
+      "community": 17,
+      "norm_label": "auditwhmcspdfsurface()"
+    },
+    {
+      "label": "repair-whmcs-invoice-template.php",
+      "file_type": "code",
+      "source_file": "scripts/repair-whmcs-invoice-template.php",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "scripts_repair_whmcs_invoice_template",
+      "community": 12,
+      "norm_label": "repair-whmcs-invoice-template.php"
+    },
+    {
+      "label": "repairWhmcsInvoiceTemplate()",
+      "file_type": "code",
+      "source_file": "scripts/repair-whmcs-invoice-template.php",
+      "source_location": "L11",
+      "_origin": "ast",
+      "id": "scripts_repair_whmcs_invoice_template_repairwhmcsinvoicetemplate",
+      "community": 12,
+      "norm_label": "repairwhmcsinvoicetemplate()"
+    },
+    {
+      "label": "assertWhmcsInvoiceTemplateRepaired()",
+      "file_type": "code",
+      "source_file": "scripts/repair-whmcs-invoice-template.php",
+      "source_location": "L89",
+      "_origin": "ast",
+      "id": "scripts_repair_whmcs_invoice_template_assertwhmcsinvoicetemplaterepaired",
+      "community": 12,
+      "norm_label": "assertwhmcsinvoicetemplaterepaired()"
+    },
+    {
+      "label": "backupWhmcsInvoiceTemplate()",
+      "file_type": "code",
+      "source_file": "scripts/repair-whmcs-invoice-template.php",
+      "source_location": "L113",
+      "_origin": "ast",
+      "id": "scripts_repair_whmcs_invoice_template_backupwhmcsinvoicetemplate",
+      "community": 12,
+      "norm_label": "backupwhmcsinvoicetemplate()"
+    },
+    {
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "scripts/repair-whmcs-invoice-template.php",
+      "source_location": "L130",
+      "_origin": "ast",
+      "id": "scripts_repair_whmcs_invoice_template_main",
+      "community": 12,
+      "norm_label": "main()"
+    },
+    {
+      "label": "securiace-pdf-profile.php",
+      "file_type": "code",
+      "source_file": "securiace-pdf-profile.php",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "securiace_pdf_profile",
+      "community": 20,
+      "norm_label": "securiace-pdf-profile.php"
+    },
+    {
+      "label": "securiace-pdf-snapshot.php",
+      "file_type": "code",
+      "source_file": "securiace-pdf-snapshot.php",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "securiace_pdf_snapshot",
+      "community": 22,
+      "norm_label": "securiace-pdf-snapshot.php"
+    },
+    {
+      "label": "addon_module_contract_test.php",
+      "file_type": "code",
+      "source_file": "tests/addon_module_contract_test.php",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "tests_addon_module_contract_test",
+      "community": 23,
+      "norm_label": "addon_module_contract_test.php"
+    },
+    {
+      "label": "handoff_contract_test.php",
+      "file_type": "code",
+      "source_file": "tests/handoff_contract_test.php",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "tests_handoff_contract_test",
+      "community": 24,
+      "norm_label": "handoff_contract_test.php"
+    },
+    {
+      "label": "modern_invoice_design_contract_test.php",
+      "file_type": "code",
+      "source_file": "tests/modern_invoice_design_contract_test.php",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "tests_modern_invoice_design_contract_test",
+      "community": 25,
+      "norm_label": "modern_invoice_design_contract_test.php"
+    },
+    {
+      "label": "modern_quote_template_contract_test.php",
+      "file_type": "code",
+      "source_file": "tests/modern_quote_template_contract_test.php",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "tests_modern_quote_template_contract_test",
+      "community": 26,
+      "norm_label": "modern_quote_template_contract_test.php"
+    },
+    {
+      "label": "pdf_profile_resolver_test.php",
+      "file_type": "code",
+      "source_file": "tests/pdf_profile_resolver_test.php",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "tests_pdf_profile_resolver_test",
+      "community": 18,
+      "norm_label": "pdf_profile_resolver_test.php"
+    },
+    {
+      "label": "assertProfileValue()",
+      "file_type": "code",
+      "source_file": "tests/pdf_profile_resolver_test.php",
+      "source_location": "L11",
+      "_origin": "ast",
+      "id": "tests_pdf_profile_resolver_test_assertprofilevalue",
+      "community": 18,
+      "norm_label": "assertprofilevalue()"
+    },
+    {
+      "label": "pdf_snapshot_test.php",
+      "file_type": "code",
+      "source_file": "tests/pdf_snapshot_test.php",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "tests_pdf_snapshot_test",
+      "community": 15,
+      "norm_label": "pdf_snapshot_test.php"
+    },
+    {
+      "label": "snapshotTestRow()",
+      "file_type": "code",
+      "source_file": "tests/pdf_snapshot_test.php",
+      "source_location": "L11",
+      "_origin": "ast",
+      "id": "tests_pdf_snapshot_test_snapshottestrow",
+      "community": 15,
+      "norm_label": "snapshottestrow()"
+    },
+    {
+      "label": "assertSnapshotValue()",
+      "file_type": "code",
+      "source_file": "tests/pdf_snapshot_test.php",
+      "source_location": "L21",
+      "_origin": "ast",
+      "id": "tests_pdf_snapshot_test_assertsnapshotvalue",
+      "community": 15,
+      "norm_label": "assertsnapshotvalue()"
+    },
+    {
+      "label": "preview_contract_test.php",
+      "file_type": "code",
+      "source_file": "tests/preview_contract_test.php",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "tests_preview_contract_test",
+      "community": 27,
+      "norm_label": "preview_contract_test.php"
+    },
+    {
+      "label": "quote_preview_contract_test.php",
+      "file_type": "code",
+      "source_file": "tests/quote_preview_contract_test.php",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "tests_quote_preview_contract_test",
+      "community": 28,
+      "norm_label": "quote_preview_contract_test.php"
+    },
+    {
+      "label": "render_modern_invoice_fixtures.php",
+      "file_type": "code",
+      "source_file": "tests/render_modern_invoice_fixtures.php",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "tests_render_modern_invoice_fixtures",
+      "community": 2,
+      "norm_label": "render_modern_invoice_fixtures.php"
+    },
+    {
+      "label": "FixtureInvoiceModel",
+      "file_type": "code",
+      "source_file": "tests/render_modern_invoice_fixtures.php",
+      "source_location": "L58",
+      "_origin": "ast",
+      "id": "tests_render_modern_invoice_fixtures_fixtureinvoicemodel",
+      "community": 2,
+      "norm_label": "fixtureinvoicemodel"
+    },
+    {
+      "label": ".__construct()",
+      "file_type": "code",
+      "source_file": "tests/render_modern_invoice_fixtures.php",
+      "source_location": "L67",
+      "_origin": "ast",
+      "id": "tests_render_modern_invoice_fixtures_fixtureinvoicemodel_construct",
+      "community": 2,
+      "norm_label": ".__construct()"
+    },
+    {
+      "label": ".getCurrency()",
+      "file_type": "code",
+      "source_file": "tests/render_modern_invoice_fixtures.php",
+      "source_location": "L74",
+      "_origin": "ast",
+      "id": "tests_render_modern_invoice_fixtures_fixtureinvoicemodel_getcurrency",
+      "community": 2,
+      "norm_label": ".getcurrency()"
+    },
+    {
+      "label": ".isProformaInvoice()",
+      "file_type": "code",
+      "source_file": "tests/render_modern_invoice_fixtures.php",
+      "source_location": "L79",
+      "_origin": "ast",
+      "id": "tests_render_modern_invoice_fixtures_fixtureinvoicemodel_isproformainvoice",
+      "community": 2,
+      "norm_label": ".isproformainvoice()"
+    },
+    {
+      "label": "FixtureThrowingBarcodePdf",
+      "file_type": "code",
+      "source_file": "tests/render_modern_invoice_fixtures.php",
+      "source_location": "L85",
+      "_origin": "ast",
+      "id": "tests_render_modern_invoice_fixtures_fixturethrowingbarcodepdf",
+      "community": 2,
+      "norm_label": "fixturethrowingbarcodepdf"
+    },
+    {
+      "label": "TCPDF",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast",
+      "id": "tcpdf",
+      "community": 2,
+      "norm_label": "tcpdf"
+    },
+    {
+      "label": ".write2DBarcode()",
+      "file_type": "code",
+      "source_file": "tests/render_modern_invoice_fixtures.php",
+      "source_location": "L87",
+      "_origin": "ast",
+      "id": "tests_render_modern_invoice_fixtures_fixturethrowingbarcodepdf_write2dbarcode",
+      "community": 2,
+      "norm_label": ".write2dbarcode()"
+    },
+    {
+      "label": "prepareInvoiceRuntimeFixture()",
+      "file_type": "code",
+      "source_file": "tests/render_modern_invoice_fixtures.php",
+      "source_location": "L103",
+      "_origin": "ast",
+      "id": "tests_render_modern_invoice_fixtures_prepareinvoiceruntimefixture",
+      "community": 2,
+      "norm_label": "prepareinvoiceruntimefixture()"
+    },
+    {
+      "label": "getTodaysDate()",
+      "file_type": "code",
+      "source_file": "tests/render_modern_invoice_fixtures.php",
+      "source_location": "L187",
+      "_origin": "ast",
+      "id": "tests_render_modern_invoice_fixtures_gettodaysdate",
+      "community": 2,
+      "norm_label": "gettodaysdate()"
+    },
+    {
+      "label": "createFixtureImage()",
+      "file_type": "code",
+      "source_file": "tests/render_modern_invoice_fixtures.php",
+      "source_location": "L194",
+      "_origin": "ast",
+      "id": "tests_render_modern_invoice_fixtures_createfixtureimage",
+      "community": 2,
+      "norm_label": "createfixtureimage()"
+    },
+    {
+      "label": "renderFixture()",
+      "file_type": "code",
+      "source_file": "tests/render_modern_invoice_fixtures.php",
+      "source_location": "L264",
+      "_origin": "ast",
+      "id": "tests_render_modern_invoice_fixtures_renderfixture",
+      "community": 2,
+      "norm_label": "renderfixture()"
+    },
+    {
+      "label": "renderBatchFixtures()",
+      "file_type": "code",
+      "source_file": "tests/render_modern_invoice_fixtures.php",
+      "source_location": "L385",
+      "_origin": "ast",
+      "id": "tests_render_modern_invoice_fixtures_renderbatchfixtures",
+      "community": 2,
+      "norm_label": "renderbatchfixtures()"
+    },
+    {
+      "label": "assertFixtureValue()",
+      "file_type": "code",
+      "source_file": "tests/render_modern_invoice_fixtures.php",
+      "source_location": "L464",
+      "_origin": "ast",
+      "id": "tests_render_modern_invoice_fixtures_assertfixturevalue",
+      "community": 2,
+      "norm_label": "assertfixturevalue()"
+    },
+    {
+      "label": "invoiceSnapshotRow()",
+      "file_type": "code",
+      "source_file": "tests/render_modern_invoice_fixtures.php",
+      "source_location": "L475",
+      "_origin": "ast",
+      "id": "tests_render_modern_invoice_fixtures_invoicesnapshotrow",
+      "community": 2,
+      "norm_label": "invoicesnapshotrow()"
+    },
+    {
+      "label": "invoiceFixture()",
+      "file_type": "code",
+      "source_file": "tests/render_modern_invoice_fixtures.php",
+      "source_location": "L507",
+      "_origin": "ast",
+      "id": "tests_render_modern_invoice_fixtures_invoicefixture",
+      "community": 2,
+      "norm_label": "invoicefixture()"
+    },
+    {
+      "label": "render_modern_quote_fixtures.php",
+      "file_type": "code",
+      "source_file": "tests/render_modern_quote_fixtures.php",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "tests_render_modern_quote_fixtures",
+      "community": 10,
+      "norm_label": "render_modern_quote_fixtures.php"
+    },
+    {
+      "label": "getTodaysDate()",
+      "file_type": "code",
+      "source_file": "tests/render_modern_quote_fixtures.php",
+      "source_location": "L47",
+      "_origin": "ast",
+      "id": "tests_render_modern_quote_fixtures_gettodaysdate",
+      "community": 10,
+      "norm_label": "gettodaysdate()"
+    },
+    {
+      "label": "formatCurrency()",
+      "file_type": "code",
+      "source_file": "tests/render_modern_quote_fixtures.php",
+      "source_location": "L53",
+      "_origin": "ast",
+      "id": "tests_render_modern_quote_fixtures_formatcurrency",
+      "community": 10,
+      "norm_label": "formatcurrency()"
+    },
+    {
+      "label": "assertQuoteFixtureValue()",
+      "file_type": "code",
+      "source_file": "tests/render_modern_quote_fixtures.php",
+      "source_location": "L85",
+      "_origin": "ast",
+      "id": "tests_render_modern_quote_fixtures_assertquotefixturevalue",
+      "community": 10,
+      "norm_label": "assertquotefixturevalue()"
+    },
+    {
+      "label": "quoteFixture()",
+      "file_type": "code",
+      "source_file": "tests/render_modern_quote_fixtures.php",
+      "source_location": "L96",
+      "_origin": "ast",
+      "id": "tests_render_modern_quote_fixtures_quotefixture",
+      "community": 10,
+      "norm_label": "quotefixture()"
+    },
+    {
+      "label": "renderQuoteFixture()",
+      "file_type": "code",
+      "source_file": "tests/render_modern_quote_fixtures.php",
+      "source_location": "L190",
+      "_origin": "ast",
+      "id": "tests_render_modern_quote_fixtures_renderquotefixture",
+      "community": 10,
+      "norm_label": "renderquotefixture()"
+    },
+    {
+      "label": "whmcs_invoice_template_repair_test.php",
+      "file_type": "code",
+      "source_file": "tests/whmcs_invoice_template_repair_test.php",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "tests_whmcs_invoice_template_repair_test",
+      "community": 29,
+      "norm_label": "whmcs_invoice_template_repair_test.php"
+    },
+    {
+      "label": "whmcs_pdf_surface_audit_test.php",
+      "file_type": "code",
+      "source_file": "tests/whmcs_pdf_surface_audit_test.php",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "tests_whmcs_pdf_surface_audit_test",
+      "community": 16,
+      "norm_label": "whmcs_pdf_surface_audit_test.php"
+    },
+    {
+      "label": "createPdfSurfaceFixture()",
+      "file_type": "code",
+      "source_file": "tests/whmcs_pdf_surface_audit_test.php",
+      "source_location": "L8",
+      "_origin": "ast",
+      "id": "tests_whmcs_pdf_surface_audit_test_createpdfsurfacefixture",
+      "community": 16,
+      "norm_label": "createpdfsurfacefixture()"
+    },
+    {
+      "label": "removePdfSurfaceFixture()",
+      "file_type": "code",
+      "source_file": "tests/whmcs_pdf_surface_audit_test.php",
+      "source_location": "L24",
+      "_origin": "ast",
+      "id": "tests_whmcs_pdf_surface_audit_test_removepdfsurfacefixture",
+      "community": 16,
+      "norm_label": "removepdfsurfacefixture()"
+    },
+    {
+      "label": "pull_request_template.md",
+      "file_type": "document",
+      "source_file": ".github/pull_request_template.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "github_pull_request_template",
+      "community": 9,
+      "norm_label": "pull_request_template.md"
+    },
+    {
+      "label": "What",
+      "file_type": "document",
+      "source_file": ".github/pull_request_template.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "github_pull_request_template_what",
+      "community": 9,
+      "norm_label": "what"
+    },
+    {
+      "label": "Why",
+      "file_type": "document",
+      "source_file": ".github/pull_request_template.md",
+      "source_location": "L6",
+      "_origin": "ast",
+      "id": "github_pull_request_template_why",
+      "community": 9,
+      "norm_label": "why"
+    },
+    {
+      "label": "Verification",
+      "file_type": "document",
+      "source_file": ".github/pull_request_template.md",
+      "source_location": "L10",
+      "_origin": "ast",
+      "id": "github_pull_request_template_verification",
+      "community": 9,
+      "norm_label": "verification"
+    },
+    {
+      "label": "Deployment and rollback",
+      "file_type": "document",
+      "source_file": ".github/pull_request_template.md",
+      "source_location": "L17",
+      "_origin": "ast",
+      "id": "github_pull_request_template_deployment_and_rollback",
+      "community": 9,
+      "norm_label": "deployment and rollback"
+    },
+    {
+      "label": "Living handoff",
+      "file_type": "document",
+      "source_file": ".github/pull_request_template.md",
+      "source_location": "L22",
+      "_origin": "ast",
+      "id": "github_pull_request_template_living_handoff",
+      "community": 9,
+      "norm_label": "living handoff"
+    },
+    {
+      "label": "README.md",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "readme",
+      "community": 4,
+      "norm_label": "readme.md"
+    },
+    {
+      "label": "Securiace WHMCS PDF Document Templates",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "readme_securiace_whmcs_pdf_document_templates",
+      "community": 4,
+      "norm_label": "securiace whmcs pdf document templates"
+    },
+    {
+      "label": "Modern invoice behavior",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L20",
+      "_origin": "ast",
+      "id": "readme_modern_invoice_behavior",
+      "community": 4,
+      "norm_label": "modern invoice behavior"
+    },
+    {
+      "label": "Modern quote behavior",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L58",
+      "_origin": "ast",
+      "id": "readme_modern_quote_behavior",
+      "community": 4,
+      "norm_label": "modern quote behavior"
+    },
+    {
+      "label": "Browser preview",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L91",
+      "_origin": "ast",
+      "id": "readme_browser_preview",
+      "community": 4,
+      "norm_label": "browser preview"
+    },
+    {
+      "label": "Install the modern invoice template",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L117",
+      "_origin": "ast",
+      "id": "readme_install_the_modern_invoice_template",
+      "community": 4,
+      "norm_label": "install the modern invoice template"
+    },
+    {
+      "label": "Install the modern quote template",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L173",
+      "_origin": "ast",
+      "id": "readme_install_the_modern_quote_template",
+      "community": 4,
+      "norm_label": "install the modern quote template"
+    },
+    {
+      "label": "Protected configuration",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L190",
+      "_origin": "ast",
+      "id": "readme_protected_configuration",
+      "community": 4,
+      "norm_label": "protected configuration"
+    },
+    {
+      "label": "Verification",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L207",
+      "_origin": "ast",
+      "id": "readme_verification",
+      "community": 4,
+      "norm_label": "verification"
+    },
+    {
+      "label": "Compatibility",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L270",
+      "_origin": "ast",
+      "id": "readme_compatibility",
+      "community": 4,
+      "norm_label": "compatibility"
+    },
+    {
+      "label": "Release streams",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L284",
+      "_origin": "ast",
+      "id": "readme_release_streams",
+      "community": 4,
+      "norm_label": "release streams"
+    },
+    {
+      "label": "Legacy runtime repair",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L297",
+      "_origin": "ast",
+      "id": "readme_legacy_runtime_repair",
+      "community": 4,
+      "norm_label": "legacy runtime repair"
+    },
+    {
+      "label": "Security and privacy",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L305",
+      "_origin": "ast",
+      "id": "readme_security_and_privacy",
+      "community": 4,
+      "norm_label": "security and privacy"
+    },
+    {
+      "label": "License",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L318",
+      "_origin": "ast",
+      "id": "readme_license",
+      "community": 4,
+      "norm_label": "license"
+    },
+    {
+      "label": "HANDOFF.md",
+      "file_type": "document",
+      "source_file": "docs/HANDOFF.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_handoff",
+      "community": 3,
+      "norm_label": "handoff.md"
+    },
+    {
+      "label": "Living handoff",
+      "file_type": "document",
+      "source_file": "docs/HANDOFF.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_handoff_living_handoff",
+      "community": 3,
+      "norm_label": "living handoff"
+    },
+    {
+      "label": "Contract markers",
+      "file_type": "document",
+      "source_file": "docs/HANDOFF.md",
+      "source_location": "L13",
+      "_origin": "ast",
+      "id": "docs_handoff_contract_markers",
+      "community": 3,
+      "norm_label": "contract markers"
+    },
+    {
+      "label": "Invoice download incident contract",
+      "file_type": "document",
+      "source_file": "docs/HANDOFF.md",
+      "source_location": "L26",
+      "_origin": "ast",
+      "id": "docs_handoff_invoice_download_incident_contract",
+      "community": 3,
+      "norm_label": "invoice download incident contract"
+    },
+    {
+      "label": "Current environment handoff",
+      "file_type": "document",
+      "source_file": "docs/HANDOFF.md",
+      "source_location": "L41",
+      "_origin": "ast",
+      "id": "docs_handoff_current_environment_handoff",
+      "community": 3,
+      "norm_label": "current environment handoff"
+    },
+    {
+      "label": "Sources of truth",
+      "file_type": "document",
+      "source_file": "docs/HANDOFF.md",
+      "source_location": "L69",
+      "_origin": "ast",
+      "id": "docs_handoff_sources_of_truth",
+      "community": 3,
+      "norm_label": "sources of truth"
+    },
+    {
+      "label": "Stable behavior that must not regress",
+      "file_type": "document",
+      "source_file": "docs/HANDOFF.md",
+      "source_location": "L85",
+      "_origin": "ast",
+      "id": "docs_handoff_stable_behavior_that_must_not_regress",
+      "community": 3,
+      "norm_label": "stable behavior that must not regress"
+    },
+    {
+      "label": "Update triggers",
+      "file_type": "document",
+      "source_file": "docs/HANDOFF.md",
+      "source_location": "L119",
+      "_origin": "ast",
+      "id": "docs_handoff_update_triggers",
+      "community": 3,
+      "norm_label": "update triggers"
+    },
+    {
+      "label": "Required handoff payload",
+      "file_type": "document",
+      "source_file": "docs/HANDOFF.md",
+      "source_location": "L136",
+      "_origin": "ast",
+      "id": "docs_handoff_required_handoff_payload",
+      "community": 3,
+      "norm_label": "required handoff payload"
+    },
+    {
+      "label": "Pull-request maintenance",
+      "file_type": "document",
+      "source_file": "docs/HANDOFF.md",
+      "source_location": "L153",
+      "_origin": "ast",
+      "id": "docs_handoff_pull_request_maintenance",
+      "community": 3,
+      "norm_label": "pull-request maintenance"
+    },
+    {
+      "label": "Deployment handoff",
+      "file_type": "document",
+      "source_file": "docs/HANDOFF.md",
+      "source_location": "L169",
+      "_origin": "ast",
+      "id": "docs_handoff_deployment_handoff",
+      "community": 3,
+      "norm_label": "deployment handoff"
+    },
+    {
+      "label": "Rollback handoff",
+      "file_type": "document",
+      "source_file": "docs/HANDOFF.md",
+      "source_location": "L197",
+      "_origin": "ast",
+      "id": "docs_handoff_rollback_handoff",
+      "community": 3,
+      "norm_label": "rollback handoff"
+    },
+    {
+      "label": "Future GST transition",
+      "file_type": "document",
+      "source_file": "docs/HANDOFF.md",
+      "source_location": "L210",
+      "_origin": "ast",
+      "id": "docs_handoff_future_gst_transition",
+      "community": 3,
+      "norm_label": "future gst transition"
+    },
+    {
+      "label": "Staleness safeguards",
+      "file_type": "document",
+      "source_file": "docs/HANDOFF.md",
+      "source_location": "L227",
+      "_origin": "ast",
+      "id": "docs_handoff_staleness_safeguards",
+      "community": 3,
+      "norm_label": "staleness safeguards"
+    },
+    {
+      "label": "Next-maintainer start",
+      "file_type": "document",
+      "source_file": "docs/HANDOFF.md",
+      "source_location": "L238",
+      "_origin": "ast",
+      "id": "docs_handoff_next_maintainer_start",
+      "community": 3,
+      "norm_label": "next-maintainer start"
+    },
+    {
+      "label": "INVOICE-NAMING-AND-NUMBERING.md",
+      "file_type": "document",
+      "source_file": "docs/INVOICE-NAMING-AND-NUMBERING.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_invoice_naming_and_numbering",
+      "community": 7,
+      "norm_label": "invoice-naming-and-numbering.md"
+    },
+    {
+      "label": "Invoice naming and numbering decision",
+      "file_type": "document",
+      "source_file": "docs/INVOICE-NAMING-AND-NUMBERING.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_invoice_naming_and_numbering_invoice_naming_and_numbering_decision",
+      "community": 7,
+      "norm_label": "invoice naming and numbering decision"
+    },
+    {
+      "label": "Decision",
+      "file_type": "document",
+      "source_file": "docs/INVOICE-NAMING-AND-NUMBERING.md",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "docs_invoice_naming_and_numbering_decision",
+      "community": 7,
+      "norm_label": "decision"
+    },
+    {
+      "label": "Why the references differ",
+      "file_type": "document",
+      "source_file": "docs/INVOICE-NAMING-AND-NUMBERING.md",
+      "source_location": "L30",
+      "_origin": "ast",
+      "id": "docs_invoice_naming_and_numbering_why_the_references_differ",
+      "community": 7,
+      "norm_label": "why the references differ"
+    },
+    {
+      "label": "Approved WHMCS settings",
+      "file_type": "document",
+      "source_file": "docs/INVOICE-NAMING-AND-NUMBERING.md",
+      "source_location": "L41",
+      "_origin": "ast",
+      "id": "docs_invoice_naming_and_numbering_approved_whmcs_settings",
+      "community": 7,
+      "norm_label": "approved whmcs settings"
+    },
+    {
+      "label": "GST number rule and format capacity",
+      "file_type": "document",
+      "source_file": "docs/INVOICE-NAMING-AND-NUMBERING.md",
+      "source_location": "L57",
+      "_origin": "ast",
+      "id": "docs_invoice_naming_and_numbering_gst_number_rule_and_format_capacity",
+      "community": 7,
+      "norm_label": "gst number rule and format capacity"
+    },
+    {
+      "label": "GST-registration transition gate",
+      "file_type": "document",
+      "source_file": "docs/INVOICE-NAMING-AND-NUMBERING.md",
+      "source_location": "L79",
+      "_origin": "ast",
+      "id": "docs_invoice_naming_and_numbering_gst_registration_transition_gate",
+      "community": 7,
+      "norm_label": "gst-registration transition gate"
+    },
+    {
+      "label": "Primary sources",
+      "file_type": "document",
+      "source_file": "docs/INVOICE-NAMING-AND-NUMBERING.md",
+      "source_location": "L102",
+      "_origin": "ast",
+      "id": "docs_invoice_naming_and_numbering_primary_sources",
+      "community": 7,
+      "norm_label": "primary sources"
+    },
+    {
+      "label": "INVOICE-UX-AUDIT.md",
+      "file_type": "document",
+      "source_file": "docs/INVOICE-UX-AUDIT.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_invoice_ux_audit",
+      "community": 5,
+      "norm_label": "invoice-ux-audit.md"
+    },
+    {
+      "label": "Invoice UI/UX and Runtime Audit",
+      "file_type": "document",
+      "source_file": "docs/INVOICE-UX-AUDIT.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_invoice_ux_audit_invoice_ui_ux_and_runtime_audit",
+      "community": 5,
+      "norm_label": "invoice ui/ux and runtime audit"
+    },
+    {
+      "label": "Outcome",
+      "file_type": "document",
+      "source_file": "docs/INVOICE-UX-AUDIT.md",
+      "source_location": "L8",
+      "_origin": "ast",
+      "id": "docs_invoice_ux_audit_outcome",
+      "community": 5,
+      "norm_label": "outcome"
+    },
+    {
+      "label": "Screenshot audit",
+      "file_type": "document",
+      "source_file": "docs/INVOICE-UX-AUDIT.md",
+      "source_location": "L21",
+      "_origin": "ast",
+      "id": "docs_invoice_ux_audit_screenshot_audit",
+      "community": 5,
+      "norm_label": "screenshot audit"
+    },
+    {
+      "label": "Source-code audit",
+      "file_type": "document",
+      "source_file": "docs/INVOICE-UX-AUDIT.md",
+      "source_location": "L37",
+      "_origin": "ast",
+      "id": "docs_invoice_ux_audit_source_code_audit",
+      "community": 5,
+      "norm_label": "source-code audit"
+    },
+    {
+      "label": "Runtime and data integrity",
+      "file_type": "document",
+      "source_file": "docs/INVOICE-UX-AUDIT.md",
+      "source_location": "L39",
+      "_origin": "ast",
+      "id": "docs_invoice_ux_audit_runtime_and_data_integrity",
+      "community": 5,
+      "norm_label": "runtime and data integrity"
+    },
+    {
+      "label": "Information and interaction rules",
+      "file_type": "document",
+      "source_file": "docs/INVOICE-UX-AUDIT.md",
+      "source_location": "L80",
+      "_origin": "ast",
+      "id": "docs_invoice_ux_audit_information_and_interaction_rules",
+      "community": 5,
+      "norm_label": "information and interaction rules"
+    },
+    {
+      "label": "Design contract for the preview",
+      "file_type": "document",
+      "source_file": "docs/INVOICE-UX-AUDIT.md",
+      "source_location": "L93",
+      "_origin": "ast",
+      "id": "docs_invoice_ux_audit_design_contract_for_the_preview",
+      "community": 5,
+      "norm_label": "design contract for the preview"
+    },
+    {
+      "label": "WHMCS implementation constraints",
+      "file_type": "document",
+      "source_file": "docs/INVOICE-UX-AUDIT.md",
+      "source_location": "L108",
+      "_origin": "ast",
+      "id": "docs_invoice_ux_audit_whmcs_implementation_constraints",
+      "community": 5,
+      "norm_label": "whmcs implementation constraints"
+    },
+    {
+      "label": "Acceptance matrix for the WHMCS phase",
+      "file_type": "document",
+      "source_file": "docs/INVOICE-UX-AUDIT.md",
+      "source_location": "L126",
+      "_origin": "ast",
+      "id": "docs_invoice_ux_audit_acceptance_matrix_for_the_whmcs_phase",
+      "community": 5,
+      "norm_label": "acceptance matrix for the whmcs phase"
+    },
+    {
+      "label": "Implementation and renderer findings",
+      "file_type": "document",
+      "source_file": "docs/INVOICE-UX-AUDIT.md",
+      "source_location": "L142",
+      "_origin": "ast",
+      "id": "docs_invoice_ux_audit_implementation_and_renderer_findings",
+      "community": 5,
+      "norm_label": "implementation and renderer findings"
+    },
+    {
+      "label": "Production acceptance boundary",
+      "file_type": "document",
+      "source_file": "docs/INVOICE-UX-AUDIT.md",
+      "source_location": "L207",
+      "_origin": "ast",
+      "id": "docs_invoice_ux_audit_production_acceptance_boundary",
+      "community": 5,
+      "norm_label": "production acceptance boundary"
+    },
+    {
+      "label": "PDF-SNAPSHOT-OPERATIONS.md",
+      "file_type": "document",
+      "source_file": "docs/PDF-SNAPSHOT-OPERATIONS.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_pdf_snapshot_operations",
+      "community": 11,
+      "norm_label": "pdf-snapshot-operations.md"
+    },
+    {
+      "label": "Immutable issuer snapshots",
+      "file_type": "document",
+      "source_file": "docs/PDF-SNAPSHOT-OPERATIONS.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_pdf_snapshot_operations_immutable_issuer_snapshots",
+      "community": 11,
+      "norm_label": "immutable issuer snapshots"
+    },
+    {
+      "label": "Data boundary",
+      "file_type": "document",
+      "source_file": "docs/PDF-SNAPSHOT-OPERATIONS.md",
+      "source_location": "L23",
+      "_origin": "ast",
+      "id": "docs_pdf_snapshot_operations_data_boundary",
+      "community": 11,
+      "norm_label": "data boundary"
+    },
+    {
+      "label": "Installation",
+      "file_type": "document",
+      "source_file": "docs/PDF-SNAPSHOT-OPERATIONS.md",
+      "source_location": "L37",
+      "_origin": "ast",
+      "id": "docs_pdf_snapshot_operations_installation",
+      "community": 11,
+      "norm_label": "installation"
+    },
+    {
+      "label": "Recovery",
+      "file_type": "document",
+      "source_file": "docs/PDF-SNAPSHOT-OPERATIONS.md",
+      "source_location": "L51",
+      "_origin": "ast",
+      "id": "docs_pdf_snapshot_operations_recovery",
+      "community": 11,
+      "norm_label": "recovery"
+    },
+    {
+      "label": "PDF-SUITE-COMPATIBILITY.md",
+      "file_type": "document",
+      "source_file": "docs/PDF-SUITE-COMPATIBILITY.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_pdf_suite_compatibility",
+      "community": 6,
+      "norm_label": "pdf-suite-compatibility.md"
+    },
+    {
+      "label": "WHMCS PDF Suite Compatibility and Deployment Record",
+      "file_type": "document",
+      "source_file": "docs/PDF-SUITE-COMPATIBILITY.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_pdf_suite_compatibility_whmcs_pdf_suite_compatibility_and_deployment_record",
+      "community": 6,
+      "norm_label": "whmcs pdf suite compatibility and deployment record"
+    },
+    {
+      "label": "Controlled PDF surface",
+      "file_type": "document",
+      "source_file": "docs/PDF-SUITE-COMPATIBILITY.md",
+      "source_location": "L6",
+      "_origin": "ast",
+      "id": "docs_pdf_suite_compatibility_controlled_pdf_surface",
+      "community": 6,
+      "norm_label": "controlled pdf surface"
+    },
+    {
+      "label": "Source-contract findings",
+      "file_type": "document",
+      "source_file": "docs/PDF-SUITE-COMPATIBILITY.md",
+      "source_location": "L27",
+      "_origin": "ast",
+      "id": "docs_pdf_suite_compatibility_source_contract_findings",
+      "community": 6,
+      "norm_label": "source-contract findings"
+    },
+    {
+      "label": "Invoice",
+      "file_type": "document",
+      "source_file": "docs/PDF-SUITE-COMPATIBILITY.md",
+      "source_location": "L29",
+      "_origin": "ast",
+      "id": "docs_pdf_suite_compatibility_invoice",
+      "community": 6,
+      "norm_label": "invoice"
+    },
+    {
+      "label": "Quote",
+      "file_type": "document",
+      "source_file": "docs/PDF-SUITE-COMPATIBILITY.md",
+      "source_location": "L45",
+      "_origin": "ast",
+      "id": "docs_pdf_suite_compatibility_quote",
+      "community": 6,
+      "norm_label": "quote"
+    },
+    {
+      "label": "Rendering and compatibility decisions",
+      "file_type": "document",
+      "source_file": "docs/PDF-SUITE-COMPATIBILITY.md",
+      "source_location": "L75",
+      "_origin": "ast",
+      "id": "docs_pdf_suite_compatibility_rendering_and_compatibility_decisions",
+      "community": 6,
+      "norm_label": "rendering and compatibility decisions"
+    },
+    {
+      "label": "Verification matrix",
+      "file_type": "document",
+      "source_file": "docs/PDF-SUITE-COMPATIBILITY.md",
+      "source_location": "L107",
+      "_origin": "ast",
+      "id": "docs_pdf_suite_compatibility_verification_matrix",
+      "community": 6,
+      "norm_label": "verification matrix"
+    },
+    {
+      "label": "Standard production deployment",
+      "file_type": "document",
+      "source_file": "docs/PDF-SUITE-COMPATIBILITY.md",
+      "source_location": "L125",
+      "_origin": "ast",
+      "id": "docs_pdf_suite_compatibility_standard_production_deployment",
+      "community": 6,
+      "norm_label": "standard production deployment"
+    },
+    {
+      "label": "Release-branch policy",
+      "file_type": "document",
+      "source_file": "docs/PDF-SUITE-COMPATIBILITY.md",
+      "source_location": "L151",
+      "_origin": "ast",
+      "id": "docs_pdf_suite_compatibility_release_branch_policy",
+      "community": 6,
+      "norm_label": "release-branch policy"
+    },
+    {
+      "label": "001-dynamic-whmcs-pdf-suite.md",
+      "file_type": "document",
+      "source_file": "plans/001-dynamic-whmcs-pdf-suite.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "plans_001_dynamic_whmcs_pdf_suite",
+      "community": 1,
+      "norm_label": "001-dynamic-whmcs-pdf-suite.md"
+    },
+    {
+      "label": "Dynamic WHMCS PDF suite modernization",
+      "file_type": "document",
+      "source_file": "plans/001-dynamic-whmcs-pdf-suite.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "plans_001_dynamic_whmcs_pdf_suite_dynamic_whmcs_pdf_suite_modernization",
+      "community": 1,
+      "norm_label": "dynamic whmcs pdf suite modernization"
+    },
+    {
+      "label": "Objective",
+      "file_type": "document",
+      "source_file": "plans/001-dynamic-whmcs-pdf-suite.md",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "plans_001_dynamic_whmcs_pdf_suite_objective",
+      "community": 1,
+      "norm_label": "objective"
+    },
+    {
+      "label": "Architectural decision",
+      "file_type": "document",
+      "source_file": "plans/001-dynamic-whmcs-pdf-suite.md",
+      "source_location": "L16",
+      "_origin": "ast",
+      "id": "plans_001_dynamic_whmcs_pdf_suite_architectural_decision",
+      "community": 1,
+      "norm_label": "architectural decision"
+    },
+    {
+      "label": "Source precedence",
+      "file_type": "document",
+      "source_file": "plans/001-dynamic-whmcs-pdf-suite.md",
+      "source_location": "L35",
+      "_origin": "ast",
+      "id": "plans_001_dynamic_whmcs_pdf_suite_source_precedence",
+      "community": 1,
+      "norm_label": "source precedence"
+    },
+    {
+      "label": "Parser contract",
+      "file_type": "document",
+      "source_file": "plans/001-dynamic-whmcs-pdf-suite.md",
+      "source_location": "L47",
+      "_origin": "ast",
+      "id": "plans_001_dynamic_whmcs_pdf_suite_parser_contract",
+      "community": 1,
+      "norm_label": "parser contract"
+    },
+    {
+      "label": "Rendering policies",
+      "file_type": "document",
+      "source_file": "plans/001-dynamic-whmcs-pdf-suite.md",
+      "source_location": "L60",
+      "_origin": "ast",
+      "id": "plans_001_dynamic_whmcs_pdf_suite_rendering_policies",
+      "community": 1,
+      "norm_label": "rendering policies"
+    },
+    {
+      "label": "Document lifecycle",
+      "file_type": "document",
+      "source_file": "plans/001-dynamic-whmcs-pdf-suite.md",
+      "source_location": "L71",
+      "_origin": "ast",
+      "id": "plans_001_dynamic_whmcs_pdf_suite_document_lifecycle",
+      "community": 1,
+      "norm_label": "document lifecycle"
+    },
+    {
+      "label": "Work packages",
+      "file_type": "document",
+      "source_file": "plans/001-dynamic-whmcs-pdf-suite.md",
+      "source_location": "L86",
+      "_origin": "ast",
+      "id": "plans_001_dynamic_whmcs_pdf_suite_work_packages",
+      "community": 1,
+      "norm_label": "work packages"
+    },
+    {
+      "label": "1. Shared resolver",
+      "file_type": "document",
+      "source_file": "plans/001-dynamic-whmcs-pdf-suite.md",
+      "source_location": "L88",
+      "_origin": "ast",
+      "id": "plans_001_dynamic_whmcs_pdf_suite_1_shared_resolver",
+      "community": 1,
+      "norm_label": "1. shared resolver"
+    },
+    {
+      "label": "2. Invoice integration",
+      "file_type": "document",
+      "source_file": "plans/001-dynamic-whmcs-pdf-suite.md",
+      "source_location": "L95",
+      "_origin": "ast",
+      "id": "plans_001_dynamic_whmcs_pdf_suite_2_invoice_integration",
+      "community": 1,
+      "norm_label": "2. invoice integration"
+    },
+    {
+      "label": "3. Quote and batch profiles",
+      "file_type": "document",
+      "source_file": "plans/001-dynamic-whmcs-pdf-suite.md",
+      "source_location": "L107",
+      "_origin": "ast",
+      "id": "plans_001_dynamic_whmcs_pdf_suite_3_quote_and_batch_profiles",
+      "community": 1,
+      "norm_label": "3. quote and batch profiles"
+    },
+    {
+      "label": "4. Lifecycle and numbering",
+      "file_type": "document",
+      "source_file": "plans/001-dynamic-whmcs-pdf-suite.md",
+      "source_location": "L114",
+      "_origin": "ast",
+      "id": "plans_001_dynamic_whmcs_pdf_suite_4_lifecycle_and_numbering",
+      "community": 1,
+      "norm_label": "4. lifecycle and numbering"
+    },
+    {
+      "label": "5. Snapshots and diagnostics",
+      "file_type": "document",
+      "source_file": "plans/001-dynamic-whmcs-pdf-suite.md",
+      "source_location": "L122",
+      "_origin": "ast",
+      "id": "plans_001_dynamic_whmcs_pdf_suite_5_snapshots_and_diagnostics",
+      "community": 1,
+      "norm_label": "5. snapshots and diagnostics"
+    },
+    {
+      "label": "Verification gates",
+      "file_type": "document",
+      "source_file": "plans/001-dynamic-whmcs-pdf-suite.md",
+      "source_location": "L130",
+      "_origin": "ast",
+      "id": "plans_001_dynamic_whmcs_pdf_suite_verification_gates",
+      "community": 1,
+      "norm_label": "verification gates"
+    },
+    {
+      "label": "Production deployment",
+      "file_type": "document",
+      "source_file": "plans/001-dynamic-whmcs-pdf-suite.md",
+      "source_location": "L141",
+      "_origin": "ast",
+      "id": "plans_001_dynamic_whmcs_pdf_suite_production_deployment",
+      "community": 1,
+      "norm_label": "production deployment"
+    },
+    {
+      "label": "README.md",
+      "file_type": "document",
+      "source_file": "plans/README.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "plans_readme",
+      "community": 13,
+      "norm_label": "readme.md"
+    },
+    {
+      "label": "WHMCS PDF modernization plan",
+      "file_type": "document",
+      "source_file": "plans/README.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "plans_readme_whmcs_pdf_modernization_plan",
+      "community": 13,
+      "norm_label": "whmcs pdf modernization plan"
+    },
+    {
+      "label": "Delivery stack",
+      "file_type": "document",
+      "source_file": "plans/README.md",
+      "source_location": "L12",
+      "_origin": "ast",
+      "id": "plans_readme_delivery_stack",
+      "community": 13,
+      "norm_label": "delivery stack"
+    }
+  ],
+  "links": [
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "modules/addons/securiace_pdf_profile/lib/SnapshotService.php",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "lib_snapshotservice",
+      "target": "lib_snapshotservice_securiacepdfprofilesnapshotservice",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "modules/addons/securiace_pdf_profile/lib/SnapshotService.php",
+      "source_location": "L302",
+      "weight": 1.0,
+      "source": "lib_snapshotservice_securiacepdfprofilesnapshotservice",
+      "target": "lib_snapshotservice_securiacepdfprofilesnapshotservice_booleanvalue",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "modules/addons/securiace_pdf_profile/lib/SnapshotService.php",
+      "source_location": "L42",
+      "weight": 1.0,
+      "source": "lib_snapshotservice_securiacepdfprofilesnapshotservice",
+      "target": "lib_snapshotservice_securiacepdfprofilesnapshotservice_capture",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "modules/addons/securiace_pdf_profile/lib/SnapshotService.php",
+      "source_location": "L314",
+      "weight": 1.0,
+      "source": "lib_snapshotservice_securiacepdfprofilesnapshotservice",
+      "target": "lib_snapshotservice_securiacepdfprofilesnapshotservice_currencies",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "modules/addons/securiace_pdf_profile/lib/SnapshotService.php",
+      "source_location": "L289",
+      "weight": 1.0,
+      "source": "lib_snapshotservice_securiacepdfprofilesnapshotservice",
+      "target": "lib_snapshotservice_securiacepdfprofilesnapshotservice_datevalue",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "modules/addons/securiace_pdf_profile/lib/SnapshotService.php",
+      "source_location": "L152",
+      "weight": 1.0,
+      "source": "lib_snapshotservice_securiacepdfprofilesnapshotservice",
+      "target": "lib_snapshotservice_securiacepdfprofilesnapshotservice_diagnostics",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "modules/addons/securiace_pdf_profile/lib/SnapshotService.php",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "lib_snapshotservice_securiacepdfprofilesnapshotservice",
+      "target": "lib_snapshotservice_securiacepdfprofilesnapshotservice_ensureschema",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "modules/addons/securiace_pdf_profile/lib/SnapshotService.php",
+      "source_location": "L277",
+      "weight": 1.0,
+      "source": "lib_snapshotservice_securiacepdfprofilesnapshotservice",
+      "target": "lib_snapshotservice_securiacepdfprofilesnapshotservice_invoicecurrencycode",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "modules/addons/securiace_pdf_profile/lib/SnapshotService.php",
+      "source_location": "L271",
+      "weight": 1.0,
+      "source": "lib_snapshotservice_securiacepdfprofilesnapshotservice",
+      "target": "lib_snapshotservice_securiacepdfprofilesnapshotservice_profilehelperpath",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "modules/addons/securiace_pdf_profile/lib/SnapshotService.php",
+      "source_location": "L333",
+      "weight": 1.0,
+      "source": "lib_snapshotservice_securiacepdfprofilesnapshotservice",
+      "target": "lib_snapshotservice_securiacepdfprofilesnapshotservice_registrationstatus",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "modules/addons/securiace_pdf_profile/lib/SnapshotService.php",
+      "source_location": "L198",
+      "weight": 1.0,
+      "source": "lib_snapshotservice_securiacepdfprofilesnapshotservice",
+      "target": "lib_snapshotservice_securiacepdfprofilesnapshotservice_resolvecurrentprofile",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "modules/addons/securiace_pdf_profile/lib/SnapshotService.php",
+      "source_location": "L257",
+      "weight": 1.0,
+      "source": "lib_snapshotservice_securiacepdfprofilesnapshotservice",
+      "target": "lib_snapshotservice_securiacepdfprofilesnapshotservice_runtimeconfig",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "modules/addons/securiace_pdf_profile/lib/SnapshotService.php",
+      "source_location": "L29",
+      "weight": 1.0,
+      "source": "lib_snapshotservice_securiacepdfprofilesnapshotservice",
+      "target": "lib_snapshotservice_securiacepdfprofilesnapshotservice_shouldcapturecreatedinvoice",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "modules/addons/securiace_pdf_profile/securiace_pdf_profile.php",
+      "source_location": "L25",
+      "weight": 1.0,
+      "source": "securiace_pdf_profile_securiace_pdf_profile_securiace_pdf_profile_activate",
+      "target": "lib_snapshotservice_securiacepdfprofilesnapshotservice"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "modules/addons/securiace_pdf_profile/securiace_pdf_profile.php",
+      "source_location": "L59",
+      "weight": 1.0,
+      "source": "securiace_pdf_profile_securiace_pdf_profile_securiace_pdf_profile_output",
+      "target": "lib_snapshotservice_securiacepdfprofilesnapshotservice"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "modules/addons/securiace_pdf_profile/securiace_pdf_profile.php",
+      "source_location": "L51",
+      "weight": 1.0,
+      "source": "securiace_pdf_profile_securiace_pdf_profile_securiace_pdf_profile_upgrade",
+      "target": "lib_snapshotservice_securiacepdfprofilesnapshotservice"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "modules/addons/securiace_pdf_profile/lib/SnapshotService.php",
+      "source_location": "L289",
+      "weight": 1.0,
+      "context": "return_type",
+      "source": "lib_snapshotservice_securiacepdfprofilesnapshotservice_datevalue",
+      "target": "datetimeimmutable",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "modules/addons/securiace_pdf_profile/securiace_pdf_profile.php",
+      "source_location": "L22",
+      "weight": 1.0,
+      "source": "securiace_pdf_profile_securiace_pdf_profile",
+      "target": "securiace_pdf_profile_securiace_pdf_profile_securiace_pdf_profile_activate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "modules/addons/securiace_pdf_profile/securiace_pdf_profile.php",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "securiace_pdf_profile_securiace_pdf_profile",
+      "target": "securiace_pdf_profile_securiace_pdf_profile_securiace_pdf_profile_config",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "modules/addons/securiace_pdf_profile/securiace_pdf_profile.php",
+      "source_location": "L39",
+      "weight": 1.0,
+      "source": "securiace_pdf_profile_securiace_pdf_profile",
+      "target": "securiace_pdf_profile_securiace_pdf_profile_securiace_pdf_profile_deactivate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "modules/addons/securiace_pdf_profile/securiace_pdf_profile.php",
+      "source_location": "L55",
+      "weight": 1.0,
+      "source": "securiace_pdf_profile_securiace_pdf_profile",
+      "target": "securiace_pdf_profile_securiace_pdf_profile_securiace_pdf_profile_output",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "modules/addons/securiace_pdf_profile/securiace_pdf_profile.php",
+      "source_location": "L48",
+      "weight": 1.0,
+      "source": "securiace_pdf_profile_securiace_pdf_profile",
+      "target": "securiace_pdf_profile_securiace_pdf_profile_securiace_pdf_profile_upgrade",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "preview/app.js",
+      "source_location": "L108",
+      "weight": 1.0,
+      "source": "preview_app",
+      "target": "preview_app_creditrows",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "preview/app.js",
+      "source_location": "L106",
+      "weight": 1.0,
+      "source": "preview_app",
+      "target": "preview_app_outstandingonly",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "preview/app.js",
+      "source_location": "L105",
+      "weight": 1.0,
+      "source": "preview_app",
+      "target": "preview_app_paidonly",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "preview/app.js",
+      "source_location": "L110",
+      "weight": 1.0,
+      "source": "preview_app",
+      "target": "preview_app_setstate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "preview/app.js",
+      "source_location": "L104",
+      "weight": 1.0,
+      "source": "preview_app",
+      "target": "preview_app_statebuttons",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "preview/app.js",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "preview_app",
+      "target": "preview_app_states",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "preview/app.js",
+      "source_location": "L107",
+      "weight": 1.0,
+      "source": "preview_app",
+      "target": "preview_app_taxrows",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "quote-preview/app.js",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "quote_preview_app",
+      "target": "quote_preview_app_printbutton",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "quote-preview/app.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "quote_preview_app",
+      "target": "quote_preview_app_quotedocument",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/audit-whmcs-pdf-surface.php",
+      "source_location": "L12",
+      "weight": 1.0,
+      "source": "scripts_audit_whmcs_pdf_surface",
+      "target": "scripts_audit_whmcs_pdf_surface_auditwhmcspdfsurface",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/repair-whmcs-invoice-template.php",
+      "source_location": "L89",
+      "weight": 1.0,
+      "source": "scripts_repair_whmcs_invoice_template",
+      "target": "scripts_repair_whmcs_invoice_template_assertwhmcsinvoicetemplaterepaired",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/repair-whmcs-invoice-template.php",
+      "source_location": "L113",
+      "weight": 1.0,
+      "source": "scripts_repair_whmcs_invoice_template",
+      "target": "scripts_repair_whmcs_invoice_template_backupwhmcsinvoicetemplate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/repair-whmcs-invoice-template.php",
+      "source_location": "L130",
+      "weight": 1.0,
+      "source": "scripts_repair_whmcs_invoice_template",
+      "target": "scripts_repair_whmcs_invoice_template_main",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/repair-whmcs-invoice-template.php",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "scripts_repair_whmcs_invoice_template",
+      "target": "scripts_repair_whmcs_invoice_template_repairwhmcsinvoicetemplate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/repair-whmcs-invoice-template.php",
+      "source_location": "L140",
+      "weight": 1.0,
+      "source": "scripts_repair_whmcs_invoice_template_main",
+      "target": "scripts_repair_whmcs_invoice_template_repairwhmcsinvoicetemplate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/repair-whmcs-invoice-template.php",
+      "source_location": "L141",
+      "weight": 1.0,
+      "source": "scripts_repair_whmcs_invoice_template_main",
+      "target": "scripts_repair_whmcs_invoice_template_assertwhmcsinvoicetemplaterepaired",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/repair-whmcs-invoice-template.php",
+      "source_location": "L139",
+      "weight": 1.0,
+      "source": "scripts_repair_whmcs_invoice_template_main",
+      "target": "scripts_repair_whmcs_invoice_template_backupwhmcsinvoicetemplate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/pdf_profile_resolver_test.php",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "tests_pdf_profile_resolver_test",
+      "target": "tests_pdf_profile_resolver_test_assertprofilevalue",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/pdf_snapshot_test.php",
+      "source_location": "L21",
+      "weight": 1.0,
+      "source": "tests_pdf_snapshot_test",
+      "target": "tests_pdf_snapshot_test_assertsnapshotvalue",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/pdf_snapshot_test.php",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "tests_pdf_snapshot_test",
+      "target": "tests_pdf_snapshot_test_snapshottestrow",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/render_modern_invoice_fixtures.php",
+      "source_location": "L464",
+      "weight": 1.0,
+      "source": "tests_render_modern_invoice_fixtures",
+      "target": "tests_render_modern_invoice_fixtures_assertfixturevalue",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/render_modern_invoice_fixtures.php",
+      "source_location": "L194",
+      "weight": 1.0,
+      "source": "tests_render_modern_invoice_fixtures",
+      "target": "tests_render_modern_invoice_fixtures_createfixtureimage",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/render_modern_invoice_fixtures.php",
+      "source_location": "L58",
+      "weight": 1.0,
+      "source": "tests_render_modern_invoice_fixtures",
+      "target": "tests_render_modern_invoice_fixtures_fixtureinvoicemodel",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/render_modern_invoice_fixtures.php",
+      "source_location": "L85",
+      "weight": 1.0,
+      "source": "tests_render_modern_invoice_fixtures",
+      "target": "tests_render_modern_invoice_fixtures_fixturethrowingbarcodepdf",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/render_modern_invoice_fixtures.php",
+      "source_location": "L187",
+      "weight": 1.0,
+      "source": "tests_render_modern_invoice_fixtures",
+      "target": "tests_render_modern_invoice_fixtures_gettodaysdate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/render_modern_invoice_fixtures.php",
+      "source_location": "L507",
+      "weight": 1.0,
+      "source": "tests_render_modern_invoice_fixtures",
+      "target": "tests_render_modern_invoice_fixtures_invoicefixture",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/render_modern_invoice_fixtures.php",
+      "source_location": "L475",
+      "weight": 1.0,
+      "source": "tests_render_modern_invoice_fixtures",
+      "target": "tests_render_modern_invoice_fixtures_invoicesnapshotrow",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/render_modern_invoice_fixtures.php",
+      "source_location": "L103",
+      "weight": 1.0,
+      "source": "tests_render_modern_invoice_fixtures",
+      "target": "tests_render_modern_invoice_fixtures_prepareinvoiceruntimefixture",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/render_modern_invoice_fixtures.php",
+      "source_location": "L385",
+      "weight": 1.0,
+      "source": "tests_render_modern_invoice_fixtures",
+      "target": "tests_render_modern_invoice_fixtures_renderbatchfixtures",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/render_modern_invoice_fixtures.php",
+      "source_location": "L264",
+      "weight": 1.0,
+      "source": "tests_render_modern_invoice_fixtures",
+      "target": "tests_render_modern_invoice_fixtures_renderfixture",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/render_modern_invoice_fixtures.php",
+      "source_location": "L67",
+      "weight": 1.0,
+      "source": "tests_render_modern_invoice_fixtures_fixtureinvoicemodel",
+      "target": "tests_render_modern_invoice_fixtures_fixtureinvoicemodel_construct",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/render_modern_invoice_fixtures.php",
+      "source_location": "L74",
+      "weight": 1.0,
+      "source": "tests_render_modern_invoice_fixtures_fixtureinvoicemodel",
+      "target": "tests_render_modern_invoice_fixtures_fixtureinvoicemodel_getcurrency",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/render_modern_invoice_fixtures.php",
+      "source_location": "L79",
+      "weight": 1.0,
+      "source": "tests_render_modern_invoice_fixtures_fixtureinvoicemodel",
+      "target": "tests_render_modern_invoice_fixtures_fixtureinvoicemodel_isproformainvoice",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "inherits",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/render_modern_invoice_fixtures.php",
+      "source_location": "L85",
+      "weight": 1.0,
+      "source": "tests_render_modern_invoice_fixtures_fixturethrowingbarcodepdf",
+      "target": "tcpdf",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/render_modern_invoice_fixtures.php",
+      "source_location": "L87",
+      "weight": 1.0,
+      "source": "tests_render_modern_invoice_fixtures_fixturethrowingbarcodepdf",
+      "target": "tests_render_modern_invoice_fixtures_fixturethrowingbarcodepdf_write2dbarcode",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/render_modern_invoice_fixtures.php",
+      "source_location": "L398",
+      "weight": 1.0,
+      "source": "tests_render_modern_invoice_fixtures_renderbatchfixtures",
+      "target": "tests_render_modern_invoice_fixtures_prepareinvoiceruntimefixture",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/render_modern_invoice_fixtures.php",
+      "source_location": "L268",
+      "weight": 1.0,
+      "source": "tests_render_modern_invoice_fixtures_renderfixture",
+      "target": "tests_render_modern_invoice_fixtures_prepareinvoiceruntimefixture",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/render_modern_quote_fixtures.php",
+      "source_location": "L85",
+      "weight": 1.0,
+      "source": "tests_render_modern_quote_fixtures",
+      "target": "tests_render_modern_quote_fixtures_assertquotefixturevalue",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/render_modern_quote_fixtures.php",
+      "source_location": "L53",
+      "weight": 1.0,
+      "source": "tests_render_modern_quote_fixtures",
+      "target": "tests_render_modern_quote_fixtures_formatcurrency",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/render_modern_quote_fixtures.php",
+      "source_location": "L47",
+      "weight": 1.0,
+      "source": "tests_render_modern_quote_fixtures",
+      "target": "tests_render_modern_quote_fixtures_gettodaysdate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/render_modern_quote_fixtures.php",
+      "source_location": "L96",
+      "weight": 1.0,
+      "source": "tests_render_modern_quote_fixtures",
+      "target": "tests_render_modern_quote_fixtures_quotefixture",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/render_modern_quote_fixtures.php",
+      "source_location": "L190",
+      "weight": 1.0,
+      "source": "tests_render_modern_quote_fixtures",
+      "target": "tests_render_modern_quote_fixtures_renderquotefixture",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/whmcs_pdf_surface_audit_test.php",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "tests_whmcs_pdf_surface_audit_test",
+      "target": "tests_whmcs_pdf_surface_audit_test_createpdfsurfacefixture",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/whmcs_pdf_surface_audit_test.php",
+      "source_location": "L24",
+      "weight": 1.0,
+      "source": "tests_whmcs_pdf_surface_audit_test",
+      "target": "tests_whmcs_pdf_surface_audit_test_removepdfsurfacefixture",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".github/pull_request_template.md",
+      "source_location": "L17",
+      "weight": 1.0,
+      "source": "github_pull_request_template",
+      "target": "github_pull_request_template_deployment_and_rollback",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".github/pull_request_template.md",
+      "source_location": "L22",
+      "weight": 1.0,
+      "source": "github_pull_request_template",
+      "target": "github_pull_request_template_living_handoff",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".github/pull_request_template.md",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "github_pull_request_template",
+      "target": "github_pull_request_template_verification",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".github/pull_request_template.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "github_pull_request_template",
+      "target": "github_pull_request_template_what",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".github/pull_request_template.md",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "github_pull_request_template",
+      "target": "github_pull_request_template_why",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "readme",
+      "target": "readme_securiace_whmcs_pdf_document_templates",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L91",
+      "weight": 1.0,
+      "source": "readme_securiace_whmcs_pdf_document_templates",
+      "target": "readme_browser_preview",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L270",
+      "weight": 1.0,
+      "source": "readme_securiace_whmcs_pdf_document_templates",
+      "target": "readme_compatibility",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L117",
+      "weight": 1.0,
+      "source": "readme_securiace_whmcs_pdf_document_templates",
+      "target": "readme_install_the_modern_invoice_template",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L173",
+      "weight": 1.0,
+      "source": "readme_securiace_whmcs_pdf_document_templates",
+      "target": "readme_install_the_modern_quote_template",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L297",
+      "weight": 1.0,
+      "source": "readme_securiace_whmcs_pdf_document_templates",
+      "target": "readme_legacy_runtime_repair",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L318",
+      "weight": 1.0,
+      "source": "readme_securiace_whmcs_pdf_document_templates",
+      "target": "readme_license",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L20",
+      "weight": 1.0,
+      "source": "readme_securiace_whmcs_pdf_document_templates",
+      "target": "readme_modern_invoice_behavior",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L58",
+      "weight": 1.0,
+      "source": "readme_securiace_whmcs_pdf_document_templates",
+      "target": "readme_modern_quote_behavior",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L190",
+      "weight": 1.0,
+      "source": "readme_securiace_whmcs_pdf_document_templates",
+      "target": "readme_protected_configuration",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L284",
+      "weight": 1.0,
+      "source": "readme_securiace_whmcs_pdf_document_templates",
+      "target": "readme_release_streams",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L305",
+      "weight": 1.0,
+      "source": "readme_securiace_whmcs_pdf_document_templates",
+      "target": "readme_security_and_privacy",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L207",
+      "weight": 1.0,
+      "source": "readme_securiace_whmcs_pdf_document_templates",
+      "target": "readme_verification",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/HANDOFF.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "docs_handoff",
+      "target": "docs_handoff_living_handoff",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/HANDOFF.md",
+      "source_location": "L13",
+      "weight": 1.0,
+      "source": "docs_handoff_living_handoff",
+      "target": "docs_handoff_contract_markers",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/HANDOFF.md",
+      "source_location": "L41",
+      "weight": 1.0,
+      "source": "docs_handoff_living_handoff",
+      "target": "docs_handoff_current_environment_handoff",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/HANDOFF.md",
+      "source_location": "L169",
+      "weight": 1.0,
+      "source": "docs_handoff_living_handoff",
+      "target": "docs_handoff_deployment_handoff",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/HANDOFF.md",
+      "source_location": "L210",
+      "weight": 1.0,
+      "source": "docs_handoff_living_handoff",
+      "target": "docs_handoff_future_gst_transition",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/HANDOFF.md",
+      "source_location": "L26",
+      "weight": 1.0,
+      "source": "docs_handoff_living_handoff",
+      "target": "docs_handoff_invoice_download_incident_contract",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/HANDOFF.md",
+      "source_location": "L238",
+      "weight": 1.0,
+      "source": "docs_handoff_living_handoff",
+      "target": "docs_handoff_next_maintainer_start",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/HANDOFF.md",
+      "source_location": "L153",
+      "weight": 1.0,
+      "source": "docs_handoff_living_handoff",
+      "target": "docs_handoff_pull_request_maintenance",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/HANDOFF.md",
+      "source_location": "L136",
+      "weight": 1.0,
+      "source": "docs_handoff_living_handoff",
+      "target": "docs_handoff_required_handoff_payload",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/HANDOFF.md",
+      "source_location": "L197",
+      "weight": 1.0,
+      "source": "docs_handoff_living_handoff",
+      "target": "docs_handoff_rollback_handoff",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/HANDOFF.md",
+      "source_location": "L69",
+      "weight": 1.0,
+      "source": "docs_handoff_living_handoff",
+      "target": "docs_handoff_sources_of_truth",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/HANDOFF.md",
+      "source_location": "L85",
+      "weight": 1.0,
+      "source": "docs_handoff_living_handoff",
+      "target": "docs_handoff_stable_behavior_that_must_not_regress",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/HANDOFF.md",
+      "source_location": "L227",
+      "weight": 1.0,
+      "source": "docs_handoff_living_handoff",
+      "target": "docs_handoff_staleness_safeguards",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/HANDOFF.md",
+      "source_location": "L119",
+      "weight": 1.0,
+      "source": "docs_handoff_living_handoff",
+      "target": "docs_handoff_update_triggers",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/INVOICE-NAMING-AND-NUMBERING.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "docs_invoice_naming_and_numbering",
+      "target": "docs_invoice_naming_and_numbering_invoice_naming_and_numbering_decision",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/INVOICE-NAMING-AND-NUMBERING.md",
+      "source_location": "L41",
+      "weight": 1.0,
+      "source": "docs_invoice_naming_and_numbering_invoice_naming_and_numbering_decision",
+      "target": "docs_invoice_naming_and_numbering_approved_whmcs_settings",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/INVOICE-NAMING-AND-NUMBERING.md",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "docs_invoice_naming_and_numbering_invoice_naming_and_numbering_decision",
+      "target": "docs_invoice_naming_and_numbering_decision",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/INVOICE-NAMING-AND-NUMBERING.md",
+      "source_location": "L57",
+      "weight": 1.0,
+      "source": "docs_invoice_naming_and_numbering_invoice_naming_and_numbering_decision",
+      "target": "docs_invoice_naming_and_numbering_gst_number_rule_and_format_capacity",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/INVOICE-NAMING-AND-NUMBERING.md",
+      "source_location": "L79",
+      "weight": 1.0,
+      "source": "docs_invoice_naming_and_numbering_invoice_naming_and_numbering_decision",
+      "target": "docs_invoice_naming_and_numbering_gst_registration_transition_gate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/INVOICE-NAMING-AND-NUMBERING.md",
+      "source_location": "L102",
+      "weight": 1.0,
+      "source": "docs_invoice_naming_and_numbering_invoice_naming_and_numbering_decision",
+      "target": "docs_invoice_naming_and_numbering_primary_sources",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/INVOICE-NAMING-AND-NUMBERING.md",
+      "source_location": "L30",
+      "weight": 1.0,
+      "source": "docs_invoice_naming_and_numbering_invoice_naming_and_numbering_decision",
+      "target": "docs_invoice_naming_and_numbering_why_the_references_differ",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/INVOICE-UX-AUDIT.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "docs_invoice_ux_audit",
+      "target": "docs_invoice_ux_audit_invoice_ui_ux_and_runtime_audit",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/INVOICE-UX-AUDIT.md",
+      "source_location": "L126",
+      "weight": 1.0,
+      "source": "docs_invoice_ux_audit_invoice_ui_ux_and_runtime_audit",
+      "target": "docs_invoice_ux_audit_acceptance_matrix_for_the_whmcs_phase",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/INVOICE-UX-AUDIT.md",
+      "source_location": "L93",
+      "weight": 1.0,
+      "source": "docs_invoice_ux_audit_invoice_ui_ux_and_runtime_audit",
+      "target": "docs_invoice_ux_audit_design_contract_for_the_preview",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/INVOICE-UX-AUDIT.md",
+      "source_location": "L142",
+      "weight": 1.0,
+      "source": "docs_invoice_ux_audit_invoice_ui_ux_and_runtime_audit",
+      "target": "docs_invoice_ux_audit_implementation_and_renderer_findings",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/INVOICE-UX-AUDIT.md",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "docs_invoice_ux_audit_invoice_ui_ux_and_runtime_audit",
+      "target": "docs_invoice_ux_audit_outcome",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/INVOICE-UX-AUDIT.md",
+      "source_location": "L207",
+      "weight": 1.0,
+      "source": "docs_invoice_ux_audit_invoice_ui_ux_and_runtime_audit",
+      "target": "docs_invoice_ux_audit_production_acceptance_boundary",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/INVOICE-UX-AUDIT.md",
+      "source_location": "L21",
+      "weight": 1.0,
+      "source": "docs_invoice_ux_audit_invoice_ui_ux_and_runtime_audit",
+      "target": "docs_invoice_ux_audit_screenshot_audit",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/INVOICE-UX-AUDIT.md",
+      "source_location": "L37",
+      "weight": 1.0,
+      "source": "docs_invoice_ux_audit_invoice_ui_ux_and_runtime_audit",
+      "target": "docs_invoice_ux_audit_source_code_audit",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/INVOICE-UX-AUDIT.md",
+      "source_location": "L108",
+      "weight": 1.0,
+      "source": "docs_invoice_ux_audit_invoice_ui_ux_and_runtime_audit",
+      "target": "docs_invoice_ux_audit_whmcs_implementation_constraints",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/INVOICE-UX-AUDIT.md",
+      "source_location": "L80",
+      "weight": 1.0,
+      "source": "docs_invoice_ux_audit_source_code_audit",
+      "target": "docs_invoice_ux_audit_information_and_interaction_rules",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/INVOICE-UX-AUDIT.md",
+      "source_location": "L39",
+      "weight": 1.0,
+      "source": "docs_invoice_ux_audit_source_code_audit",
+      "target": "docs_invoice_ux_audit_runtime_and_data_integrity",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/PDF-SNAPSHOT-OPERATIONS.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "docs_pdf_snapshot_operations",
+      "target": "docs_pdf_snapshot_operations_immutable_issuer_snapshots",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/PDF-SNAPSHOT-OPERATIONS.md",
+      "source_location": "L23",
+      "weight": 1.0,
+      "source": "docs_pdf_snapshot_operations_immutable_issuer_snapshots",
+      "target": "docs_pdf_snapshot_operations_data_boundary",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/PDF-SNAPSHOT-OPERATIONS.md",
+      "source_location": "L37",
+      "weight": 1.0,
+      "source": "docs_pdf_snapshot_operations_immutable_issuer_snapshots",
+      "target": "docs_pdf_snapshot_operations_installation",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/PDF-SNAPSHOT-OPERATIONS.md",
+      "source_location": "L51",
+      "weight": 1.0,
+      "source": "docs_pdf_snapshot_operations_immutable_issuer_snapshots",
+      "target": "docs_pdf_snapshot_operations_recovery",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/PDF-SUITE-COMPATIBILITY.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "docs_pdf_suite_compatibility",
+      "target": "docs_pdf_suite_compatibility_whmcs_pdf_suite_compatibility_and_deployment_record",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/PDF-SUITE-COMPATIBILITY.md",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "docs_pdf_suite_compatibility_whmcs_pdf_suite_compatibility_and_deployment_record",
+      "target": "docs_pdf_suite_compatibility_controlled_pdf_surface",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/PDF-SUITE-COMPATIBILITY.md",
+      "source_location": "L151",
+      "weight": 1.0,
+      "source": "docs_pdf_suite_compatibility_whmcs_pdf_suite_compatibility_and_deployment_record",
+      "target": "docs_pdf_suite_compatibility_release_branch_policy",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/PDF-SUITE-COMPATIBILITY.md",
+      "source_location": "L75",
+      "weight": 1.0,
+      "source": "docs_pdf_suite_compatibility_whmcs_pdf_suite_compatibility_and_deployment_record",
+      "target": "docs_pdf_suite_compatibility_rendering_and_compatibility_decisions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/PDF-SUITE-COMPATIBILITY.md",
+      "source_location": "L27",
+      "weight": 1.0,
+      "source": "docs_pdf_suite_compatibility_whmcs_pdf_suite_compatibility_and_deployment_record",
+      "target": "docs_pdf_suite_compatibility_source_contract_findings",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/PDF-SUITE-COMPATIBILITY.md",
+      "source_location": "L125",
+      "weight": 1.0,
+      "source": "docs_pdf_suite_compatibility_whmcs_pdf_suite_compatibility_and_deployment_record",
+      "target": "docs_pdf_suite_compatibility_standard_production_deployment",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/PDF-SUITE-COMPATIBILITY.md",
+      "source_location": "L107",
+      "weight": 1.0,
+      "source": "docs_pdf_suite_compatibility_whmcs_pdf_suite_compatibility_and_deployment_record",
+      "target": "docs_pdf_suite_compatibility_verification_matrix",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/PDF-SUITE-COMPATIBILITY.md",
+      "source_location": "L29",
+      "weight": 1.0,
+      "source": "docs_pdf_suite_compatibility_source_contract_findings",
+      "target": "docs_pdf_suite_compatibility_invoice",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/PDF-SUITE-COMPATIBILITY.md",
+      "source_location": "L45",
+      "weight": 1.0,
+      "source": "docs_pdf_suite_compatibility_source_contract_findings",
+      "target": "docs_pdf_suite_compatibility_quote",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "plans/001-dynamic-whmcs-pdf-suite.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "plans_001_dynamic_whmcs_pdf_suite",
+      "target": "plans_001_dynamic_whmcs_pdf_suite_dynamic_whmcs_pdf_suite_modernization",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "plans/001-dynamic-whmcs-pdf-suite.md",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "plans_001_dynamic_whmcs_pdf_suite_dynamic_whmcs_pdf_suite_modernization",
+      "target": "plans_001_dynamic_whmcs_pdf_suite_architectural_decision",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "plans/001-dynamic-whmcs-pdf-suite.md",
+      "source_location": "L71",
+      "weight": 1.0,
+      "source": "plans_001_dynamic_whmcs_pdf_suite_dynamic_whmcs_pdf_suite_modernization",
+      "target": "plans_001_dynamic_whmcs_pdf_suite_document_lifecycle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "plans/001-dynamic-whmcs-pdf-suite.md",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "plans_001_dynamic_whmcs_pdf_suite_dynamic_whmcs_pdf_suite_modernization",
+      "target": "plans_001_dynamic_whmcs_pdf_suite_objective",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "plans/001-dynamic-whmcs-pdf-suite.md",
+      "source_location": "L47",
+      "weight": 1.0,
+      "source": "plans_001_dynamic_whmcs_pdf_suite_dynamic_whmcs_pdf_suite_modernization",
+      "target": "plans_001_dynamic_whmcs_pdf_suite_parser_contract",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "plans/001-dynamic-whmcs-pdf-suite.md",
+      "source_location": "L141",
+      "weight": 1.0,
+      "source": "plans_001_dynamic_whmcs_pdf_suite_dynamic_whmcs_pdf_suite_modernization",
+      "target": "plans_001_dynamic_whmcs_pdf_suite_production_deployment",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "plans/001-dynamic-whmcs-pdf-suite.md",
+      "source_location": "L60",
+      "weight": 1.0,
+      "source": "plans_001_dynamic_whmcs_pdf_suite_dynamic_whmcs_pdf_suite_modernization",
+      "target": "plans_001_dynamic_whmcs_pdf_suite_rendering_policies",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "plans/001-dynamic-whmcs-pdf-suite.md",
+      "source_location": "L35",
+      "weight": 1.0,
+      "source": "plans_001_dynamic_whmcs_pdf_suite_dynamic_whmcs_pdf_suite_modernization",
+      "target": "plans_001_dynamic_whmcs_pdf_suite_source_precedence",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "plans/001-dynamic-whmcs-pdf-suite.md",
+      "source_location": "L130",
+      "weight": 1.0,
+      "source": "plans_001_dynamic_whmcs_pdf_suite_dynamic_whmcs_pdf_suite_modernization",
+      "target": "plans_001_dynamic_whmcs_pdf_suite_verification_gates",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "plans/001-dynamic-whmcs-pdf-suite.md",
+      "source_location": "L86",
+      "weight": 1.0,
+      "source": "plans_001_dynamic_whmcs_pdf_suite_dynamic_whmcs_pdf_suite_modernization",
+      "target": "plans_001_dynamic_whmcs_pdf_suite_work_packages",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "plans/001-dynamic-whmcs-pdf-suite.md",
+      "source_location": "L88",
+      "weight": 1.0,
+      "source": "plans_001_dynamic_whmcs_pdf_suite_work_packages",
+      "target": "plans_001_dynamic_whmcs_pdf_suite_1_shared_resolver",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "plans/001-dynamic-whmcs-pdf-suite.md",
+      "source_location": "L95",
+      "weight": 1.0,
+      "source": "plans_001_dynamic_whmcs_pdf_suite_work_packages",
+      "target": "plans_001_dynamic_whmcs_pdf_suite_2_invoice_integration",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "plans/001-dynamic-whmcs-pdf-suite.md",
+      "source_location": "L107",
+      "weight": 1.0,
+      "source": "plans_001_dynamic_whmcs_pdf_suite_work_packages",
+      "target": "plans_001_dynamic_whmcs_pdf_suite_3_quote_and_batch_profiles",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "plans/001-dynamic-whmcs-pdf-suite.md",
+      "source_location": "L114",
+      "weight": 1.0,
+      "source": "plans_001_dynamic_whmcs_pdf_suite_work_packages",
+      "target": "plans_001_dynamic_whmcs_pdf_suite_4_lifecycle_and_numbering",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "plans/001-dynamic-whmcs-pdf-suite.md",
+      "source_location": "L122",
+      "weight": 1.0,
+      "source": "plans_001_dynamic_whmcs_pdf_suite_work_packages",
+      "target": "plans_001_dynamic_whmcs_pdf_suite_5_snapshots_and_diagnostics",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "plans/README.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "plans_readme",
+      "target": "plans_readme_whmcs_pdf_modernization_plan",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "plans/README.md",
+      "source_location": "L12",
+      "weight": 1.0,
+      "source": "plans_readme_whmcs_pdf_modernization_plan",
+      "target": "plans_readme_delivery_stack",
+      "confidence_score": 1.0
+    }
+  ],
+  "hyperedges": [],
+  "built_at_commit": "4d15d503214b93c06606771e9715d72dbb42f39f"
+}
