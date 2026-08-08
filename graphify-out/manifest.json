@@ -10,7 +10,7 @@
     "semantic_hash": ""
   },
   "modules/addons/securiace_pdf_profile/lib/SnapshotService.php": {
-    "mtime": 1786131296.0791323,
+    "mtime": 1786166149.9254026,
     "ast_hash": "ce648786a61316e7c4bc5118d62fc6de",
     "semantic_hash": ""
   },
@@ -55,18 +55,18 @@
     "semantic_hash": ""
   },
   "tests/handoff_contract_test.php": {
-    "mtime": 1786165178.182032,
+    "mtime": 1786166149.9262102,
     "ast_hash": "067e840e1866e7cf0134d7baaf00d38d",
     "semantic_hash": ""
   },
   "tests/modern_invoice_design_contract_test.php": {
-    "mtime": 1786165173.6743586,
-    "ast_hash": "df583bdd69639beda75cdb956f9c39ee",
+    "mtime": 1786171629.0830553,
+    "ast_hash": "18ff37f1877c27662a6e68902366f536",
     "semantic_hash": ""
   },
   "tests/modern_quote_template_contract_test.php": {
-    "mtime": 1786165173.6747093,
-    "ast_hash": "31c5d5d226611c30d5a3bc78b0989a3a",
+    "mtime": 1786168968.3417861,
+    "ast_hash": "1244011e209f8f906d9627c0402537f1",
     "semantic_hash": ""
   },
   "tests/pdf_profile_resolver_test.php": {
@@ -90,12 +90,12 @@
     "semantic_hash": ""
   },
   "tests/render_modern_invoice_fixtures.php": {
-    "mtime": 1786165059.3520467,
+    "mtime": 1786166149.9276023,
     "ast_hash": "61335a1281d9431d5ca9222acfede418",
     "semantic_hash": ""
   },
   "tests/render_modern_quote_fixtures.php": {
-    "mtime": 1786165333.9116442,
+    "mtime": 1786166149.927973,
     "ast_hash": "c44ebd592b218fff08231a28082f3c9b",
     "semantic_hash": ""
   },
@@ -115,18 +115,18 @@
     "semantic_hash": ""
   },
   ".github/workflows/validate.yml": {
-    "mtime": 1786009175.947114,
-    "ast_hash": "3e83e541042ee13fc782293d7e412e56",
+    "mtime": 1786172769.0874796,
+    "ast_hash": "51fbb460493950ff89e4992d5bc32959",
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1786009175.9476013,
-    "ast_hash": "5ba78b50c33a9312f643f83ef715fd4b",
+    "mtime": 1786172769.0868862,
+    "ast_hash": "6eec177869b57bd69d4839b78adef17a",
     "semantic_hash": ""
   },
   "docs/HANDOFF.md": {
-    "mtime": 1786165173.6751292,
-    "ast_hash": "5869dd1e769c51d66d7657835ab36499",
+    "mtime": 1786172769.0871491,
+    "ast_hash": "76c3be70e89db7a0aaca21ded987813e",
     "semantic_hash": ""
   },
   "docs/INVOICE-NAMING-AND-NUMBERING.md": {
@@ -167,6 +167,21 @@
   "quote-preview/index.html": {
     "mtime": 1786009175.949021,
     "ast_hash": "411527fcc123e6fc0e79cd35cd1fdbc8",
+    "semantic_hash": ""
+  },
+  "tests/child_theme_package_contract_test.php": {
+    "mtime": 1786172769.0865448,
+    "ast_hash": "2724bb6e0f20cb57e984b48ad69ae63f",
+    "semantic_hash": ""
+  },
+  "docs/UPGRADE-SAFE-THEME-OPERATIONS.md": {
+    "mtime": 1786172769.0866623,
+    "ast_hash": "f2c3c139d63be49e7eaffe60a19c4e3d",
+    "semantic_hash": ""
+  },
+  "templates/securiace/theme.yaml": {
+    "mtime": 1786172769.0864,
+    "ast_hash": "bb91c2c3b4a78a8586d2c4adc50c8798",
     "semantic_hash": ""
   }
 }
