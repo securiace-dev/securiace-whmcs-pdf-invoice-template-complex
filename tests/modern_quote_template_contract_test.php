@@ -43,6 +43,10 @@ $requiredContracts = array(
     "'protected-config-include-failed'",
     "'profile-helper-runtime-failed'",
     '$securiaceQuoteNormalizeIssuerProfile',
+    '$securiaceQuoteIsTcpdfDeprecation',
+    '$securiaceQuotePreviousErrorHandler',
+    'restore_error_handler()',
+    '$securiaceQuoteHttpStatus >= 500',
 );
 foreach ($requiredContracts as $requiredContract) {
     if (strpos($template, $requiredContract) === false) {
