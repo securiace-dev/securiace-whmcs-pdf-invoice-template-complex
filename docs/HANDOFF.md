@@ -40,6 +40,12 @@ exercise snapshot consumption.
 
 ## Current environment handoff
 
+The repository now ships the approved PDF overrides in the minimal
+`templates/securiace` child theme. Production remains on its recorded active
+theme until an operator installs, validates, and selects the child theme using
+`docs/UPGRADE-SAFE-THEME-OPERATIONS.md`; repository packaging alone is not
+evidence of production activation.
+
 At this handoff closure, production has been verified with:
 
 - `securiace-pdf-profile.php` copied into the WHMCS `includes` area and readable
@@ -79,6 +85,7 @@ issuer/payment identifiers or snapshot counts here.
 | Document lifecycle | `docs/INVOICE-NAMING-AND-NUMBERING.md` | Informal invoice-title convention |
 | Snapshot operations | `docs/PDF-SNAPSHOT-OPERATIONS.md` | Direct database edits |
 | Supported PDF surfaces | `scripts/audit-whmcs-pdf-surface.php` | Memory of an older WHMCS release |
+| Upgrade-safe theme package | `templates/securiace/` and `tests/child_theme_package_contract_test.php` | Files copied into a WHMCS-owned default theme |
 | Integrated release | Green `main` and maintained `release/*` refs | Unreviewed feature branch |
 | Deployment and rollback evidence | Sanitized operator audit ledger and dated server backup | Mutable image/tag or verbal confirmation |
 

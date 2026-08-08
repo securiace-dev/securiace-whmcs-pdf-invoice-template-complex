@@ -1,0 +1,5 @@
+name: "Securiace PDF Documents"
+description: "Upgrade-safe Securiace invoice and quote PDF overrides"
+author: "Securiace"
+config:
+  parent: twenty-one
