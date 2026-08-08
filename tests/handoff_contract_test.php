@@ -24,6 +24,7 @@ foreach ($paths as $name => $path) {
 $requiredHandoffContracts = array(
     '# Living handoff',
     '## Current environment handoff',
+    '## Invoice download incident contract',
     'securiace-pdf-profile.php` copied into the WHMCS `includes` area',
     'Securiace PDF Profile Snapshots',
     '## Sources of truth',
@@ -37,6 +38,7 @@ $requiredHandoffContracts = array(
     '## Staleness safeguards',
     'Handoff-Impact: none - <specific reason>',
     'must never be frozen',
+    'after a snapshot row exists',
 );
 foreach ($requiredHandoffContracts as $contract) {
     if (strpos($sources['handoff'], $contract) === false) {
