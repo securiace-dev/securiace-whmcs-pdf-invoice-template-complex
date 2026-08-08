@@ -54,6 +54,10 @@ $requiredContracts = array(
     "'snapshot-validator-runtime-failed'",
     "'upi-qr-render-failed'",
     '$securiaceModernNormalizeIssuerProfile',
+    '$securiaceModernIsTcpdfDeprecation',
+    '$securiaceModernPreviousErrorHandler',
+    'restore_error_handler()',
+    '$securiaceModernHttpStatus >= 500',
 );
 
 foreach ($requiredContracts as $requiredContract) {
