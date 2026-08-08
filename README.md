@@ -116,16 +116,15 @@ handoff.
 
 ## Install the modern invoice template
 
-1. Back up the active system-theme template, usually:
+1. Back up the database and active `templates` directory. Do not overwrite the
+   WHMCS-owned `twenty-one` theme.
 
-   ```text
-   WHMCS_ROOT/templates/twenty-one/invoicepdf.tpl
-   ```
-
-2. Copy `invoicepdf-modern.tpl` into that directory as `invoicepdf.tpl`. Copy
-   `securiace-pdf-profile.php` and `securiace-pdf-snapshot.php` to
-   `WHMCS_ROOT/includes/`. WHMCS selects the exact template filename; the shared
-   helpers fail closed if a partial deployment omits them.
+2. Copy `templates/securiace/` to `WHMCS_ROOT/templates/securiace/`. This
+   minimal child theme inherits from `twenty-one` and owns the invoice and quote
+   PDF overrides, keeping them outside directories overwritten by WHMCS
+   upgrades. Copy `securiace-pdf-profile.php` and
+   `securiace-pdf-snapshot.php` to `WHMCS_ROOT/includes/`. The shared helpers
+   fail closed if a partial deployment omits them.
 
 3. Copy `config/securiace-invoice-config.example.php` to the protected runtime
    path below and replace every example value:
@@ -163,29 +162,33 @@ handoff.
    the company name replaces the logo, and absent signature/stamp images do not
    stop PDF generation.
 
-7. Generate and download one paid and one unpaid test invoice in staging. Also
-   send each as an email attachment before production activation.
+7. In WHMCS General Settings, select **Securiace PDF Documents** as the System
+   Theme and clear the template cache. Generate and download one paid and one
+   unpaid test invoice in staging, then send each as an email attachment before
+   production activation.
 
-To roll back the rendering layer, restore the backed-up `invoicepdf.tpl`. The
-addon never edits WHMCS core and retains historical snapshot rows when it is
-deactivated.
+To roll back the rendering layer, select the previous System Theme and clear the
+template cache. The parent theme remains untouched. The addon never edits WHMCS
+core and retains historical snapshot rows when it is deactivated.
 
 ## Install the modern quote template
 
-1. Back up the active system-theme file, usually
-   `WHMCS_ROOT/templates/twenty-one/quotepdf.tpl`.
-2. Copy `quotepdf-modern.tpl` to that directory as `quotepdf.tpl`, and ensure
-   `WHMCS_ROOT/includes/securiace-pdf-profile.php` is present. The quote consumes
-   only the resolved identity and registration projection; payment data is
-   discarded.
+1. Install and activate the `templates/securiace` child theme as described
+   above; its packaged `quotepdf.tpl` is synchronized with
+   `quotepdf-modern.tpl` by CI.
+2. Ensure `WHMCS_ROOT/includes/securiace-pdf-profile.php` is present. The quote
+   consumes only the resolved identity and registration projection; payment
+   data is discarded.
 3. Generate a quote for a registered client and a guest recipient. Download each
    PDF, email one through WHMCS, and convert an accepted test quote to an invoice.
 4. Confirm that proposal formatting, line-item discounts, one/two taxes, totals,
    and validity match the WHMCS admin record; confirm internal customer notes are
    absent from the PDF.
 
-Rollback is file-only: restore the backed-up `quotepdf.tpl`. The custom template
-does not require a database migration, hook, core edit, or custom font install.
+Rollback is a System Theme switch plus template-cache clear. The custom template
+does not require a database migration, core edit, or custom font install. See
+[`docs/UPGRADE-SAFE-THEME-OPERATIONS.md`](docs/UPGRADE-SAFE-THEME-OPERATIONS.md)
+for the staging, upgrade, acceptance, and rollback gates.
 
 ## Protected configuration
 

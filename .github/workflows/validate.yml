@@ -49,6 +49,8 @@ jobs:
             invoicepdf.tpl \
             invoicepdf-modern.tpl \
             quotepdf-modern.tpl \
+            templates/securiace/invoicepdf.tpl \
+            templates/securiace/quotepdf.tpl \
             securiace-pdf-profile.php \
             securiace-pdf-snapshot.php \
             config/securiace-invoice-config.example.php \
@@ -59,6 +61,7 @@ jobs:
             scripts/repair-whmcs-invoice-template.php \
             tests/modern_invoice_design_contract_test.php \
             tests/modern_quote_template_contract_test.php \
+            tests/child_theme_package_contract_test.php \
             tests/addon_module_contract_test.php \
             tests/handoff_contract_test.php \
             tests/pdf_profile_resolver_test.php \
@@ -81,6 +84,7 @@ jobs:
           php tests/quote_preview_contract_test.php
           php tests/modern_invoice_design_contract_test.php
           php tests/modern_quote_template_contract_test.php
+          php tests/child_theme_package_contract_test.php
           php tests/addon_module_contract_test.php
           php tests/handoff_contract_test.php
           php tests/pdf_profile_resolver_test.php
@@ -130,7 +134,7 @@ jobs:
               handoff_changed=true
             fi
             case "$path" in
-              invoicepdf.tpl|invoicepdf-modern.tpl|quotepdf-modern.tpl|securiace-pdf-*.php|config/*|modules/addons/securiace_pdf_profile/*|scripts/*|.github/workflows/*)
+              invoicepdf.tpl|invoicepdf-modern.tpl|quotepdf-modern.tpl|templates/securiace/*|securiace-pdf-*.php|config/*|modules/addons/securiace_pdf_profile/*|scripts/*|.github/workflows/*)
                 protected_changed=true
                 ;;
             esac
