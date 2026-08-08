@@ -11,6 +11,44 @@
  * updates the quote to Delivered, so a stage badge can be factually stale.
  */
 
+$securiaceQuoteIsTcpdfDeprecation = static function ($error) {
+    if (!is_array($error) || !isset($error['type'], $error['file'])) {
+        return false;
+    }
+
+    $deprecationTypes = array(E_DEPRECATED);
+    if (defined('E_USER_DEPRECATED')) {
+        $deprecationTypes[] = E_USER_DEPRECATED;
+    }
+
+    return in_array($error['type'], $deprecationTypes, true)
+        && stripos(basename((string) $error['file']), 'tcpdf') === 0;
+};
+$securiaceQuotePreviousErrorHandler = null;
+$securiaceQuotePreviousErrorHandler = set_error_handler(
+    static function ($severity, $message, $file, $line) use (
+        &$securiaceQuotePreviousErrorHandler,
+        $securiaceQuoteIsTcpdfDeprecation
+    ) {
+        if ($securiaceQuoteIsTcpdfDeprecation(array(
+            'type' => $severity,
+            'file' => $file,
+        ))) {
+            return true;
+        }
+        if (is_callable($securiaceQuotePreviousErrorHandler)) {
+            return call_user_func(
+                $securiaceQuotePreviousErrorHandler,
+                $severity,
+                $message,
+                $file,
+                $line
+            );
+        }
+        return false;
+    }
+);
+
 $securiaceQuoteDefaults = array(
     'company_email' => '',
     'company_phone' => '',
@@ -1343,3 +1381,13 @@ for ($page = $securiaceQuoteStartPage; $page <= $securiaceQuoteFinalPage; ++$pag
 }
 $pdf->SetAutoPageBreak($securiaceQuotePreviousAutoPageBreak, $securiaceQuotePreviousBreakMargin);
 $pdf->setPage($securiaceQuoteFinalPage);
+
+restore_error_handler();
+$securiaceQuoteLastPhpError = error_get_last();
+$securiaceQuoteHttpStatus = function_exists('http_response_code') ? http_response_code() : false;
+if (is_int($securiaceQuoteHttpStatus)
+    && $securiaceQuoteHttpStatus >= 500
+    && $securiaceQuoteIsTcpdfDeprecation($securiaceQuoteLastPhpError)
+) {
+    http_response_code(200);
+}
