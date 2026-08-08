@@ -23,6 +23,21 @@ The CI handoff contract test compares the addon and snapshot markers above with
 their source definitions. A version or schema change must update this document
 in the same PR.
 
+## Invoice download incident contract
+
+The August 2026 invoice-download incident established that a green synthetic
+render is insufficient when a newly deployed path depends on production rows or
+runtime helpers. Invoice and quote templates must contain failures from the
+protected config, shared profile helper, snapshot validator, optional artwork,
+and TCPDF barcode renderer. A failure in any optional integration must produce a
+safe fallback PDF plus a redacted diagnostic code, never an HTTP 5xx.
+
+Every snapshot-affecting deployment must render at least one controlled final
+invoice after a snapshot row exists. Deployment evidence must record hashes for
+the active invoice template, quote template, profile helper, snapshot validator,
+and addon version/schema. Addon activation or a zero-row health screen does not
+exercise snapshot consumption.
+
 ## Current environment handoff
 
 At this handoff closure, production has been verified with:
@@ -98,6 +113,8 @@ issuer/payment identifiers or snapshot counts here.
 - Snapshot payloads contain immutable issuer/document identity only. They never
   contain bank, UPI, client, transaction, credential, or verification-secret
   values.
+- Invalid config/helper/snapshot results and optional QR/artwork failures degrade
+  to safe text/identity output and retain only redacted diagnostic codes.
 
 ## Update triggers
 
