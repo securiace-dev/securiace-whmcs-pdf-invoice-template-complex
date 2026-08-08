@@ -11,6 +11,44 @@
  *   ROOTDIR/includes/securiace-invoice-config.php
  */
 
+$securiaceModernIsTcpdfDeprecation = static function ($error) {
+    if (!is_array($error) || !isset($error['type'], $error['file'])) {
+        return false;
+    }
+
+    $deprecationTypes = array(E_DEPRECATED);
+    if (defined('E_USER_DEPRECATED')) {
+        $deprecationTypes[] = E_USER_DEPRECATED;
+    }
+
+    return in_array($error['type'], $deprecationTypes, true)
+        && stripos(basename((string) $error['file']), 'tcpdf') === 0;
+};
+$securiaceModernPreviousErrorHandler = null;
+$securiaceModernPreviousErrorHandler = set_error_handler(
+    static function ($severity, $message, $file, $line) use (
+        &$securiaceModernPreviousErrorHandler,
+        $securiaceModernIsTcpdfDeprecation
+    ) {
+        if ($securiaceModernIsTcpdfDeprecation(array(
+            'type' => $severity,
+            'file' => $file,
+        ))) {
+            return true;
+        }
+        if (is_callable($securiaceModernPreviousErrorHandler)) {
+            return call_user_func(
+                $securiaceModernPreviousErrorHandler,
+                $severity,
+                $message,
+                $file,
+                $line
+            );
+        }
+        return false;
+    }
+);
+
 // -------------------------------------------------------------------------
 // Configuration and collision-safe local helpers
 // -------------------------------------------------------------------------
@@ -2616,3 +2654,13 @@ for ($securiaceModernPage = $securiaceModernStartPage; $securiaceModernPage <= $
 
 $pdf->SetAutoPageBreak($securiaceModernPreviousAutoPageBreak, $securiaceModernPreviousBreakMargin);
 $pdf->setPage($securiaceModernFinalPage);
+
+restore_error_handler();
+$securiaceModernLastPhpError = error_get_last();
+$securiaceModernHttpStatus = function_exists('http_response_code') ? http_response_code() : false;
+if (is_int($securiaceModernHttpStatus)
+    && $securiaceModernHttpStatus >= 500
+    && $securiaceModernIsTcpdfDeprecation($securiaceModernLastPhpError)
+) {
+    http_response_code(200);
+}
