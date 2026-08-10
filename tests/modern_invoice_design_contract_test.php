@@ -58,6 +58,7 @@ $requiredContracts = array(
     '$securiaceModernPreviousErrorHandler',
     'restore_error_handler()',
     '$securiaceModernHttpStatus >= 500',
+    'A completed invoice page must not inherit',
 );
 
 foreach ($requiredContracts as $requiredContract) {

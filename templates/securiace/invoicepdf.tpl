@@ -2656,11 +2656,11 @@ $pdf->SetAutoPageBreak($securiaceModernPreviousAutoPageBreak, $securiaceModernPr
 $pdf->setPage($securiaceModernFinalPage);
 
 restore_error_handler();
-$securiaceModernLastPhpError = error_get_last();
+// Whoops may already have set HTTP 500 during init for unrelated warnings
+// (for example duplicate hook constants). TCPDF may also leave E_DEPRECATED
+// noise after this include returns. A completed invoice page must not inherit
+// that poison: recover 5xx whenever this template finished rendering.
 $securiaceModernHttpStatus = function_exists('http_response_code') ? http_response_code() : false;
-if (is_int($securiaceModernHttpStatus)
-    && $securiaceModernHttpStatus >= 500
-    && $securiaceModernIsTcpdfDeprecation($securiaceModernLastPhpError)
-) {
+if (is_int($securiaceModernHttpStatus) && $securiaceModernHttpStatus >= 500) {
     http_response_code(200);
 }

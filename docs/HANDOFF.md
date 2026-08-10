@@ -32,6 +32,14 @@ protected config, shared profile helper, snapshot validator, optional artwork,
 and TCPDF barcode renderer. A failure in any optional integration must produce a
 safe fallback PDF plus a redacted diagnostic code, never an HTTP 5xx.
 
+A later regression showed that Whoops can set HTTP 500 during WHMCS init for
+unrelated warnings (for example duplicate module hook constants) before any PDF
+template runs. TCPDF `E_DEPRECATED` noise after template return does not always
+re-set status, so recovering 5xx only when `error_get_last()` is a TCPDF
+deprecation is insufficient. Completed invoice and quote templates must recover
+HTTP 200 whenever rendering finished successfully, independent of the last PHP
+error identity, while still suppressing TCPDF deprecations inside the template.
+
 Every snapshot-affecting deployment must render at least one controlled final
 invoice after a snapshot row exists. Deployment evidence must record hashes for
 the active invoice template, quote template, profile helper, snapshot validator,

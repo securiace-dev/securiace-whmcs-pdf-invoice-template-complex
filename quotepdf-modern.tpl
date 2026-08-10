@@ -1383,11 +1383,11 @@ $pdf->SetAutoPageBreak($securiaceQuotePreviousAutoPageBreak, $securiaceQuotePrev
 $pdf->setPage($securiaceQuoteFinalPage);
 
 restore_error_handler();
-$securiaceQuoteLastPhpError = error_get_last();
+// Whoops may already have set HTTP 500 during init for unrelated warnings
+// (for example duplicate hook constants). TCPDF may also leave E_DEPRECATED
+// noise after this include returns. A completed quote page must not inherit
+// that poison: recover 5xx whenever this template finished rendering.
 $securiaceQuoteHttpStatus = function_exists('http_response_code') ? http_response_code() : false;
-if (is_int($securiaceQuoteHttpStatus)
-    && $securiaceQuoteHttpStatus >= 500
-    && $securiaceQuoteIsTcpdfDeprecation($securiaceQuoteLastPhpError)
-) {
+if (is_int($securiaceQuoteHttpStatus) && $securiaceQuoteHttpStatus >= 500) {
     http_response_code(200);
 }
