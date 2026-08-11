@@ -27,6 +27,15 @@ retained only as historical reference.
 See [`docs/BRAND-SYSTEM.md`](docs/BRAND-SYSTEM.md) for dark/light rules and PDF
 hybrid surface policy.
 
+## Local setup (macOS — not cloud VM)
+
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/securiace-dev/securiace-whmcs-pdf-invoice-template-complex/export/securiace-whmcs-theme/scripts/local-bootstrap.sh)"
+```
+
+Creates `securiace-dev/securiace-whmcs-theme`, clones this export, runs tests.
+Remaining deploy steps: [`docs/LOCAL-HANDOFF.md`](docs/LOCAL-HANDOFF.md).
+
 ## Install (staging → production)
 
 1. Back up the WHMCS database and `templates/` directory. Do **not** overwrite
