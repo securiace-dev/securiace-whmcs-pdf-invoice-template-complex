@@ -22,11 +22,9 @@ if ! command -v gh >/dev/null 2>&1; then
 fi
 
 echo "Checking host GitHub auth (must NOT be cloud integration 'cursor' / ghs_*)..."
-if ! gh auth status 2>&1 | tee /dev/stderr | grep -qv 'Logged in to github.com account cursor'; then
-  if gh auth status 2>&1 | grep -q 'account cursor'; then
-    echo "Still using Cursor cloud integration token. Run: gh auth login" >&2
-    exit 1
-  fi
+if gh auth status 2>&1 | grep -q 'Logged in to github.com account cursor'; then
+  echo "Still using Cursor cloud integration token. Run: gh auth login" >&2
+  exit 1
 fi
 
 gh auth status >/dev/null
