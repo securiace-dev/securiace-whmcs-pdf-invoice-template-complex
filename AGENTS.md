@@ -1,16 +1,14 @@
 # Agent notes (legacy PDF repo)
 
-## GitHub auth
+**Cloud VM is closed for this work.** Use macOS local Cursor.
 
-Cloud agents use the Cursor GitHub App integration (`cursor` / `ghs_*`), not your
-macOS Keychain. Org repo create and other elevated writes fail with 403 in the
-cloud sandbox.
+Bootstrap the unified theme repo on your Mac:
 
-**Use macOS local auth via My Machines**, or a dashboard `GH_TOKEN` secret, or
-host-side publish — see the canonical guide in the unified theme repo:
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/securiace-dev/securiace-whmcs-pdf-invoice-template-complex/export/securiace-whmcs-theme/scripts/local-bootstrap.sh)"
+```
 
-`docs/CLOUD-AGENT-GITHUB-AUTH.md` in
-[securiace-whmcs-theme](https://github.com/securiace-dev/securiace-whmcs-theme)
-(also under `/home/ubuntu/securiace-whmcs-theme` on cloud VMs).
+Then continue in `~/securiace-whmcs-theme` with local Cursor.
+Checklist: `docs/LOCAL-HANDOFF.md` in that repo after bootstrap.
 
-Do not retry sandbox `gh repo create` for `securiace-dev/*`.
+This branch (`fix/pdf-http-status-init-poison`) holds the PDF HTTP 500 fix PR — merge from Mac when ready.
