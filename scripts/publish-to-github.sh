@@ -2,6 +2,7 @@
 # Publish securiace-whmcs-theme to GitHub using host-authorized gh/git.
 # Run on the macOS workstation (or any host with org-create scopes), not in
 # the Cursor cloud sandbox.
+# Prefer: bash ./scripts/local-bootstrap.sh (handles export-branch clone too).
 set -euo pipefail
 
 ORG="${SECURIACE_GH_ORG:-securiace-dev}"
@@ -15,6 +16,13 @@ if ! command -v gh >/dev/null 2>&1; then
 fi
 
 gh auth status >/dev/null
+
+canonical_url="https://github.com/${ORG}/${NAME}.git"
+origin_url="$(git remote get-url origin 2>/dev/null || true)"
+if [[ -n "${origin_url}" ]] && [[ "${origin_url}" != *"${ORG}/${NAME}"* ]]; then
+  echo "Removing non-canonical origin: ${origin_url}"
+  git remote remove origin
+fi
 
 if gh repo view "${ORG}/${NAME}" >/dev/null 2>&1; then
   echo "Remote ${ORG}/${NAME} already exists"
@@ -30,7 +38,7 @@ else
 fi
 
 if ! git remote get-url origin >/dev/null 2>&1; then
-  git remote add origin "https://github.com/${ORG}/${NAME}.git"
+  git remote add origin "${canonical_url}"
 fi
 
 git push -u origin HEAD

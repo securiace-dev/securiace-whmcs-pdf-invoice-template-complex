@@ -1,25 +1,29 @@
-# Agent notes for securiace-whmcs-theme
+# Agent notes — LOCAL macOS ONLY
 
-## GitHub auth (mandatory)
+**Stop using the Cursor cloud VM for this project.** Cloud agents authenticate
+as GitHub integration `cursor` (`ghs_*`) and cannot create org repos or deploy
+to WHMCS.
 
-Cloud VM `gh` uses the Cursor GitHub App (`cursor`, `ghs_*`). It **cannot**
-create org repos or perform other integration-blocked writes (403:
-`Resource not accessible by integration`). There is **no** socket bridge to
-macOS Keychain.
+## Where to work
 
-Full guide: [docs/CLOUD-AGENT-GITHUB-AUTH.md](docs/CLOUD-AGENT-GITHUB-AUTH.md)
-
-### Quick paths
-
-| Goal | Action |
+| Environment | Use for |
 | --- | --- |
-| Use Mac Keychain / personal `gh` | My Machines: `./scripts/setup-my-machines-worker.sh` on macOS, then pick worker in cursor.com/agents |
-| One-shot publish from Mac | `./scripts/publish-to-github.sh` (or artifact tarball in `/opt/cursor/artifacts/`) |
-| Cloud-only with elevated scopes | Add `GH_TOKEN` PAT in Cloud Agents dashboard Secrets |
+| **Cursor desktop on Mac** | All implementation, GitHub, tests, PRs |
+| **My Machines worker** (optional) | Cloud agent loop with Mac terminal/git |
+| Cloud VM | **Do not use** — export branch is read-only bootstrap source |
 
-### Rules
+## First run on Mac
 
-- Do **not** debug cloud sandbox 403s for `gh repo create`.
-- If `gh auth status` shows account `cursor`, you are in the wrong environment
-  for org writes unless `GH_TOKEN` was set via dashboard secrets.
-- Prefer host publish or My Machines over retrying integration-token auth.
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/securiace-dev/securiace-whmcs-pdf-invoice-template-complex/export/securiace-whmcs-theme/scripts/local-bootstrap.sh)"
+```
+
+Then open the install dir in Cursor: `cursor ~/securiace-whmcs-theme`
+
+Full checklist: [docs/LOCAL-HANDOFF.md](docs/LOCAL-HANDOFF.md)
+
+## Rules
+
+- Run shell scripts with **`bash ./scripts/...`** (nushell cannot execute them directly).
+- Do not retry cloud sandbox `gh repo create` 403s.
+- `gh auth status` must show your personal account (e.g. `yashodhank`), not `cursor`.
