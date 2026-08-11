@@ -30,11 +30,14 @@ hybrid surface policy.
 ## Local setup (macOS — not cloud VM)
 
 ```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/securiace-dev/securiace-whmcs-pdf-invoice-template-complex/export/securiace-whmcs-theme/scripts/local-bootstrap.sh)"
+git clone -b securiace-whmcs-theme --single-branch \
+  https://github.com/securiace-dev/securiace-whmcs-pdf-invoice-template-complex.git \
+  ~/securiace-whmcs-theme
+cd ~/securiace-whmcs-theme
+bash ./scripts/publish-to-github.sh
 ```
 
-Creates `securiace-dev/securiace-whmcs-theme`, clones this export, runs tests.
-Remaining deploy steps: [`docs/LOCAL-HANDOFF.md`](docs/LOCAL-HANDOFF.md).
+See [`docs/LOCAL-HANDOFF.md`](docs/LOCAL-HANDOFF.md).
 
 ## Install (staging → production)
 

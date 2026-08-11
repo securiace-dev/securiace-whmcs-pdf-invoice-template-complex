@@ -10,7 +10,7 @@ set -euo pipefail
 ORG="${SECURIACE_GH_ORG:-securiace-dev}"
 REPO_NAME="${SECURIACE_GH_REPO:-securiace-whmcs-theme}"
 EXPORT_SLUG="${SECURIACE_EXPORT_REPO:-securiace-dev/securiace-whmcs-pdf-invoice-template-complex}"
-EXPORT_BRANCH="${SECURIACE_EXPORT_BRANCH:-export/securiace-whmcs-theme}"
+EXPORT_BRANCH="${SECURIACE_EXPORT_BRANCH:-securiace-whmcs-theme}"
 INSTALL_DIR="${1:-${SECURIACE_INSTALL_DIR:-$HOME/securiace-whmcs-theme}}"
 WORKER_NAME="${SECURIACE_WORKER_NAME:-kritananda-mac}"
 START_WORKER="${SECURIACE_START_WORKER:-0}"

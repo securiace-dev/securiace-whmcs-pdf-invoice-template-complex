@@ -6,15 +6,25 @@ cloud VM** for GitHub org writes or deployment — use your Mac with
 
 ## One command (macOS Terminal or iTerm)
 
+**Step 1 — get files (always works):**
+
 ```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/securiace-dev/securiace-whmcs-pdf-invoice-template-complex/export/securiace-whmcs-theme/scripts/local-bootstrap.sh)"
+git clone -b securiace-whmcs-theme --single-branch \
+  https://github.com/securiace-dev/securiace-whmcs-pdf-invoice-template-complex.git \
+  ~/securiace-whmcs-theme
 ```
 
-Or, if you already cloned:
+**Step 2 — create org repo + push (Mac `gh` auth):**
 
 ```bash
-cd ~/securiace-whmcs-theme   # or your install path
-bash ./scripts/local-bootstrap.sh
+cd ~/securiace-whmcs-theme
+bash ./scripts/publish-to-github.sh
+```
+
+Or combined:
+
+```bash
+bash ./scripts/local-bootstrap.sh ~/securiace-whmcs-theme
 ```
 
 Start My Machines worker in the same session:
@@ -77,8 +87,8 @@ module updates (`premium-mailbox/hooks.php`, `mailbox-quota-addon/hooks.php`).
 
 | Ref | Purpose |
 | --- | --- |
-| `securiace-dev/securiace-whmcs-pdf-invoice-template-complex@export/securiace-whmcs-theme` | Full theme export (bootstrap source) |
-| `securiace-dev/securiace-whmcs-theme@main` | Canonical home (after bootstrap) |
+| `…/securiace-whmcs-pdf-invoice-template-complex@securiace-whmcs-theme` | **Live today** — full theme (clone this) |
+| `…/securiace-whmcs-theme@main` | Canonical org repo (after Mac `publish-to-github.sh`) |
 | `fix/pdf-http-status-init-poison` on legacy repo | PDF HTTP 200 + init-poison fix PR |
 
 ## Verify bootstrap succeeded
