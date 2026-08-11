@@ -126,6 +126,8 @@ issuer/payment identifiers or snapshot counts here.
 - Completed invoice and quote PDF templates recover HTTP 200 when rendering
   finishes successfully, so unrelated Whoops init warnings or TCPDF deprecations
   cannot leave a valid PDF download on HTTP 5xx.
+- Client-area dark and light modes share one brand token system; PDFs remain
+  print-hybrid (navy header, ice body) and do not track UI color mode.
 
 ## Update triggers
 
