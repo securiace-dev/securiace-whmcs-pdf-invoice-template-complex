@@ -15,7 +15,11 @@ to WHMCS.
 ## First run on Mac
 
 ```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/securiace-dev/securiace-whmcs-pdf-invoice-template-complex/export/securiace-whmcs-theme/scripts/local-bootstrap.sh)"
+git clone -b securiace-whmcs-theme --single-branch \
+  https://github.com/securiace-dev/securiace-whmcs-pdf-invoice-template-complex.git \
+  ~/securiace-whmcs-theme
+cd ~/securiace-whmcs-theme
+bash ./scripts/publish-to-github.sh
 ```
 
 Then open the install dir in Cursor: `cursor ~/securiace-whmcs-theme`
