@@ -1057,7 +1057,7 @@
       "label": "Current environment handoff",
       "file_type": "document",
       "source_file": "docs/HANDOFF.md",
-      "source_location": "L41",
+      "source_location": "L49",
       "_origin": "ast",
       "id": "docs_handoff_current_environment_handoff",
       "community": 3,
@@ -1067,7 +1067,7 @@
       "label": "Sources of truth",
       "file_type": "document",
       "source_file": "docs/HANDOFF.md",
-      "source_location": "L75",
+      "source_location": "L89",
       "_origin": "ast",
       "id": "docs_handoff_sources_of_truth",
       "community": 3,
@@ -1077,7 +1077,7 @@
       "label": "Stable behavior that must not regress",
       "file_type": "document",
       "source_file": "docs/HANDOFF.md",
-      "source_location": "L92",
+      "source_location": "L106",
       "_origin": "ast",
       "id": "docs_handoff_stable_behavior_that_must_not_regress",
       "community": 3,
@@ -1087,7 +1087,7 @@
       "label": "Update triggers",
       "file_type": "document",
       "source_file": "docs/HANDOFF.md",
-      "source_location": "L126",
+      "source_location": "L143",
       "_origin": "ast",
       "id": "docs_handoff_update_triggers",
       "community": 3,
@@ -1097,7 +1097,7 @@
       "label": "Required handoff payload",
       "file_type": "document",
       "source_file": "docs/HANDOFF.md",
-      "source_location": "L143",
+      "source_location": "L160",
       "_origin": "ast",
       "id": "docs_handoff_required_handoff_payload",
       "community": 3,
@@ -1107,7 +1107,7 @@
       "label": "Pull-request maintenance",
       "file_type": "document",
       "source_file": "docs/HANDOFF.md",
-      "source_location": "L160",
+      "source_location": "L177",
       "_origin": "ast",
       "id": "docs_handoff_pull_request_maintenance",
       "community": 3,
@@ -1117,7 +1117,7 @@
       "label": "Deployment handoff",
       "file_type": "document",
       "source_file": "docs/HANDOFF.md",
-      "source_location": "L176",
+      "source_location": "L193",
       "_origin": "ast",
       "id": "docs_handoff_deployment_handoff",
       "community": 3,
@@ -1127,7 +1127,7 @@
       "label": "Rollback handoff",
       "file_type": "document",
       "source_file": "docs/HANDOFF.md",
-      "source_location": "L204",
+      "source_location": "L221",
       "_origin": "ast",
       "id": "docs_handoff_rollback_handoff",
       "community": 3,
@@ -1137,7 +1137,7 @@
       "label": "Future GST transition",
       "file_type": "document",
       "source_file": "docs/HANDOFF.md",
-      "source_location": "L217",
+      "source_location": "L234",
       "_origin": "ast",
       "id": "docs_handoff_future_gst_transition",
       "community": 3,
@@ -1147,7 +1147,7 @@
       "label": "Staleness safeguards",
       "file_type": "document",
       "source_file": "docs/HANDOFF.md",
-      "source_location": "L234",
+      "source_location": "L251",
       "_origin": "ast",
       "id": "docs_handoff_staleness_safeguards",
       "community": 3,
@@ -1157,7 +1157,7 @@
       "label": "Next-maintainer start",
       "file_type": "document",
       "source_file": "docs/HANDOFF.md",
-      "source_location": "L245",
+      "source_location": "L262",
       "_origin": "ast",
       "id": "docs_handoff_next_maintainer_start",
       "community": 3,
@@ -3090,9 +3090,9 @@
       "source_file": "docs/UPGRADE-SAFE-THEME-OPERATIONS.md",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "docs_upgrade_safe_theme_operations",
-      "target": "docs_upgrade_safe_theme_operations_upgrade_safe_pdf_theme_operations",
-      "confidence_score": 1.0
+      "target": "docs_upgrade_safe_theme_operations_upgrade_safe_pdf_theme_operations"
     },
     {
       "relation": "contains",
@@ -3100,9 +3100,9 @@
       "source_file": "docs/UPGRADE-SAFE-THEME-OPERATIONS.md",
       "source_location": "L13",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "docs_upgrade_safe_theme_operations_upgrade_safe_pdf_theme_operations",
-      "target": "docs_upgrade_safe_theme_operations_package_contract",
-      "confidence_score": 1.0
+      "target": "docs_upgrade_safe_theme_operations_package_contract"
     },
     {
       "relation": "contains",
@@ -3110,9 +3110,9 @@
       "source_file": "docs/UPGRADE-SAFE-THEME-OPERATIONS.md",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "docs_upgrade_safe_theme_operations_upgrade_safe_pdf_theme_operations",
-      "target": "docs_upgrade_safe_theme_operations_purpose",
-      "confidence_score": 1.0
+      "target": "docs_upgrade_safe_theme_operations_purpose"
     },
     {
       "relation": "contains",
@@ -3120,9 +3120,9 @@
       "source_file": "docs/UPGRADE-SAFE-THEME-OPERATIONS.md",
       "source_location": "L41",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "docs_upgrade_safe_theme_operations_upgrade_safe_pdf_theme_operations",
-      "target": "docs_upgrade_safe_theme_operations_required_acceptance_matrix",
-      "confidence_score": 1.0
+      "target": "docs_upgrade_safe_theme_operations_required_acceptance_matrix"
     },
     {
       "relation": "contains",
@@ -3130,9 +3130,9 @@
       "source_file": "docs/UPGRADE-SAFE-THEME-OPERATIONS.md",
       "source_location": "L73",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "docs_upgrade_safe_theme_operations_upgrade_safe_pdf_theme_operations",
-      "target": "docs_upgrade_safe_theme_operations_rollback",
-      "confidence_score": 1.0
+      "target": "docs_upgrade_safe_theme_operations_rollback"
     },
     {
       "relation": "contains",
@@ -3140,9 +3140,9 @@
       "source_file": "docs/UPGRADE-SAFE-THEME-OPERATIONS.md",
       "source_location": "L24",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "docs_upgrade_safe_theme_operations_upgrade_safe_pdf_theme_operations",
-      "target": "docs_upgrade_safe_theme_operations_staging_installation",
-      "confidence_score": 1.0
+      "target": "docs_upgrade_safe_theme_operations_staging_installation"
     },
     {
       "relation": "contains",
@@ -3150,9 +3150,9 @@
       "source_file": "docs/UPGRADE-SAFE-THEME-OPERATIONS.md",
       "source_location": "L54",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "docs_upgrade_safe_theme_operations_upgrade_safe_pdf_theme_operations",
-      "target": "docs_upgrade_safe_theme_operations_whmcs_upgrade_gate",
-      "confidence_score": 1.0
+      "target": "docs_upgrade_safe_theme_operations_whmcs_upgrade_gate"
     },
     {
       "relation": "contains",
@@ -3326,5 +3326,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "68cf24323b01c4aab12609ce23d81965dcba5e61"
+  "built_at_commit": "36c269f1c5124bb0f5793b0c4eb09da4daa5f669"
 }
