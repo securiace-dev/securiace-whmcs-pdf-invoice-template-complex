@@ -1,0 +1,194 @@
+@import url("../preview/styles.css");
+
+.preview-state {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  padding: 0 13px;
+  color: #5f5664;
+  background: #f6f2f7;
+  border: 1px solid #ddd7e1;
+  border-radius: 999px;
+  font-size: 8pt;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.validity-pill {
+  display: inline-flex;
+  min-height: 25px;
+  align-items: center;
+  padding: 4px 11px;
+  color: var(--brand);
+  background: var(--brand-soft);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 8pt;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.quote-meta {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.proposal-summary,
+.acceptance-card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.proposal-summary {
+  display: grid;
+  gap: 3px;
+  min-height: 48px;
+  align-content: center;
+  padding: 8px 11px;
+  background: var(--brand-soft);
+}
+
+.proposal-summary strong {
+  color: var(--brand-dark);
+  font-size: 8.5pt;
+  line-height: 1.35;
+}
+
+.issuer-registrations {
+  display: grid;
+  gap: 3px;
+  margin: 7px 0 0;
+  padding: 6px 8px;
+  color: var(--brand-dark);
+  background: var(--brand-soft);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+}
+
+.issuer-registrations div {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: 7px;
+  align-items: baseline;
+}
+
+.issuer-registrations dt,
+.issuer-registrations dd {
+  margin: 0;
+  color: inherit;
+  font-size: 6.7pt;
+  line-height: 1.35;
+}
+
+.issuer-registrations dt {
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.issuer-registrations dd {
+  overflow-wrap: anywhere;
+  font-weight: 700;
+}
+
+.proposal-section {
+  margin-top: 6mm;
+}
+
+.proposal-section > h3 {
+  margin: 2px 0 3mm;
+  color: var(--ink);
+  font-size: 15pt;
+  line-height: 1.18;
+  letter-spacing: -0.025em;
+}
+
+.proposal-copy {
+  padding: 4mm 5mm;
+  color: #403943;
+  background: linear-gradient(135deg, #faf8fb, #fffefd);
+  border: 1px solid #e5dfe8;
+  border-radius: var(--radius);
+  font-size: 8.7pt;
+  line-height: 1.55;
+}
+
+.proposal-copy h4 {
+  margin: 0 0 5px;
+  color: var(--ink);
+  font-size: 12pt;
+}
+
+.proposal-copy p,
+.proposal-copy ul {
+  margin: 6px 0 0;
+}
+
+.proposal-copy ul {
+  padding-left: 18px;
+}
+
+.quote-items {
+  margin-top: 6mm;
+}
+
+.quote-items .description-column { width: 52%; }
+.quote-items .qty-column { width: 7%; }
+.quote-items .unit-column { width: 15%; }
+.quote-items .discount-column { width: 11%; }
+.quote-items .amount-column { width: 15%; }
+
+.quote-items tbody tr:nth-child(even) {
+  background: var(--surface);
+}
+
+.quote-items .item-price-row td {
+  padding-bottom: 7px;
+}
+
+.quote-items .item-detail-row td {
+  padding: 7px 10px 9px;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--surface) 72%, var(--paper));
+  border-left: 0;
+  font-size: 7.4pt;
+  line-height: 1.45;
+}
+
+.quote-financial {
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 0.72fr);
+}
+
+.acceptance-card {
+  padding: 4mm;
+  color: var(--brand-dark);
+  background: var(--brand-soft);
+}
+
+.acceptance-card h3 {
+  margin: 5px 0 4px;
+  font-size: 13pt;
+}
+
+.acceptance-card p:last-child {
+  margin: 0;
+  color: var(--muted);
+  font-size: 8pt;
+  line-height: 1.45;
+}
+
+@media print {
+  .quote {
+    min-height: 297mm;
+  }
+}
+
+@media (max-width: 720px) {
+  .quote-financial {
+    grid-template-columns: 1fr;
+  }
+
+  .preview-state {
+    display: none;
+  }
+}

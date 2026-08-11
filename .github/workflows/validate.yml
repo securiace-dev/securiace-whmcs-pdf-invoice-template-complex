@@ -1,0 +1,162 @@
+name: Validate WHMCS PDF suite
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - "release/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pdf-suite-validation-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        php:
+          - "7.4"
+          - "8.1"
+          - "8.2"
+          - "8.3"
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Configure PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: gd
+          coverage: none
+
+      - name: Lint PHP and template sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          for source in \
+            invoicepdf.tpl \
+            invoicepdf-modern.tpl \
+            quotepdf-modern.tpl \
+            templates/securiace/invoicepdf.tpl \
+            templates/securiace/quotepdf.tpl \
+            securiace-pdf-profile.php \
+            securiace-pdf-snapshot.php \
+            config/securiace-invoice-config.example.php \
+            modules/addons/securiace_pdf_profile/securiace_pdf_profile.php \
+            modules/addons/securiace_pdf_profile/hooks.php \
+            modules/addons/securiace_pdf_profile/lib/SnapshotService.php \
+            scripts/audit-whmcs-pdf-surface.php \
+            scripts/repair-whmcs-invoice-template.php \
+            tests/modern_invoice_design_contract_test.php \
+            tests/modern_quote_template_contract_test.php \
+            tests/child_theme_package_contract_test.php \
+            tests/addon_module_contract_test.php \
+            tests/handoff_contract_test.php \
+            tests/pdf_profile_resolver_test.php \
+            tests/pdf_snapshot_test.php \
+            tests/preview_contract_test.php \
+            tests/quote_preview_contract_test.php \
+            tests/render_modern_invoice_fixtures.php \
+            tests/render_modern_quote_fixtures.php \
+            tests/whmcs_pdf_surface_audit_test.php \
+            tests/whmcs_invoice_template_repair_test.php
+          do
+            php -l "$source"
+          done
+
+      - name: Run dependency-free regression tests
+        run: |
+          php tests/whmcs_invoice_template_repair_test.php
+          php tests/whmcs_pdf_surface_audit_test.php
+          php tests/preview_contract_test.php
+          php tests/quote_preview_contract_test.php
+          php tests/modern_invoice_design_contract_test.php
+          php tests/modern_quote_template_contract_test.php
+          php tests/child_theme_package_contract_test.php
+          php tests/addon_module_contract_test.php
+          php tests/handoff_contract_test.php
+          php tests/pdf_profile_resolver_test.php
+          php tests/pdf_snapshot_test.php
+
+      - name: Install a clean TCPDF test dependency
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/tcpdf"
+          composer require \
+            --working-dir="$RUNNER_TEMP/tcpdf" \
+            --no-interaction \
+            --no-progress \
+            tecnickcom/tcpdf:^6.7
+
+      - name: Render invoice and quote PDF fixtures
+        shell: bash
+        run: |
+          set -euo pipefail
+          modern_output="$(mktemp -d "$RUNNER_TEMP/modern-invoices.XXXXXX")"
+          legacy_output="$(mktemp -d "$RUNNER_TEMP/legacy-invoices.XXXXXX")"
+          quote_output="$(mktemp -d "$RUNNER_TEMP/modern-quotes.XXXXXX")"
+          tcpdf="$RUNNER_TEMP/tcpdf/vendor/tecnickcom/tcpdf/tcpdf.php"
+          php tests/render_modern_invoice_fixtures.php "$tcpdf" "$modern_output" modern
+          php tests/render_modern_invoice_fixtures.php "$tcpdf" "$legacy_output" legacy
+          php tests/render_modern_quote_fixtures.php "$tcpdf" "$quote_output"
+
+      - name: Check browser-preview JavaScript syntax
+        if: matrix.php == '8.3'
+        run: |
+          node --check preview/app.js
+          node --check quote-preview/app.js
+
+      - name: Enforce living handoff freshness
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          merge_base="$(git merge-base HEAD "origin/$BASE_REF")"
+          protected_changed=false
+          handoff_changed=false
+          while IFS= read -r path; do
+            if [[ "$path" == "docs/HANDOFF.md" ]]; then
+              handoff_changed=true
+            fi
+            case "$path" in
+              invoicepdf.tpl|invoicepdf-modern.tpl|quotepdf-modern.tpl|templates/securiace/*|securiace-pdf-*.php|config/*|modules/addons/securiace_pdf_profile/*|scripts/*|.github/workflows/*)
+                protected_changed=true
+                ;;
+            esac
+          done < <(git diff --name-only "$merge_base"...HEAD)
+
+          if [[ "$handoff_changed" == true ]]; then
+            if ! printf '%s\n' "$PR_BODY" | grep -Eq '^Handoff-Impact: updated[[:space:]]*$'; then
+              echo "docs/HANDOFF.md changed, but the PR body does not declare Handoff-Impact: updated." >&2
+              exit 1
+            fi
+          elif [[ "$protected_changed" == true ]]; then
+            if ! printf '%s\n' "$PR_BODY" | grep -Eq '^Handoff-Impact: none - .+'; then
+              echo "Production-facing files changed without a handoff update or a specific Handoff-Impact exemption." >&2
+              exit 1
+            fi
+          fi
+
+      - name: Reject whitespace errors in the pull-request diff
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        shell: bash
+        run: |
+          merge_base="$(git merge-base HEAD "origin/$BASE_REF")"
+          git diff --check "$merge_base"...HEAD
