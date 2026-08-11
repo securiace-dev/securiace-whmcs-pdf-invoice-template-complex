@@ -1,14 +1,13 @@
 # Agent notes (legacy PDF repo)
 
-**Cloud VM is closed for this work.** Use macOS local Cursor.
-
-Bootstrap the unified theme repo on your Mac:
+Theme work is on GitHub branch **`securiace-whmcs-theme`** (not a separate org repo yet).
 
 ```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/securiace-dev/securiace-whmcs-pdf-invoice-template-complex/export/securiace-whmcs-theme/scripts/local-bootstrap.sh)"
+git clone -b securiace-whmcs-theme --single-branch \
+  https://github.com/securiace-dev/securiace-whmcs-pdf-invoice-template-complex.git \
+  ~/securiace-whmcs-theme
+cd ~/securiace-whmcs-theme
+bash ./scripts/publish-to-github.sh
 ```
 
-Then continue in `~/securiace-whmcs-theme` with local Cursor.
-Checklist: `docs/LOCAL-HANDOFF.md` in that repo after bootstrap.
-
-This branch (`fix/pdf-http-status-init-poison`) holds the PDF HTTP 500 fix PR — merge from Mac when ready.
+Details: [`docs/THEME-CLONE.md`](docs/THEME-CLONE.md)

@@ -1,9 +1,10 @@
 # Securiace WHMCS PDF Document Templates (legacy)
 
-> **Canonical home moved.** New theme, brand, and PDF work lives in
-> [`securiace-whmcs-theme`](https://github.com/securiace-dev/securiace-whmcs-theme).
-> Do not add features here after the cutover; open PRs against the unified theme
-> repository instead.
+> **Canonical home moved.** New theme, brand, and PDF work lives on branch
+> [`securiace-whmcs-theme`](https://github.com/securiace-dev/securiace-whmcs-pdf-invoice-template-complex/tree/securiace-whmcs-theme)
+> (clone instructions: [`docs/THEME-CLONE.md`](docs/THEME-CLONE.md)).
+> After Mac publish, the org repo will be
+> `securiace-dev/securiace-whmcs-theme`.
 
 This repository retains the historical WHMCS TCPDF document suite snapshot:
 
