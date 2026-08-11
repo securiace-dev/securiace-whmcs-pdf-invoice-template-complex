@@ -755,14 +755,18 @@ $securiaceModernPalette = isset($securiaceModernStatusPalette[$securiaceModernSt
     ? $securiaceModernStatusPalette[$securiaceModernStatusKey]
     : $securiaceModernStatusPalette['unpaid'];
 
-$securiaceModernBrand = array(79, 11, 112);
-$securiaceModernBrandDark = array(50, 16, 68);
-$securiaceModernBrandSoft = array(247, 239, 250);
-$securiaceModernInk = array(32, 28, 36);
-$securiaceModernMuted = array(109, 102, 114);
-$securiaceModernLine = array(221, 215, 225);
-$securiaceModernSurface = array(248, 246, 248);
-$securiaceModernPaper = array(255, 254, 253);
+// Securiace brand tokens: Midnight Navy / Electric Cyan / Teal / Ice White
+$securiaceModernBrand = array(0, 141, 186);
+$securiaceModernBrandDark = array(11, 19, 36);
+$securiaceModernBrandSoft = array(230, 247, 251);
+$securiaceModernAccent = array(0, 230, 255);
+$securiaceModernInk = array(11, 19, 36);
+$securiaceModernMuted = array(90, 107, 125);
+$securiaceModernLine = array(201, 212, 224);
+$securiaceModernSurface = array(232, 238, 245);
+$securiaceModernPaper = array(244, 247, 251);
+$securiaceModernHeaderBand = array(11, 19, 36);
+$securiaceModernOnHeader = array(244, 247, 251);
 $securiaceModernStatusInk = $securiaceModernRgb($securiaceModernPalette['ink']);
 $securiaceModernStatusSoft = $securiaceModernRgb($securiaceModernPalette['soft']);
 $securiaceModernStatusLine = $securiaceModernRgb($securiaceModernPalette['line']);
@@ -1359,10 +1363,18 @@ $securiaceModernPaintPage = static function () use (
     $pdf,
     $securiaceModernPageWidth,
     $securiaceModernPageHeight,
-    $securiaceModernPaper
+    $securiaceModernPaper,
+    $securiaceModernHeaderBand,
+    $securiaceModernAccent
 ) {
     $pdf->SetFillColor($securiaceModernPaper[0], $securiaceModernPaper[1], $securiaceModernPaper[2]);
     $pdf->Rect(0, 0, $securiaceModernPageWidth, $securiaceModernPageHeight, 'F');
+    $securiaceModernHeaderBandHeight = 28;
+    $pdf->SetFillColor($securiaceModernHeaderBand[0], $securiaceModernHeaderBand[1], $securiaceModernHeaderBand[2]);
+    $pdf->Rect(0, 0, $securiaceModernPageWidth, $securiaceModernHeaderBandHeight, 'F');
+    $pdf->SetDrawColor($securiaceModernAccent[0], $securiaceModernAccent[1], $securiaceModernAccent[2]);
+    $pdf->SetLineWidth(0.45);
+    $pdf->Line(0, $securiaceModernHeaderBandHeight, $securiaceModernPageWidth, $securiaceModernHeaderBandHeight);
 };
 $securiaceModernPaintPage();
 
@@ -1417,7 +1429,7 @@ $securiaceModernDrawCard = static function (
 // Header and document identity
 // -------------------------------------------------------------------------
 
-$securiaceModernHeaderY = $securiaceModernTopMargin;
+$securiaceModernHeaderY = 8;
 $securiaceModernLogoPath = '';
 if (defined('ROOTDIR')) {
     foreach (array('logo.png', 'logo.jpg', 'logo.jpeg') as $securiaceModernLogoFile) {
@@ -1440,13 +1452,13 @@ if ($securiaceModernLogoPath !== '') {
 }
 if (!$securiaceModernLogoRendered) {
     $pdf->SetFont($securiaceModernFont, 'B', 17);
-    $pdf->SetTextColor($securiaceModernInk[0], $securiaceModernInk[1], $securiaceModernInk[2]);
+    $pdf->SetTextColor($securiaceModernOnHeader[0], $securiaceModernOnHeader[1], $securiaceModernOnHeader[2]);
     $pdf->SetXY($securiaceModernMargin, $securiaceModernHeaderY + 1);
     $pdf->Cell(90, 7, $securiaceModernCompanyName, 0, 1, 'L');
 }
 
 $pdf->SetFont($securiaceModernFont, 'B', 6.5);
-$pdf->SetTextColor($securiaceModernBrand[0], $securiaceModernBrand[1], $securiaceModernBrand[2]);
+$pdf->SetTextColor($securiaceModernAccent[0], $securiaceModernAccent[1], $securiaceModernAccent[2]);
 $pdf->SetXY($securiaceModernPageWidth - $securiaceModernMargin - 66, $securiaceModernHeaderY);
 $pdf->Cell(66, 4, $securiaceModernDocumentKicker, 0, 1, 'R');
 $securiaceModernDocumentTitleLength = function_exists('mb_strlen')
@@ -1456,7 +1468,7 @@ $securiaceModernDocumentTitleFontSize = $securiaceModernDocumentTitleLength > 28
     ? 14
     : ($securiaceModernDocumentTitleLength > 20 ? 17 : 22);
 $pdf->SetFont($securiaceModernFont, 'B', $securiaceModernDocumentTitleFontSize);
-$pdf->SetTextColor($securiaceModernInk[0], $securiaceModernInk[1], $securiaceModernInk[2]);
+$pdf->SetTextColor($securiaceModernOnHeader[0], $securiaceModernOnHeader[1], $securiaceModernOnHeader[2]);
 $pdf->SetX($securiaceModernPageWidth - $securiaceModernMargin - 66);
 $pdf->Cell(66, 8, $securiaceModernDocumentTitle, 0, 1, 'R');
 
@@ -1465,19 +1477,20 @@ $securiaceModernStatusLength = function_exists('mb_strlen')
     : strlen($securiaceModernStatusDisplay);
 $securiaceModernStatusWidth = max(28, min(52, $securiaceModernStatusLength * 2.2 + 12));
 $securiaceModernStatusX = $securiaceModernPageWidth - $securiaceModernMargin - $securiaceModernStatusWidth;
+$securiaceModernStatusY = 31;
 $pdf->SetFillColor($securiaceModernStatusSoft[0], $securiaceModernStatusSoft[1], $securiaceModernStatusSoft[2]);
 $pdf->SetDrawColor($securiaceModernStatusLine[0], $securiaceModernStatusLine[1], $securiaceModernStatusLine[2]);
 if (method_exists($pdf, 'RoundedRect')) {
-    $pdf->RoundedRect($securiaceModernStatusX, $securiaceModernHeaderY + 14, $securiaceModernStatusWidth, 7, 3.5, '1111', 'DF');
+    $pdf->RoundedRect($securiaceModernStatusX, $securiaceModernStatusY, $securiaceModernStatusWidth, 7, 3.5, '1111', 'DF');
 } else {
-    $pdf->Rect($securiaceModernStatusX, $securiaceModernHeaderY + 14, $securiaceModernStatusWidth, 7, 'DF');
+    $pdf->Rect($securiaceModernStatusX, $securiaceModernStatusY, $securiaceModernStatusWidth, 7, 'DF');
 }
 $pdf->SetFont($securiaceModernFont, 'B', 7);
 $pdf->SetTextColor($securiaceModernStatusInk[0], $securiaceModernStatusInk[1], $securiaceModernStatusInk[2]);
-$pdf->SetXY($securiaceModernStatusX, $securiaceModernHeaderY + 15.3);
+$pdf->SetXY($securiaceModernStatusX, $securiaceModernStatusY + 1.3);
 $pdf->Cell($securiaceModernStatusWidth, 4, strtoupper($securiaceModernStatusDisplay), 0, 1, 'C');
 
-$securiaceModernRuleY = $securiaceModernHeaderY + 26;
+$securiaceModernRuleY = $securiaceModernStatusY + 12;
 $pdf->SetDrawColor($securiaceModernBrand[0], $securiaceModernBrand[1], $securiaceModernBrand[2]);
 $pdf->SetLineWidth(0.35);
 $pdf->Line(

@@ -68,7 +68,7 @@ if ($logo === false) {
     throw new RuntimeException('Unable to allocate quote logo fixture.');
 }
 $paper = imagecolorallocate($logo, 255, 254, 253);
-$brand = imagecolorallocate($logo, 79, 11, 112);
+$brand = imagecolorallocate($logo, 0, 141, 186);
 $ink = imagecolorallocate($logo, 32, 28, 36);
 imagefilledrectangle($logo, 0, 0, 619, 149, $paper);
 imagefilledellipse($logo, 72, 75, 78, 78, $brand);

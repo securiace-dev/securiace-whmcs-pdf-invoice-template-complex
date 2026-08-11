@@ -1,5 +1,5 @@
-name: "Securiace PDF Documents"
-description: "Upgrade-safe Securiace invoice and quote PDF overrides"
+name: "Securiace"
+description: "Securiace unified client-area theme and PDF document suite (parent: twenty-one)"
 author: "Securiace"
 config:
   parent: twenty-one

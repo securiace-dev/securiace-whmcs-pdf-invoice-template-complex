@@ -151,5 +151,29 @@ stateButtons.forEach((button) => {
 
 document.querySelector("[data-print]").addEventListener("click", () => window.print());
 
+const themeToggle = document.getElementById("securiace-theme-toggle");
+if (themeToggle) {
+  const applyLabel = () => {
+    const mode = document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark";
+    const label = themeToggle.querySelector("[data-mode-label]");
+    if (label) {
+      label.textContent = mode === "dark" ? "Dark" : "Light";
+    }
+    themeToggle.setAttribute("aria-pressed", mode === "dark" ? "true" : "false");
+  };
+  applyLabel();
+  themeToggle.addEventListener("click", () => {
+    const current = document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark";
+    const next = current === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    try {
+      localStorage.setItem("securiace-theme-mode", next);
+    } catch (err) {
+      /* ignore */
+    }
+    applyLabel();
+  });
+}
+
 const initialState = new URL(window.location.href).searchParams.get("state") || "paid";
 setState(initialState, { updateUrl: false });

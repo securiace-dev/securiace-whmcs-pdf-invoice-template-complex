@@ -9,8 +9,11 @@ if ($template === false) {
 }
 
 $requiredContracts = array(
-    "\$securiaceModernBrand = array(79, 11, 112);",
-    "\$securiaceModernPaper = array(255, 254, 253);",
+    "\$securiaceModernBrand = array(0, 141, 186);",
+    "\$securiaceModernBrandDark = array(11, 19, 36);",
+    "\$securiaceModernPaper = array(244, 247, 251);",
+    "\$securiaceModernHeaderBand = array(11, 19, 36);",
+    "\$securiaceModernAccent = array(0, 230, 255);",
     '$securiaceModernPaintPage',
     "method_exists(\$pdf, 'RoundedRect')",
     '$securiaceModernDrawItemsHeader',

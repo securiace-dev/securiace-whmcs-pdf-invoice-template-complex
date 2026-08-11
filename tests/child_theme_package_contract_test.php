@@ -12,7 +12,7 @@ if ($manifest === false) {
 }
 
 $requiredManifestContracts = array(
-    'name: "Securiace PDF Documents"',
+    'name: "Securiace"',
     'config:',
     '  parent: twenty-one',
 );
@@ -36,12 +36,54 @@ foreach ($templateContracts as $sourceName => $packagedName) {
     }
 }
 
-$allowedFiles = array('invoicepdf.tpl', 'quotepdf.tpl', 'theme.yaml');
-$packagedFiles = array_values(array_diff(scandir($themeDirectory) ?: array(), array('.', '..')));
-sort($allowedFiles);
-sort($packagedFiles);
-if ($packagedFiles !== $allowedFiles) {
-    throw new RuntimeException('The child theme must contain only the approved PDF overrides and theme.yaml.');
+$requiredPaths = array(
+    'css/custom.css',
+    'js/custom.js',
+    'js/theme-mode.js',
+    'img/logo-on-light.svg',
+    'img/logo-on-dark.svg',
+    'img/logo-icon.svg',
+);
+foreach ($requiredPaths as $relativePath) {
+    $path = $themeDirectory . '/' . $relativePath;
+    if (!is_readable($path)) {
+        throw new RuntimeException('Child theme is missing required file: ' . $relativePath);
+    }
+}
+
+$customCss = (string) file_get_contents($themeDirectory . '/css/custom.css');
+foreach (array('--bg-canvas', '--accent', '[data-theme="light"]', '[data-theme="dark"]', 'securiace-theme-toggle') as $token) {
+    if (strpos($customCss, $token) === false) {
+        throw new RuntimeException('custom.css is missing dual-mode contract: ' . $token);
+    }
+}
+
+$modeJs = (string) file_get_contents($themeDirectory . '/js/custom.js');
+foreach (array('securiace-theme-mode', 'prefers-color-scheme', 'data-theme') as $token) {
+    if (strpos($modeJs, $token) === false) {
+        throw new RuntimeException('theme mode script is missing contract: ' . $token);
+    }
+}
+
+$allowedTopLevel = array('css', 'img', 'invoicepdf.tpl', 'js', 'quotepdf.tpl', 'theme.yaml');
+$packagedEntries = array_values(array_diff(scandir($themeDirectory) ?: array(), array('.', '..')));
+sort($allowedTopLevel);
+sort($packagedEntries);
+if ($packagedEntries !== $allowedTopLevel) {
+    throw new RuntimeException(
+        'The child theme top-level entries must match the approved package surface. Found: '
+        . implode(', ', $packagedEntries)
+    );
+}
+
+$hookPath = $root . '/hooks/securiace-theme-mode.php';
+if (!is_readable($hookPath) || strpos((string) file_get_contents($hookPath), 'ClientAreaHeadOutput') === false) {
+    throw new RuntimeException('Theme mode hook is missing or incomplete.');
+}
+
+$brandTokens = $root . '/assets/brand/tokens.json';
+if (!is_readable($brandTokens)) {
+    throw new RuntimeException('Brand tokens.json is missing.');
 }
 
 fwrite(STDOUT, "Child-theme package contract tests passed.\n");

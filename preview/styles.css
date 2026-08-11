@@ -1,26 +1,63 @@
-:root {
-  --brand: #4f0b70;
-  --brand-dark: #321044;
-  --brand-soft: #f5f0f7;
-  --ink: #201c24;
-  --muted: #6d6672;
-  --line: #ddd7e1;
-  --line-strong: #bdb4c2;
-  --paper: #fffefd;
-  --canvas: #eeebef;
-  --surface: #f8f6f8;
-  --paid: #0b7542;
-  --paid-soft: #eaf6ef;
-  --unpaid: #9a5700;
-  --unpaid-soft: #fff5e5;
-  --overdue: #a6382f;
-  --overdue-soft: #fcedec;
-  --danger: #aa3333;
-  --radius: 10px;
-  --shadow: 0 18px 55px rgba(31, 20, 35, 0.14);
-  color-scheme: light;
-  font-family: Aptos, "Avenir Next", "Segoe UI", "DejaVu Sans", Arial, sans-serif;
+:root,
+[data-theme="dark"] {
+  --brand: #008DBA;
+  --brand-dark: #0B1324;
+  --brand-soft: #E6F7FB;
+  --brand-cyan: #00E6FF;
+  --ink: #F4F7FB;
+  --muted: #8BA0B8;
+  --line: #1E3A4F;
+  --line-strong: #2A4D66;
+  --paper: #121C31;
+  --canvas: #0B1324;
+  --surface: #121C31;
+  --paid: #3DDC97;
+  --paid-soft: #123528;
+  --unpaid: #F4C15D;
+  --unpaid-soft: #3A2E12;
+  --overdue: #FF6B6B;
+  --overdue-soft: #3A1515;
+  --danger: #FF6B6B;
+  --radius: 2px;
+  --shadow: 0 18px 55px rgba(0, 230, 255, 0.08);
+  --font-display: "Exo 2", Orbitron, Montserrat, "Segoe UI", sans-serif;
+  --font-body: "Exo 2", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+  font-family: var(--font-body);
   font-synthesis: none;
+}
+
+[data-theme="light"] {
+  --brand: #008DBA;
+  --brand-dark: #0B1324;
+  --brand-soft: #E6F7FB;
+  --brand-cyan: #00E6FF;
+  --ink: #0B1324;
+  --muted: #5A6B7D;
+  --line: #C9D4E0;
+  --line-strong: #A8B7C7;
+  --paper: #F4F7FB;
+  --canvas: #E8EEF5;
+  --surface: #FFFFFF;
+  --paid: #0B7542;
+  --paid-soft: #EAF6EF;
+  --unpaid: #9A5700;
+  --unpaid-soft: #FFF5E5;
+  --overdue: #A6382F;
+  --overdue-soft: #FCEDEC;
+  --danger: #C0392B;
+  --shadow: 0 18px 55px rgba(11, 19, 36, 0.10);
+  color-scheme: light;
+}
+
+/* PDF document surface stays print-hybrid even in dark UI chrome */
+.invoice,
+.quote {
+  --doc-paper: #F4F7FB;
+  --doc-ink: #0B1324;
+  --doc-header: #0B1324;
+  --doc-accent: #00E6FF;
+  --doc-brand: #008DBA;
 }
 
 * {
@@ -187,10 +224,11 @@ button {
   width: 210mm;
   min-height: 297mm;
   margin: 0 auto;
-  padding: 12mm 14mm 10mm;
+  padding: 0 0 10mm;
   overflow: hidden;
-  background: var(--paper);
-  border: 1px solid #dad5dc;
+  color: var(--doc-ink, var(--ink));
+  background: var(--doc-paper, #F4F7FB);
+  border: 1px solid #C9D4E0;
   box-shadow: var(--shadow);
   scroll-margin-top: 84px;
 }
@@ -201,13 +239,14 @@ button {
   display: flex;
   justify-content: space-between;
   padding: 2.2mm 14mm;
-  color: #716878;
-  background: #f5f1f6;
-  border-bottom: 1px solid #e7e0e9;
+  color: #8BA0B8;
+  background: #0B1324;
+  border-bottom: 1px solid #00E6FF;
   font-size: 7.5pt;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  z-index: 2;
 }
 
 .invoice-header {
@@ -215,9 +254,55 @@ button {
   align-items: flex-start;
   justify-content: space-between;
   gap: 24px;
-  margin-top: 7mm;
-  padding-bottom: 5mm;
-  border-bottom: 1.5px solid var(--brand);
+  margin-top: 0;
+  padding: 14mm 14mm 5mm;
+  background: #0B1324;
+  border-bottom: 2px solid #00E6FF;
+  color: #F4F7FB;
+}
+
+.invoice > *:not(.sample-notice):not(.invoice-header) {
+  margin-left: 14mm;
+  margin-right: 14mm;
+}
+
+.invoice-header .brand-name,
+.invoice-header .eyebrow,
+.invoice-header #document-title,
+.invoice-header .document-heading {
+  color: #F4F7FB;
+}
+
+.invoice-header .eyebrow {
+  color: #00E6FF;
+}
+
+.securiace-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 38px;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.securiace-theme-toggle__icon {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  box-shadow: inset -3px -2px 0 0 currentColor;
+}
+
+[data-theme="light"] .securiace-theme-toggle__icon {
+  box-shadow: none;
+  background: currentColor;
 }
 
 .brand-lockup {

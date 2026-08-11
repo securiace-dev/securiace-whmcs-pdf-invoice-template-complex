@@ -219,7 +219,7 @@ createFixtureImage(
     150,
     array(255, 254, 253),
     static function ($image): void {
-        $brand = imagecolorallocate($image, 79, 11, 112);
+        $brand = imagecolorallocate($image, 0, 141, 186);
         $ink = imagecolorallocate($image, 32, 28, 36);
         imagefilledrectangle($image, 12, 24, 76, 118, $brand);
         imagestring($image, 5, 101, 36, 'SECURIACE', $ink);
@@ -233,7 +233,7 @@ createFixtureImage(
     240,
     array(255, 255, 255),
     static function ($image): void {
-        $stamp = imagecolorallocate($image, 79, 11, 112);
+        $stamp = imagecolorallocate($image, 0, 141, 186);
         imageellipse($image, 120, 120, 210, 210, $stamp);
         imageellipse($image, 120, 120, 184, 184, $stamp);
         imagestring($image, 4, 45, 104, 'SECURIACE', $stamp);

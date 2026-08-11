@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Securiace">
+  <polygon points="64,6 112,34 112,94 64,122 16,94 16,34" fill="none" stroke="#F4F7FB" stroke-width="6"/>
+  <polygon points="64,14 104,38 104,90 64,114 24,90 24,38" fill="#F4F7FB"/>
+  <path d="M42 48h36c8 0 14 5 14 12s-6 12-14 12H56c-6 0-10 3-10 8s4 8 10 8h34" fill="none" stroke="#0B1324" stroke-width="7" stroke-linecap="round"/>
+</svg>

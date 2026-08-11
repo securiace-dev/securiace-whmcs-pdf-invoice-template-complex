@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 280" role="img" aria-label="Securiace Technologies">
+  <defs>
+    <linearGradient id="ig" x1="20%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%" stop-color="#00E6FF"/>
+      <stop offset="100%" stop-color="#008DBA"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(96,8) scale(1)">
+    <polygon points="64,6 112,34 112,94 64,122 16,94 16,34" fill="none" stroke="#0B1324" stroke-width="6"/>
+    <polygon points="64,14 104,38 104,90 64,114 24,90 24,38" fill="url(#ig)"/>
+    <path d="M42 48h36c8 0 14 5 14 12s-6 12-14 12H56c-6 0-10 3-10 8s4 8 10 8h34" fill="none" stroke="#F4F7FB" stroke-width="7" stroke-linecap="round"/>
+  </g>
+  <text x="160" y="180" text-anchor="middle" font-family="Montserrat, Arial, Helvetica, sans-serif" font-size="28" font-weight="700" letter-spacing="3" fill="#0B1324">SECURIACE</text>
+  <line x1="40" y1="200" x2="100" y2="200" stroke="#008DBA" stroke-width="1.5"/>
+  <text x="160" y="206" text-anchor="middle" font-family="Montserrat, Arial, Helvetica, sans-serif" font-size="12" letter-spacing="5" fill="#008DBA">TECHNOLOGIES</text>
+  <line x1="220" y1="200" x2="280" y2="200" stroke="#008DBA" stroke-width="1.5"/>
+</svg>

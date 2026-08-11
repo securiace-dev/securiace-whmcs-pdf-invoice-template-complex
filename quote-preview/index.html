@@ -3,9 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="light">
-  <meta name="theme-color" content="#201c24">
+  <meta name="color-scheme" content="dark light">
+  <meta name="theme-color" content="#0B1324">
   <title>Securiace quote redesign preview</title>
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem('securiace-theme-mode');
+        var mode = stored || ((window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark');
+        document.documentElement.setAttribute('data-theme', mode === 'light' ? 'light' : 'dark');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -17,6 +28,10 @@
     </div>
     <div class="toolbar-actions">
       <span class="preview-state">WHMCS 8.x / 9.x</span>
+      <button class="securiace-theme-toggle" id="securiace-theme-toggle" type="button" aria-label="Toggle color mode">
+        <span class="securiace-theme-toggle__icon" aria-hidden="true"></span>
+        <span data-mode-label>Dark</span>
+      </button>
       <button class="print-button" type="button" data-print>Print preview</button>
     </div>
   </header>

@@ -696,14 +696,17 @@ if (!empty($clientsdetails['phonenumber'])) {
     $securiaceQuoteClientLines[] = 'Phone · ' . trim((string) $clientsdetails['phonenumber']);
 }
 
-$securiaceQuoteBrand = array(79, 11, 112);
-$securiaceQuoteBrandDark = array(50, 16, 68);
-$securiaceQuoteBrandSoft = array(245, 240, 247);
-$securiaceQuoteInk = array(32, 28, 36);
-$securiaceQuoteMuted = array(109, 102, 114);
-$securiaceQuoteLine = array(221, 215, 225);
-$securiaceQuoteSurface = array(248, 246, 248);
-$securiaceQuotePaper = array(255, 254, 253);
+$securiaceQuoteBrand = array(0, 141, 186);
+$securiaceQuoteBrandDark = array(11, 19, 36);
+$securiaceQuoteBrandSoft = array(230, 247, 251);
+$securiaceQuoteAccent = array(0, 230, 255);
+$securiaceQuoteInk = array(11, 19, 36);
+$securiaceQuoteMuted = array(90, 107, 125);
+$securiaceQuoteLine = array(201, 212, 224);
+$securiaceQuoteSurface = array(232, 238, 245);
+$securiaceQuotePaper = array(244, 247, 251);
+$securiaceQuoteHeaderBand = array(11, 19, 36);
+$securiaceQuoteOnHeader = array(244, 247, 251);
 $securiaceQuoteWarning = array(166, 56, 47);
 $securiaceQuoteWarningSoft = array(252, 237, 236);
 $securiaceQuoteWarningLine = array(232, 185, 181);
@@ -723,10 +726,18 @@ $securiaceQuotePaintPage = static function () use (
     $pdf,
     $securiaceQuotePaper,
     $securiaceQuotePageWidth,
-    $securiaceQuotePageHeight
+    $securiaceQuotePageHeight,
+    $securiaceQuoteHeaderBand,
+    $securiaceQuoteAccent
 ) {
     $pdf->SetFillColor($securiaceQuotePaper[0], $securiaceQuotePaper[1], $securiaceQuotePaper[2]);
     $pdf->Rect(0, 0, $securiaceQuotePageWidth, $securiaceQuotePageHeight, 'F');
+    $securiaceQuoteHeaderBandHeight = 28;
+    $pdf->SetFillColor($securiaceQuoteHeaderBand[0], $securiaceQuoteHeaderBand[1], $securiaceQuoteHeaderBand[2]);
+    $pdf->Rect(0, 0, $securiaceQuotePageWidth, $securiaceQuoteHeaderBandHeight, 'F');
+    $pdf->SetDrawColor($securiaceQuoteAccent[0], $securiaceQuoteAccent[1], $securiaceQuoteAccent[2]);
+    $pdf->SetLineWidth(0.45);
+    $pdf->Line(0, $securiaceQuoteHeaderBandHeight, $securiaceQuotePageWidth, $securiaceQuoteHeaderBandHeight);
 };
 $securiaceQuotePaintPage();
 $securiaceQuoteDrawCard = static function ($x, $y, $width, $height, $fill, $line, $radius = 2.65, $corners = '1111') use ($pdf) {
@@ -762,7 +773,7 @@ $securiaceQuoteEnsureSpace = static function ($height) use (
 };
 
 // Header and quote identity.
-$securiaceQuoteHeaderY = $securiaceQuoteTopMargin;
+$securiaceQuoteHeaderY = 8;
 $securiaceQuoteLogoPath = '';
 if (defined('ROOTDIR')) {
     foreach (array('logo.png', 'logo.jpg', 'logo.jpeg') as $logoFile) {
@@ -784,16 +795,16 @@ if ($securiaceQuoteLogoPath !== '') {
 }
 if (!$securiaceQuoteLogoRendered) {
     $pdf->SetFont($securiaceQuoteFont, 'B', 17);
-    $pdf->SetTextColor($securiaceQuoteInk[0], $securiaceQuoteInk[1], $securiaceQuoteInk[2]);
+    $pdf->SetTextColor($securiaceQuoteOnHeader[0], $securiaceQuoteOnHeader[1], $securiaceQuoteOnHeader[2]);
     $pdf->SetXY($securiaceQuoteMargin, $securiaceQuoteHeaderY + 1);
     $pdf->Cell(100, 7, $securiaceQuoteCompanyName, 0, 1, 'L');
 }
 $pdf->SetFont($securiaceQuoteFont, 'B', 6.5);
-$pdf->SetTextColor($securiaceQuoteBrand[0], $securiaceQuoteBrand[1], $securiaceQuoteBrand[2]);
+$pdf->SetTextColor($securiaceQuoteAccent[0], $securiaceQuoteAccent[1], $securiaceQuoteAccent[2]);
 $pdf->SetXY($securiaceQuotePageWidth - $securiaceQuoteMargin - 68, $securiaceQuoteHeaderY);
 $pdf->Cell(68, 4, 'COMMERCIAL PROPOSAL', 0, 1, 'R');
 $pdf->SetFont($securiaceQuoteFont, 'B', 22);
-$pdf->SetTextColor($securiaceQuoteInk[0], $securiaceQuoteInk[1], $securiaceQuoteInk[2]);
+$pdf->SetTextColor($securiaceQuoteOnHeader[0], $securiaceQuoteOnHeader[1], $securiaceQuoteOnHeader[2]);
 $pdf->SetX($securiaceQuotePageWidth - $securiaceQuoteMargin - 68);
 $pdf->Cell(68, 8, 'Quote', 0, 1, 'R');
 $validityLabel = $securiaceQuoteHasValidUntil
@@ -805,12 +816,13 @@ $validityX = $securiaceQuotePageWidth - $securiaceQuoteMargin - $validityWidth;
 $validityFill = $securiaceQuoteNeedsDateReview ? $securiaceQuoteWarningSoft : $securiaceQuoteBrandSoft;
 $validityLine = $securiaceQuoteNeedsDateReview ? $securiaceQuoteWarningLine : $securiaceQuoteLine;
 $validityText = $securiaceQuoteNeedsDateReview ? $securiaceQuoteWarning : $securiaceQuoteBrand;
-$securiaceQuoteDrawCard($validityX, $securiaceQuoteHeaderY + 14, $validityWidth, 7, $validityFill, $validityLine, 3.5);
+$securiaceQuoteStatusY = 31;
+$securiaceQuoteDrawCard($validityX, $securiaceQuoteStatusY, $validityWidth, 7, $validityFill, $validityLine, 3.5);
 $pdf->SetFont($securiaceQuoteFont, 'B', 6.5);
 $pdf->SetTextColor($validityText[0], $validityText[1], $validityText[2]);
-$pdf->SetXY($validityX, $securiaceQuoteHeaderY + 15.3);
+$pdf->SetXY($validityX, $securiaceQuoteStatusY + 1.3);
 $pdf->Cell($validityWidth, 4, $validityLabel, 0, 1, 'C');
-$ruleY = $securiaceQuoteHeaderY + 26;
+$ruleY = $securiaceQuoteStatusY + 12;
 $pdf->SetDrawColor($securiaceQuoteBrand[0], $securiaceQuoteBrand[1], $securiaceQuoteBrand[2]);
 $pdf->SetLineWidth(0.35);
 $pdf->Line($securiaceQuoteMargin, $ruleY, $securiaceQuotePageWidth - $securiaceQuoteMargin, $ruleY);

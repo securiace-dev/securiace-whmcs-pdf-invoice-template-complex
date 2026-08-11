@@ -5,10 +5,10 @@
   min-height: 38px;
   align-items: center;
   padding: 0 13px;
-  color: #5f5664;
-  background: #f6f2f7;
-  border: 1px solid #ddd7e1;
-  border-radius: 999px;
+  color: var(--fg-muted, var(--muted));
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 2px;
   font-size: 8pt;
   font-weight: 800;
   letter-spacing: 0.05em;

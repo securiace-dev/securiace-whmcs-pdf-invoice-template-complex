@@ -1,0 +1,37 @@
+/* Securiace brand semantic tokens — dark/light */
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+  --brand-navy: #0B1324;
+  --brand-cyan: #00E6FF;
+  --brand-teal: #008DBA;
+  --brand-ice: #F4F7FB;
+  --bg-canvas: #0B1324;
+  --bg-surface: #121C31;
+  --fg-primary: #F4F7FB;
+  --fg-muted: #8BA0B8;
+  --accent: #00E6FF;
+  --accent-strong: #00E6FF;
+  --border: #1E3A4F;
+  --danger: #FF6B6B;
+  --success: #3DDC97;
+  --warn: #F4C15D;
+  --shadow: 0 18px 55px rgba(0, 230, 255, 0.08);
+  --font-display: "Exo 2", Orbitron, Montserrat, "Segoe UI", sans-serif;
+  --font-body: "Exo 2", "Segoe UI", system-ui, sans-serif;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --bg-canvas: #F4F7FB;
+  --bg-surface: #FFFFFF;
+  --fg-primary: #0B1324;
+  --fg-muted: #5A6B7D;
+  --accent: #008DBA;
+  --accent-strong: #00E6FF;
+  --border: #C9D4E0;
+  --danger: #C0392B;
+  --success: #0B7542;
+  --warn: #9A5700;
+  --shadow: 0 18px 55px rgba(11, 19, 36, 0.10);
+}

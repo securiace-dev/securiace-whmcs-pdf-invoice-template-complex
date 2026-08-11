@@ -1,14 +1,17 @@
 # Living handoff
 
-This is the canonical maintenance handoff for the WHMCS PDF suite. It records
-the operating contract and the evidence a future maintainer must refresh. It
-does not duplicate production issuer, customer, bank, UPI, tax, credential, or
-server values.
+This is the canonical maintenance handoff for the Securiace WHMCS theme and PDF
+suite. It records the operating contract and the evidence a future maintainer
+must refresh. It does not duplicate production issuer, customer, bank, UPI, tax,
+credential, or server values.
 
 The handoff is intentionally evergreen: current runtime health comes from the
 redacted **Securiace PDF Profile Snapshots** addon screen, release state comes
 from Git, and deployment history comes from the operator audit ledger. A copied
 screenshot or a value pasted into this repository is never a source of truth.
+
+Brand tokens and dark/light rules live in `docs/BRAND-SYSTEM.md` and
+`assets/brand/tokens.json`.
 
 ## Contract markers
 
@@ -48,39 +51,22 @@ exercise snapshot consumption.
 
 ## Current environment handoff
 
-The repository ships the approved PDF overrides in the minimal
-`templates/securiace` child theme. Production activation is operator-owned:
-install the package, select **Securiace PDF Documents** as the System Theme,
-and clear the template cache per `docs/UPGRADE-SAFE-THEME-OPERATIONS.md`.
-Repository packaging alone is not evidence of production activation.
+This repository is the canonical Securiace WHMCS theme + PDF package. Production
+activation remains operator-owned: install `templates/securiace`, the theme-mode
+hook, helpers/addon/logo, select **Securiace** as the System Theme, and clear
+the template cache per `docs/UPGRADE-SAFE-THEME-OPERATIONS.md`.
 
-At this handoff closure, production has been verified with:
+At this handoff closure, the package provides:
 
-- System Theme `securiace` (parent `twenty-one`) active for PDF and client-area
-  inheritance;
-- active `templates/securiace/invoicepdf.tpl` matching commit
-  `4f75b2e4eaaf3b49e65c4fba3d3c3fc43070df45` at SHA-256
-  `c1ddbac8f9ba3ae104a2c8239330faf05a33102ba2beccac4e9a8fbcf835f89c`;
-- active `templates/securiace/quotepdf.tpl` matching the same commit at SHA-256
-  `cf79a7541eab13cd3974c64c0c1f9231805984571eaf48666b0a683e79c5a129`;
-- completed invoice/quote templates recovering HTTP 200 after successful
-  render so Whoops init poison and TCPDF deprecations cannot strand downloads
-  on HTTP 5xx;
+- dual dark/light client-area modes from Midnight Navy / Electric Cyan / Teal /
+  Ice White tokens with `prefers-color-scheme` + persisted toggle;
+- print-hybrid PDF invoice/quote surfaces (navy header band, ice body);
 - `securiace-pdf-profile.php` copied into the WHMCS `includes` area and readable
   by the WHMCS runtime;
-- the deployed helper matching the repository SHA-256 contract marker above
-  after an atomic refresh, with its previous copy retained at
-  `/var/backups/securiace-whmcs-pdf/20260806-handoff-helper-refresh-62777cd/`;
-- **Securiace PDF Profile Snapshots** activated through WHMCS Addon Modules;
-- the addon version recorded and its invoice hook registered;
-- issuer snapshot storage available at the expected schema version;
-- the protected configuration available;
-- redacted diagnostics reporting no source warnings or conflicts;
-- hash-guarded rollback for the 2026-08-11 status/theme remediation retained at
-  `/var/backups/securiace-whmcs-pdf/20260811T-pdf-5xx-remediation-4f75b2e/`; and
-- production-native `pdfInvoice` / `genQuotePDF` smokes returning valid PDF
-  payloads at HTTP 200 after remediation, with unauthenticated `/dl.php`
-  invoice and quote routes redirecting to login (302) rather than 5xx.
+- the deployed helper matching the repository SHA-256 contract marker above;
+- **Securiace PDF Profile Snapshots** addon sources matching schema version `1`;
+- brand logos under `assets/brand/` including install target `logo.png`;
+- and browser previews with the same dual-mode chrome and hybrid document art.
 
 This section is current environment context, not a substitute for live checks.
 Future deployers must refresh it when any listed state changes. Do not add live
@@ -100,7 +86,8 @@ issuer/payment identifiers or snapshot counts here.
 | Snapshot operations | `docs/PDF-SNAPSHOT-OPERATIONS.md` | Direct database edits |
 | Supported PDF surfaces | `scripts/audit-whmcs-pdf-surface.php` | Memory of an older WHMCS release |
 | Upgrade-safe theme package | `templates/securiace/` and `tests/child_theme_package_contract_test.php` | Files copied into a WHMCS-owned default theme |
-| Integrated release | Green `main` and maintained `release/*` refs | Unreviewed feature branch |
+| Brand tokens / logos | `docs/BRAND-SYSTEM.md` and `assets/brand/` | Ad-hoc hex values in unrelated CSS |
+| Integrated release | Green `main` of this repository | Unreviewed feature branch or the legacy PDF-only repo |
 | Deployment and rollback evidence | Sanitized operator audit ledger and dated server backup | Mutable image/tag or verbal confirmation |
 
 ## Stable behavior that must not regress
