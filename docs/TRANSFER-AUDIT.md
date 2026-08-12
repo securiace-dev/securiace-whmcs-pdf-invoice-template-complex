@@ -6,16 +6,13 @@
 
 ## Source of truth (GitHub)
 
-| Artifact | Ref | Tip SHA |
+| Artifact | Ref | Tip |
 | --- | --- | --- |
-| Unified theme (full package) | `securiace-dev/securiace-whmcs-pdf-invoice-template-complex` branch **`securiace-whmcs-theme`** | `43f5ef6a530558a9b5f6eaf50c823f64ee89be43` |
-| Same tip (alias) | branch **`export/securiace-whmcs-theme`** | same as above |
-| Tag | **`securiace-whmcs-theme-v1`** | retagged to tip at audit close |
-| PDF 5xx fix + cutover docs | branch **`fix/pdf-http-status-init-poison`** | `829531952bfad9f9f640d455a52180a030d0e202` |
+| Unified theme (full package) | branch **`securiace-whmcs-theme`** + tag **`securiace-whmcs-theme-v1`** | `git fetch && git rev-parse securiace-whmcs-theme-v1` |
+| Same tip (alias) | branch **`export/securiace-whmcs-theme`** | same commit as tag |
+| PDF 5xx fix + cutover docs | branch **`fix/pdf-http-status-init-poison`** | PR #15 tip |
 | PR | [#15](https://github.com/securiace-dev/securiace-whmcs-pdf-invoice-template-complex/pull/15) | open → `main` |
 | Org repo `securiace-dev/securiace-whmcs-theme` | **not created** | cloud `gh` 403 — create on Mac |
-
-Cloud working trees match the branch tips above after push (clean; nothing unpushed).
 
 ## Browse / clone
 
@@ -43,7 +40,7 @@ Top-level: `AGENTS.md`, `LICENSE`, `README.md`, `assets/`, `config/`, `docs/`,
 `quote-preview/`, `scripts/`, `securiace-pdf-*.php`, `templates/securiace/`,
 `tests/`, `.github/`.
 
-File count at audit: run `find . -type f ! -path './.git/*' | wc -l` (expect ≥75).
+File count: run `find . -type f ! -path './.git/*' | wc -l` (expect ≥75).
 
 ## Test audit (cloud PHP 8.3.6)
 
@@ -62,13 +59,11 @@ File count at audit: run `find . -type f ! -path './.git/*' | wc -l` (expect ≥
 | `whmcs_pdf_surface_audit_test.php` | PASS |
 | `render_modern_*_fixtures.php` | SKIP (need TCPDF path args — not CI unit tests) |
 
-Legacy PDF branch `fix/pdf-http-status-init-poison`: handoff + repair contracts PASS.
-
 ## Still Mac / operator-owned
 
 1. `bash ./scripts/publish-to-github.sh` → create `securiace-dev/securiace-whmcs-theme`
 2. Open `~/securiace-whmcs-theme` in Cursor desktop
-3. Merge PR #15 when ready
+3. Merge PR #15 when CI is green
 4. WHMCS staging/prod theme deploy (`README.md` install steps)
 5. Authenticated browser PDF acceptance
 
