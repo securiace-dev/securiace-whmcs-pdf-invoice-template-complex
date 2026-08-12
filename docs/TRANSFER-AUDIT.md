@@ -8,7 +8,7 @@
 
 | Artifact | Ref | Tip SHA |
 | --- | --- | --- |
-| Unified theme (full package) | `securiace-dev/securiace-whmcs-pdf-invoice-template-complex` branch **`securiace-whmcs-theme`** | `6eae693c` *(full: see `git rev-parse HEAD` after pull)* |
+| Unified theme (full package) | `securiace-dev/securiace-whmcs-pdf-invoice-template-complex` branch **`securiace-whmcs-theme`** | `43f5ef6a530558a9b5f6eaf50c823f64ee89be43` |
 | Same tip (alias) | branch **`export/securiace-whmcs-theme`** | same as above |
 | Tag | **`securiace-whmcs-theme-v1`** | retagged to tip at audit close |
 | PDF 5xx fix + cutover docs | branch **`fix/pdf-http-status-init-poison`** | `829531952bfad9f9f640d455a52180a030d0e202` |
