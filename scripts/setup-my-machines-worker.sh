@@ -31,8 +31,15 @@ gh auth status >/dev/null
 
 cd "$ROOT"
 REMOTE="$(git remote get-url origin 2>/dev/null || true)"
+if [[ -z "${REMOTE}" ]] || [[ "${REMOTE}" != *"/securiace-whmcs-theme"* ]]; then
+  echo "origin is not securiace-dev/securiace-whmcs-theme yet." >&2
+  echo "Run first: bash ./scripts/publish-to-github.sh" >&2
+  echo "Current origin: ${REMOTE:-<none>}" >&2
+  exit 1
+fi
+
 echo "Worker directory: $ROOT"
-echo "Git remote: ${REMOTE:-<none yet — publish script can add origin>}"
+echo "Git remote: ${REMOTE}"
 echo "Starting My Machines worker: $NAME"
 echo "Keep this terminal open. Pick '$NAME' in cursor.com/agents or use worker=$NAME in GitHub comments."
 exec agent worker start --name "$NAME" --worker-dir "$ROOT"

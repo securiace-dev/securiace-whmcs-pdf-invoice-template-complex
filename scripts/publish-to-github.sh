@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
-# Publish securiace-whmcs-theme to GitHub using host-authorized gh/git.
-# Run on the macOS workstation (or any host with org-create scopes), not in
-# the Cursor cloud sandbox.
-# Prefer: bash ./scripts/local-bootstrap.sh (handles export-branch clone too).
+# Publish / re-point this checkout to securiace-dev/securiace-whmcs-theme.
+# Safe to re-run when origin still points at the PDF export repo.
 set -euo pipefail
 
 ORG="${SECURIACE_GH_ORG:-securiace-dev}"
@@ -18,28 +16,44 @@ fi
 gh auth status >/dev/null
 
 canonical_url="https://github.com/${ORG}/${NAME}.git"
-origin_url="$(git remote get-url origin 2>/dev/null || true)"
-if [[ -n "${origin_url}" ]] && [[ "${origin_url}" != *"${ORG}/${NAME}"* ]]; then
-  echo "Removing non-canonical origin: ${origin_url}"
-  git remote remove origin
-fi
 
-if gh repo view "${ORG}/${NAME}" >/dev/null 2>&1; then
-  echo "Remote ${ORG}/${NAME} already exists"
-else
-  gh repo create "${ORG}/${NAME}" \
-    --private \
-    --description "Unified Securiace WHMCS child theme, brand system, and PDF invoice/quote suite" \
-    --source . \
-    --remote origin \
-    --push
-  echo "Created and pushed ${ORG}/${NAME}"
-  exit 0
+# Always force origin to the canonical theme repo (never leave export remote as origin).
+if git remote get-url origin >/dev/null 2>&1; then
+  current="$(git remote get-url origin)"
+  if [[ "${current}" != *"${ORG}/${NAME}"* ]]; then
+    echo "Retargeting origin away from: ${current}"
+    git remote remove origin
+  fi
 fi
 
 if ! git remote get-url origin >/dev/null 2>&1; then
   git remote add origin "${canonical_url}"
+else
+  git remote set-url origin "${canonical_url}"
 fi
 
-git push -u origin HEAD
-echo "Pushed to ${ORG}/${NAME}"
+# Keep a named remote for the temporary export source if useful.
+if ! git remote get-url export >/dev/null 2>&1; then
+  git remote add export \
+    "https://github.com/securiace-dev/securiace-whmcs-pdf-invoice-template-complex.git" \
+    2>/dev/null || true
+fi
+
+# Ensure local branch is main before push.
+branch="$(git rev-parse --abbrev-ref HEAD)"
+if [[ "${branch}" != "main" ]]; then
+  git branch -M main
+fi
+
+if ! gh repo view "${ORG}/${NAME}" >/dev/null 2>&1; then
+  echo "Creating ${ORG}/${NAME}"
+  gh repo create "${ORG}/${NAME}" \
+    --private \
+    --description "Unified Securiace WHMCS child theme, brand system, and PDF invoice/quote suite"
+fi
+
+echo "Pushing main → ${canonical_url}"
+git push -u origin main
+echo "Done. origin is now ${ORG}/${NAME}"
+git remote -v
+gh repo view "${ORG}/${NAME}" --json url,defaultBranchRef --jq '{url,defaultBranch:.defaultBranchRef.name}'
