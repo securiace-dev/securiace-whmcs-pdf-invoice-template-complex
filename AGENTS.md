@@ -1,13 +1,9 @@
 # Agent notes (legacy PDF repo)
 
-Theme work is on GitHub branch **`securiace-whmcs-theme`** (not a separate org repo yet).
+Cloud theme work is committed and pushed. Pull to Mac:
 
 ```bash
-git clone -b securiace-whmcs-theme --single-branch \
-  https://github.com/securiace-dev/securiace-whmcs-pdf-invoice-template-complex.git \
-  ~/securiace-whmcs-theme
-cd ~/securiace-whmcs-theme
-bash ./scripts/publish-to-github.sh
+bash <(curl -fsSL https://raw.githubusercontent.com/securiace-dev/securiace-whmcs-pdf-invoice-template-complex/securiace-whmcs-theme/scripts/pull-to-local.sh)
 ```
 
 Details: [`docs/THEME-CLONE.md`](docs/THEME-CLONE.md)
