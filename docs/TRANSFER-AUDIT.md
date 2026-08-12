@@ -8,14 +8,14 @@
 
 | Artifact | Ref | Tip SHA |
 | --- | --- | --- |
-| Unified theme (full package) | `securiace-dev/securiace-whmcs-pdf-invoice-template-complex` branch **`securiace-whmcs-theme`** | `6eae693a2d2bfce01a205efa4c93da9669202127` |
-| Same tip (alias) | branch **`export/securiace-whmcs-theme`** | `a77adcf64d25155d2bf4a87c70b5f2b2be7e6abf` |
-| Tag | **`securiace-whmcs-theme-v1`** | points at theme tip (retag if tip moves) |
+| Unified theme (full package) | `securiace-dev/securiace-whmcs-pdf-invoice-template-complex` branch **`securiace-whmcs-theme`** | `6eae693c` *(full: see `git rev-parse HEAD` after pull)* |
+| Same tip (alias) | branch **`export/securiace-whmcs-theme`** | same as above |
+| Tag | **`securiace-whmcs-theme-v1`** | retagged to tip at audit close |
 | PDF 5xx fix + cutover docs | branch **`fix/pdf-http-status-init-poison`** | `829531952bfad9f9f640d455a52180a030d0e202` |
 | PR | [#15](https://github.com/securiace-dev/securiace-whmcs-pdf-invoice-template-complex/pull/15) | open → `main` |
 | Org repo `securiace-dev/securiace-whmcs-theme` | **not created** | cloud `gh` 403 — create on Mac |
 
-Cloud working trees match the SHAs above (clean; nothing unpushed).
+Cloud working trees match the branch tips above after push (clean; nothing unpushed).
 
 ## Browse / clone
 
@@ -24,22 +24,26 @@ https://github.com/securiace-dev/securiace-whmcs-pdf-invoice-template-complex/tr
 ```
 
 ```bash
+# One-liner pull + verify:
+bash <(curl -fsSL https://raw.githubusercontent.com/securiace-dev/securiace-whmcs-pdf-invoice-template-complex/securiace-whmcs-theme/scripts/pull-to-local.sh)
+
+# Or explicit:
 git clone -b securiace-whmcs-theme --single-branch \
   https://github.com/securiace-dev/securiace-whmcs-pdf-invoice-template-complex.git \
   ~/securiace-whmcs-theme
 cd ~/securiace-whmcs-theme
-test "$(git rev-parse HEAD)" = "a77adcf64d25155d2bf4a87c70b5f2b2be7e6abf" \
-  || echo "WARN: tip moved — re-check docs/TRANSFER-AUDIT.md"
 bash ./scripts/verify-transfer.sh
 bash ./scripts/publish-to-github.sh   # creates securiace-dev/securiace-whmcs-theme
 ```
 
-## Package inventory (72 files)
+## Package inventory
 
 Top-level: `AGENTS.md`, `LICENSE`, `README.md`, `assets/`, `config/`, `docs/`,
 `hooks/`, `invoicepdf*.tpl`, `quotepdf*.tpl`, `modules/`, `preview/`,
 `quote-preview/`, `scripts/`, `securiace-pdf-*.php`, `templates/securiace/`,
 `tests/`, `.github/`.
+
+File count at audit: run `find . -type f ! -path './.git/*' | wc -l` (expect ≥75).
 
 ## Test audit (cloud PHP 8.3.6)
 

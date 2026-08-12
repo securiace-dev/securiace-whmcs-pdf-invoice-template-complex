@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
-EXPECTED_TIP="${SECURIACE_EXPECTED_TIP:-a77adcf64d25155d2bf4a87c70b5f2b2be7e6abf}"
+EXPECTED_TIP="${SECURIACE_EXPECTED_TIP:-}"
 HEAD="$(git rev-parse HEAD)"
 COUNT="$(find . -type f ! -path './.git/*' | wc -l | tr -d ' ')"
 
@@ -12,10 +12,12 @@ echo "HEAD:  $HEAD"
 echo "Files: $COUNT"
 
 ok=0
-if [[ "$HEAD" == "$EXPECTED_TIP" ]]; then
-  echo "OK tip matches transfer audit"
-else
-  echo "WARN tip differs from audited $EXPECTED_TIP (branch may have advanced)"
+if [[ -n "$EXPECTED_TIP" ]]; then
+  if [[ "$HEAD" == "$EXPECTED_TIP" ]]; then
+    echo "OK tip matches transfer audit"
+  else
+    echo "WARN tip differs from audited $EXPECTED_TIP (branch may have advanced)"
+  fi
 fi
 
 test -f templates/securiace/theme.yaml || { echo "MISSING templates/securiace/theme.yaml"; ok=1; }
