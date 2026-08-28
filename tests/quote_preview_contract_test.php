@@ -26,6 +26,10 @@ $requiredHtml = array(
     '<th scope="col" class="numeric">Unit price</th>',
     '<th scope="col" class="numeric">Discount</th>',
     'Validity and acceptance',
+    'class="verification-panel"',
+    'Sealed quote',
+    '01AR-Z3ND-EKTS-V4RR-FFQ6-9G5F-AV',
+    'does not extend or confirm the quote’s current validity.',
 );
 foreach ($requiredHtml as $required) {
     if (strpos($html, $required) === false) {
@@ -36,6 +40,11 @@ foreach ($requiredHtml as $required) {
 foreach (array('UPI payment', 'Payment transactions', 'Amount paid', 'Authenticated invoice record', 'Client notes') as $invoiceOnlyText) {
     if (stripos($html, $invoiceOnlyText) !== false) {
         throw new RuntimeException('Quote preview contains invoice-only content: ' . $invoiceOnlyText);
+    }
+}
+foreach (array('Adobe', 'green tick') as $unsupportedClaim) {
+    if (stripos($html, $unsupportedClaim) !== false) {
+        throw new RuntimeException('Quote preview contains unsupported seal copy: ' . $unsupportedClaim);
     }
 }
 

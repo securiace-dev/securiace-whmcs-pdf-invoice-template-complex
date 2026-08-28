@@ -88,9 +88,11 @@ theme template.
 - Currency-dependent invoice payment actions fail closed if currency cannot be
   confirmed. The template no longer assumes INR.
 - The WHMCS 9 core invoice QR payload is outside template payment controls and is
-  suppressed. The only QR rendered is the amount-bound UPI payload for an
+  suppressed. The only payment QR is the amount-bound UPI payload for an
   outstanding INR invoice or proforma, including a derived overdue state, with
-  positive balance and a configured protected UPI ID.
+  positive balance and a configured protected UPI ID. An explicitly enabled
+  ready seal DTO may additionally render the opaque Securiace verification URL
+  as a local QR.
 - Paid PDFs omit remittance/support cards and keep settlement, authorization,
   renewals, and wrapped transaction evidence together. Long localized dates are
   normalized to compact display dates before entering fixed PDF geometry.
@@ -101,6 +103,10 @@ theme template.
   status, and transaction references while omitting settlement/support cards,
   bank/UPI/QR data, notes, renewals, proof artwork, and authorization
   images.
+- The verification DTO defaults to `none`, fails closed on kind/URL/token/code
+  errors, and is forcibly suppressed in batch mode. `sec_panel` draws measured
+  local copy and QR/link geometry; `official_badge` and `provider_line` reserve
+  collision-safe space without asserting that provider artwork is present.
 - Browser previews use fictional data and are review artifacts. Runtime values
   come only from WHMCS and protected server configuration.
 
@@ -112,11 +118,13 @@ Automated fixture coverage includes:
   draft, proforma, zero total, EUR format 2, unknown currency, entity decoding,
   adjustment/reconciliation cases, WHMCS 9 ledger and QR, invalid protected
   configuration, A4/Letter, multi-page, repeated rendering, and two invoices in
-  one TCPDF batch.
+  one TCPDF batch, all verification modes, malformed verification DTOs, and
+  sealed A4/Letter multipage geometry.
 - Quote: registered and guest recipients, allowed and malicious rich proposal
   markup, entity decoding, quantity, unit price, percentage discount, one/two/no
   tax rows, customer-note suppression, A4/Letter, and a 42-line multi-page
-  proposal.
+  proposal, all verification modes, malformed verification DTOs, and sealed
+  A4/Letter multipage geometry.
 - Runtime: local TCPDF distributions from WHMCS 8.12.1 and WHMCS 9.0.
 - Static contracts: invoice/quote browser structure, JavaScript syntax, modern
   visual primitives, quote/invoice semantic separation, repair idempotence, and

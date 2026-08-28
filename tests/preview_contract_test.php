@@ -25,6 +25,10 @@ $requiredHtml = array(
     'Payment received',
     'Paid in full',
     'No balance due',
+    'class="verification-panel"',
+    'Sealed and unchanged',
+    '01AR-Z3ND-EKTS-V4RR-FFQ6-9G5F-AV',
+    'It does not by itself confirm current payment status.',
 );
 
 foreach ($requiredHtml as $required) {
@@ -40,6 +44,8 @@ $forbiddenClaims = array(
     'Electronic record · IT Act 2000',
     'class="verified-panel"',
     'class="verified-icon"',
+    'Adobe',
+    'green tick',
 );
 foreach ($forbiddenClaims as $forbidden) {
     if (stripos($html, $forbidden) !== false) {
@@ -55,6 +61,8 @@ $requiredCss = array(
     'html[data-invoice-state="overdue"] .status-pill',
     '@media print',
     '@media (prefers-reduced-motion: reduce)',
+    '.verification-panel',
+    '.verification-code:focus-visible',
 );
 foreach ($requiredCss as $required) {
     if (strpos($css, $required) === false) {

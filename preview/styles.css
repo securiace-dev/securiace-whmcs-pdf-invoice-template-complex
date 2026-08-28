@@ -665,6 +665,94 @@ td.amount {
   font-size: 7.5pt;
 }
 
+.verification-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 27mm;
+  gap: 4mm;
+  align-items: center;
+  margin-top: 4mm;
+  padding: 3.2mm 4mm;
+  color: var(--brand-dark);
+  background: var(--brand-soft);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.verification-copy {
+  min-width: 0;
+}
+
+.verification-copy h3 {
+  margin: 4px 0 3px;
+  color: var(--brand-dark);
+  font-size: 11pt;
+}
+
+.verification-copy > p:not(.section-label) {
+  margin: 0;
+  color: var(--ink);
+  font-size: 7.2pt;
+  line-height: 1.4;
+}
+
+.verification-copy small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 5.8pt;
+  line-height: 1.35;
+}
+
+.verification-code {
+  display: inline-block;
+  margin-top: 5px;
+  color: var(--brand-dark);
+  font-size: 6.2pt;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.verification-code:focus-visible,
+.verification-qr:focus-visible {
+  outline: 3px solid #d8a0ef;
+  outline-offset: 3px;
+}
+
+.verification-qr {
+  display: grid;
+  width: 25mm;
+  height: 25mm;
+  place-items: center;
+  align-content: center;
+  gap: 4px;
+  color: var(--brand-dark);
+  background:
+    linear-gradient(90deg, currentColor 14%, transparent 14% 28%, currentColor 28% 42%, transparent 42% 58%, currentColor 58% 72%, transparent 72% 86%, currentColor 86%),
+    linear-gradient(currentColor 14%, transparent 14% 28%, currentColor 28% 42%, transparent 42% 58%, currentColor 58% 72%, transparent 72% 86%, currentColor 86%),
+    #fff;
+  border: 3px solid #fff;
+  border-radius: 5px;
+  box-shadow: 0 0 0 1px var(--line);
+  text-decoration: none;
+}
+
+.verification-qr span {
+  width: 11mm;
+  height: 11mm;
+  background: #fff;
+  border: 2mm solid currentColor;
+  box-shadow: inset 0 0 0 1.5mm #fff, inset 0 0 0 3mm currentColor;
+}
+
+.verification-qr strong {
+  padding: 1px 4px;
+  background: #fff;
+  font-size: 5pt;
+  letter-spacing: 0.08em;
+}
+
 .authorization {
   display: flex;
   align-items: center;

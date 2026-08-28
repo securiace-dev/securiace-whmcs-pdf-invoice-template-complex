@@ -133,9 +133,15 @@ issuer/payment identifiers or snapshot counts here.
   explicitly active.
 - Snapshot payloads contain immutable issuer/document identity only. They never
   contain bank, UPI, client, transaction, credential, or signing-secret values.
-- Invoice paid-state artwork now reports payment facts only. Invoice and quote
-  footers reserve space for a provider-applied post-render proof line; the
-  templates themselves make no cryptographic-signature or legal-status claim.
+- Invoice paid-state artwork reports payment facts only. Ordinary invoice,
+  quote, native-email, and batch renders make no sealed-document claim. An
+  explicit ready presentation DTO can draw the measured Securiace panel, reserve
+  a provider badge block, or use the provider-line footer reserve. Provider
+  badge/line modes never duplicate provider-owned artwork.
+- Ready sealed contexts use the persisted issue date in the footer instead of a
+  volatile generation timestamp. The external pipeline must seal and
+  independently verify the completed bytes before delivery; its intermediate
+  claim-bearing render must fail closed and never escape.
 - Invalid config/helper/snapshot results and optional QR/artwork failures degrade
   to safe text/identity output and retain only redacted diagnostic codes.
 - Completed invoice and quote PDF templates recover HTTP 200 when rendering

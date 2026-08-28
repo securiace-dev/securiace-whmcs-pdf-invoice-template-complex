@@ -53,7 +53,8 @@ paid and payable invoices harder to misread.
   the active A4 or Letter page.
 - WHMCS 9 invoice amount, amount-paid, reference-ID, transaction-type, and
   credit/debit-note fields are normalized without changing WHMCS 8 output. Its
-  opaque core QR is suppressed so the controlled UPI payload is the only QR.
+  opaque core QR is suppressed so the controlled UPI payload remains the only
+  payment QR.
 - Batch exports stamp only the pages created for the current invoice instead of
   overwriting footers belonging to earlier invoices in the same TCPDF object.
 - Admin batch exports use a lean accounting profile: no settlement callout,
@@ -83,7 +84,9 @@ paid and payable invoices harder to misread.
   confirmation from an authorised contact, and every footer carries the quote
   number for detached-page traceability.
 - Quotes intentionally contain no UPI action, bank-remittance call to action,
-  payment receipt, transaction history, signed-document claims, or paid balance.
+  payment receipt, transaction history, or paid balance. A sealed-document panel
+  appears only when the external sealing pipeline supplies the explicit ready
+  presentation DTO described below.
 - Customer notes are omitted so internal commentary is not leaked; essential
   client-facing scope and terms belong in the proposal body.
 - The template never rewrites authored commercial or tax terms. For a currently
@@ -93,6 +96,44 @@ paid and payable invoices harder to misread.
   pending client confirmation.
 - A4 and Letter output, long proposals, many line items, taxes, discounts,
   guest recipients, and missing optional data are covered by TCPDF fixtures.
+
+## Sealed presentation DTO
+
+The templates are inert by default. An ordinary WHMCS download, native email
+attachment, or admin batch PDF receives no sealed claim. A fail-closed external
+pipeline may inject `$securiaceVerificationPanel` only while preparing the final
+document bytes that it will seal and independently verify before delivery:
+
+```php
+array(
+    'enabled' => true,
+    'mode' => 'sec_panel',
+    'kind' => 'invoice', // or quote
+    'short_url' => 'https://my.securiace.com/v/<26-character-token>',
+    'display_code' => '<same token, grouped for display>',
+    'heading' => '<approved document-kind copy>',
+    'body' => '<approved document-kind copy>',
+    'disclaimer' => '<approved document-kind copy>',
+)
+```
+
+The URL token must be exactly 26 uppercase Crockford Base32 characters. The URL
+stores the ungrouped token; grouping is accepted only in `display_code`. The
+template generates the QR locally and gives its annotation the exact `short_url`.
+`sec_panel` is the recommended presentation. `official_badge` reserves a
+measured body block and `provider_line` uses the reserved footer line, but the
+source template draws neither provider-owned artifact. `none`, malformed URLs,
+token/code mismatches, wrong document kinds, and non-boolean enable values render
+nothing.
+
+The approved invoice panel states that the invoice is sealed and unchanged and
+clarifies that the seal does not confirm current payment status. The quote panel
+states that the quote is sealed and clarifies that the seal does not extend its
+validity. These claims are truthful only in the final sealed artifact: the
+intermediate render must never be emailed, downloaded, cached as customer output,
+or otherwise escape if sealing or independent verification fails. Sealed footer
+context uses the persisted issue date rather than a volatile render timestamp so
+the same document revision remains deterministic.
 
 ## Browser preview
 
@@ -202,11 +243,10 @@ The public example exposes this contract:
 - jurisdiction, reviewed late-fee copy, and TDS note;
 - explicit GST activation date/title gates and opt-in commercial currencies.
 
-The invoice and quote templates do not claim that a rendered document is
-cryptographically signed. They reserve a quiet footer area for a post-render
-provider line, but the provider must seal and independently verify the completed
-PDF bytes outside the template before any signed-document claim is shown. Have
-tax and legal copy reviewed for the deployed business entity.
+The invoice and quote templates make no sealed-document claim unless the
+explicit ready presentation DTO is present. The provider must seal and
+independently verify the completed PDF bytes before the artifact is delivered.
+Have tax and legal copy reviewed for the deployed business entity.
 
 ## Verification
 
@@ -311,9 +351,9 @@ test remains part of the repository gate.
 - Keep production configuration under `WHMCS_ROOT/includes`, not in the public
   template repository.
 - Do not describe payment-state artwork as a certificate, digital signature, or
-  verification result.
-- The QR is rendered directly into the PDF; no predictable temporary QR file is
-  created.
+  verification result. Sealed copy belongs only to the fail-closed DTO path.
+- Payment and verification QRs are rendered directly into the PDF; no
+  predictable temporary QR file is created.
 - The template escapes invoice descriptions before passing HTML to TCPDF.
 - The quote template strips active/remote markup and all element attributes from
   rich proposal content before passing its small allow-list to TCPDF.

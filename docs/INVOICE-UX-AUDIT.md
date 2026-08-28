@@ -63,8 +63,9 @@ from WHMCS configuration or protected deployment assets.
    that this custom number is only set when proforma or sequential numbering is
    enabled, so `$invoiceid` must remain a valid official invoice number fallback.
 8. A template-computed identifier cannot authenticate the final PDF bytes.
-   Remove the local verification claim; a signing service must receive the
-   completed PDF and its result must pass independent verification before use.
+   Remove locally invented verification claims. A signing service must receive
+   the completed PDF, and only an explicit ready presentation DTO may prepare
+   approved seal copy for bytes that pass independent verification before use.
 9. Bank, UPI, and company details are declared in a configuration block and then
    repeated as literals later. The second template must consume each value from a
    single configuration source.
@@ -166,8 +167,9 @@ in the browser prototype:
    All paid states now block payment actions regardless of balance corruption.
 7. A keyed HMAC was previously presented as an authenticated invoice record and
    paired with an IT Act label. Both were removed because neither proves the
-   final PDF signature or legal status. Paid documents now show payment facts
-   only; a post-render service owns any future signature evidence.
+   final PDF signature or legal status. Paid-state artwork now shows payment
+   facts only; the separately gated Securiace panel is allowed only in the
+   fail-closed completed-PDF sealing path.
 8. WHMCS 8 and 9 do not pass the same transaction contract. The renderer now
    normalizes WHMCS 8 `transid` and WHMCS 9 `referenceId`, `typeLabel`, and
    credit/debit-note fields before presentation.
