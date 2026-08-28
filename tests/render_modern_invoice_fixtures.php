@@ -289,10 +289,16 @@ function renderFixture(string $templatePath, string $outputDirectory, string $na
         }
     );
 
+    if ($templateMode === 'modern') {
+        http_response_code(500);
+    }
     try {
         include $templatePath;
     } finally {
         restore_error_handler();
+    }
+    if ($templateMode === 'modern' && http_response_code() !== 200) {
+        throw new RuntimeException('A successful invoice render did not clear an inherited HTTP 5xx status.');
     }
 
     $outputPath = rtrim($outputDirectory, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $name . '.pdf';
@@ -413,10 +419,14 @@ function renderBatchFixtures(string $templatePath, string $outputDirectory, arra
                 throw new ErrorException($message, 0, $severity, $file, $line);
             }
         );
+        http_response_code(500);
         try {
             include $templatePath;
         } finally {
             restore_error_handler();
+        }
+        if (http_response_code() !== 200) {
+            throw new RuntimeException('A successful batch invoice render did not clear an inherited HTTP 5xx status.');
         }
 
         $expectedPages = range($securiaceModernStartPage, $securiaceModernFinalPage);

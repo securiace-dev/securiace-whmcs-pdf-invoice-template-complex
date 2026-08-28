@@ -48,6 +48,8 @@ $requiredContracts = array(
     'restore_error_handler()',
     '$securiaceQuoteHttpStatus >= 500',
     'A completed quote page must not inherit',
+    '$securiaceQuoteInitialHttpStatus >= 500',
+    '$securiaceQuoteRenderErrorObserved === false',
 );
 foreach ($requiredContracts as $requiredContract) {
     if (strpos($template, $requiredContract) === false) {

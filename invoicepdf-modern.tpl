@@ -11,6 +11,8 @@
  *   ROOTDIR/includes/securiace-invoice-config.php
  */
 
+$securiaceModernInitialHttpStatus = function_exists('http_response_code') ? http_response_code() : false;
+$securiaceModernRenderErrorObserved = false;
 $securiaceModernIsTcpdfDeprecation = static function ($error) {
     if (!is_array($error) || !isset($error['type'], $error['file'])) {
         return false;
@@ -28,6 +30,7 @@ $securiaceModernPreviousErrorHandler = null;
 $securiaceModernPreviousErrorHandler = set_error_handler(
     static function ($severity, $message, $file, $line) use (
         &$securiaceModernPreviousErrorHandler,
+        &$securiaceModernRenderErrorObserved,
         $securiaceModernIsTcpdfDeprecation
     ) {
         if ($securiaceModernIsTcpdfDeprecation(array(
@@ -36,6 +39,7 @@ $securiaceModernPreviousErrorHandler = set_error_handler(
         ))) {
             return true;
         }
+        $securiaceModernRenderErrorObserved = true;
         if (is_callable($securiaceModernPreviousErrorHandler)) {
             return call_user_func(
                 $securiaceModernPreviousErrorHandler,
@@ -2659,8 +2663,14 @@ restore_error_handler();
 // Whoops may already have set HTTP 500 during init for unrelated warnings
 // (for example duplicate hook constants). TCPDF may also leave E_DEPRECATED
 // noise after this include returns. A completed invoice page must not inherit
-// that poison: recover 5xx whenever this template finished rendering.
+// that poison, but may clear only a 5xx present before rendering; a new
+// rendering error must remain visible.
 $securiaceModernHttpStatus = function_exists('http_response_code') ? http_response_code() : false;
-if (is_int($securiaceModernHttpStatus) && $securiaceModernHttpStatus >= 500) {
+if (is_int($securiaceModernInitialHttpStatus)
+    && $securiaceModernInitialHttpStatus >= 500
+    && is_int($securiaceModernHttpStatus)
+    && $securiaceModernHttpStatus >= 500
+    && $securiaceModernRenderErrorObserved === false
+) {
     http_response_code(200);
 }
