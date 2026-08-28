@@ -187,6 +187,71 @@ $securiaceQuoteTruncate = static function ($value, $maxLength) {
         ? substr($value, 0, $maxLength - 3) . '...'
         : $value;
 };
+$securiaceQuoteNormalizeVerification = static function ($value) use (
+    $securiaceQuotePlainText,
+    $securiaceQuoteTruncate
+) {
+    $none = array(
+        'enabled' => false,
+        'mode' => 'none',
+        'kind' => 'quote',
+        'short_url' => '',
+        'display_code' => '',
+        'heading' => '',
+        'body' => '',
+        'disclaimer' => '',
+    );
+    if (!is_array($value) || !isset($value['enabled']) || $value['enabled'] !== true) {
+        return $none;
+    }
+    $mode = isset($value['mode']) ? strtolower(trim((string) $value['mode'])) : 'sec_panel';
+    if (!in_array($mode, array('sec_panel', 'official_badge', 'provider_line', 'none'), true)
+        || $mode === 'none'
+    ) {
+        return $none;
+    }
+    $kind = isset($value['kind']) ? strtolower(trim((string) $value['kind'])) : '';
+    if ($kind !== 'quote') {
+        return $none;
+    }
+    $shortUrl = isset($value['short_url']) ? trim((string) $value['short_url']) : '';
+    if (!preg_match(
+        '#\Ahttps://my\.securiace\.com/v/([0-9A-HJKMNP-TV-Z]{26})\z#D',
+        $shortUrl,
+        $urlMatch
+    )) {
+        return $none;
+    }
+    $displayCode = isset($value['display_code'])
+        ? strtoupper($securiaceQuotePlainText($value['display_code']))
+        : '';
+    $displayToken = preg_replace('/[\s-]+/u', '', $displayCode);
+    if ($displayToken !== $urlMatch[1]) {
+        return $none;
+    }
+    $copy = array();
+    foreach (array('heading' => 80, 'body' => 240, 'disclaimer' => 180) as $key => $limit) {
+        $copy[$key] = isset($value[$key])
+            ? $securiaceQuoteTruncate($securiaceQuotePlainText($value[$key]), $limit)
+            : '';
+        if ($copy[$key] === '') {
+            return $none;
+        }
+    }
+    return array(
+        'enabled' => true,
+        'mode' => $mode,
+        'kind' => 'quote',
+        'short_url' => $shortUrl,
+        'display_code' => $displayCode,
+        'heading' => $copy['heading'],
+        'body' => $copy['body'],
+        'disclaimer' => $copy['disclaimer'],
+    );
+};
+$securiaceQuoteVerification = $securiaceQuoteNormalizeVerification(
+    isset($securiaceVerificationPanel) ? $securiaceVerificationPanel : null
+);
 $securiaceQuoteIsUsableImage = static function ($path) {
     return is_string($path) && $path !== '' && is_readable($path) && @getimagesize($path) !== false;
 };
@@ -654,6 +719,15 @@ foreach ($securiaceQuoteIssuerProfile['registrations'] as $securiaceQuoteRegistr
 }
 $securiaceQuoteIssuerDiagnostics = $securiaceQuoteIssuerProfile['diagnostics'];
 $securiaceQuotePaymentDetailsRendered = false;
+$securiaceQuoteVerificationRendered = false;
+$securiaceQuoteVerificationReserved = $securiaceQuoteVerification['enabled']
+    && $securiaceQuoteVerification['mode'] !== 'none';
+$securiaceQuoteVerificationProviderLineReserved = $securiaceQuoteVerification['enabled']
+    && $securiaceQuoteVerification['mode'] === 'provider_line';
+$securiaceQuoteVerificationQrPayload = '';
+$securiaceQuoteVerificationLinkTarget = '';
+$securiaceQuoteVerificationContentBottom = 0.0;
+$securiaceQuoteVerificationPanelBottom = 0.0;
 
 $securiaceQuoteClientName = !empty($clientsdetails['companyname'])
     ? trim((string) $clientsdetails['companyname'])
@@ -1348,10 +1422,124 @@ foreach ($totalRows as $totalRow) {
 }
 $pdf->SetY($totalsY + $totalsHeight + 4);
 
+if ($securiaceQuoteVerification['enabled']
+    && in_array($securiaceQuoteVerification['mode'], array('sec_panel', 'official_badge'), true)
+) {
+    $securiaceQuoteVerificationQrSize = 24;
+    $securiaceQuoteVerificationTextWidth = $securiaceQuoteUsableWidth
+        - $securiaceQuoteVerificationQrSize - 15;
+    $pdf->SetFont($securiaceQuoteFont, 'B', 10);
+    $securiaceQuoteVerificationHeadingHeight = $pdf->getStringHeight(
+        $securiaceQuoteVerificationTextWidth,
+        $securiaceQuoteVerification['heading']
+    );
+    $pdf->SetFont($securiaceQuoteFont, '', 7);
+    $securiaceQuoteVerificationBodyHeight = $pdf->getStringHeight(
+        $securiaceQuoteVerificationTextWidth,
+        $securiaceQuoteVerification['body']
+    );
+    $pdf->SetFont($securiaceQuoteFont, '', 5.8);
+    $securiaceQuoteVerificationDisclaimerHeight = $pdf->getStringHeight(
+        $securiaceQuoteVerificationTextWidth,
+        $securiaceQuoteVerification['disclaimer']
+    );
+    $securiaceQuoteVerificationPanelHeight = max(
+        32,
+        8 + $securiaceQuoteVerificationHeadingHeight
+            + $securiaceQuoteVerificationBodyHeight
+            + $securiaceQuoteVerificationDisclaimerHeight + 5
+    );
+    $securiaceQuoteEnsureSpace($securiaceQuoteVerificationPanelHeight + 4);
+    $securiaceQuoteVerificationPanelY = $pdf->GetY();
+    $securiaceQuoteVerificationPanelBottom = $securiaceQuoteVerificationPanelY
+        + $securiaceQuoteVerificationPanelHeight;
+
+    if ($securiaceQuoteVerification['mode'] === 'official_badge') {
+        $securiaceQuoteVerificationContentBottom = $securiaceQuoteVerificationPanelBottom;
+        $pdf->SetY($securiaceQuoteVerificationPanelBottom + 4);
+    } else {
+        $securiaceQuoteVerificationRendered = true;
+        $securiaceQuoteDrawCard(
+            $securiaceQuoteMargin,
+            $securiaceQuoteVerificationPanelY,
+            $securiaceQuoteUsableWidth,
+            $securiaceQuoteVerificationPanelHeight,
+            $securiaceQuoteBrandSoft,
+            $securiaceQuoteLine
+        );
+        $securiaceQuoteDrawLabel(
+            'SECURIACE DOCUMENT VERIFICATION',
+            $securiaceQuoteMargin + 4,
+            $securiaceQuoteVerificationPanelY + 3,
+            $securiaceQuoteVerificationTextWidth
+        );
+        $securiaceQuoteVerificationQrX = $securiaceQuotePageWidth
+            - $securiaceQuoteMargin - $securiaceQuoteVerificationQrSize - 4;
+        $securiaceQuoteVerificationQrY = $securiaceQuoteVerificationPanelY + 4;
+        $securiaceQuoteVerificationQrPayload = $securiaceQuoteVerification['short_url'];
+        try {
+            $pdf->write2DBarcode(
+                $securiaceQuoteVerificationQrPayload,
+                'QRCODE,M',
+                $securiaceQuoteVerificationQrX,
+                $securiaceQuoteVerificationQrY,
+                $securiaceQuoteVerificationQrSize,
+                $securiaceQuoteVerificationQrSize,
+                array('border' => false, 'padding' => 0, 'fgcolor' => $securiaceQuoteBrandDark, 'bgcolor' => array(255, 255, 255)),
+                'N'
+            );
+        } catch (Throwable $securiaceQuoteVerificationQrException) {
+            $securiaceQuoteIssuerDiagnostics['warnings'][] = 'verification-qr-render-failed';
+        }
+        if (method_exists($pdf, 'Link')) {
+            $pdf->Link(
+                $securiaceQuoteVerificationQrX,
+                $securiaceQuoteVerificationQrY,
+                $securiaceQuoteVerificationQrSize,
+                $securiaceQuoteVerificationQrSize,
+                $securiaceQuoteVerification['short_url']
+            );
+            $securiaceQuoteVerificationLinkTarget = $securiaceQuoteVerification['short_url'];
+        }
+
+        $securiaceQuoteVerificationTextX = $securiaceQuoteMargin + 4;
+        $pdf->SetFont($securiaceQuoteFont, 'B', 10);
+        $pdf->SetTextColor($securiaceQuoteBrandDark[0], $securiaceQuoteBrandDark[1], $securiaceQuoteBrandDark[2]);
+        $pdf->SetXY($securiaceQuoteVerificationTextX, $securiaceQuoteVerificationPanelY + 8);
+        $pdf->MultiCell($securiaceQuoteVerificationTextWidth, 5, $securiaceQuoteVerification['heading'], 0, 'L');
+        $pdf->SetFont($securiaceQuoteFont, '', 7);
+        $pdf->SetTextColor($securiaceQuoteInk[0], $securiaceQuoteInk[1], $securiaceQuoteInk[2]);
+        $pdf->SetX($securiaceQuoteVerificationTextX);
+        $pdf->MultiCell($securiaceQuoteVerificationTextWidth, 3.7, $securiaceQuoteVerification['body'], 0, 'L');
+        $pdf->SetFont($securiaceQuoteFont, 'B', 6);
+        $pdf->SetTextColor($securiaceQuoteBrandDark[0], $securiaceQuoteBrandDark[1], $securiaceQuoteBrandDark[2]);
+        $pdf->SetX($securiaceQuoteVerificationTextX);
+        $pdf->Cell($securiaceQuoteVerificationTextWidth, 3.5, 'Code ' . $securiaceQuoteVerification['display_code'], 0, 1, 'L');
+        $pdf->SetFont($securiaceQuoteFont, '', 5.8);
+        $pdf->SetTextColor($securiaceQuoteMuted[0], $securiaceQuoteMuted[1], $securiaceQuoteMuted[2]);
+        $pdf->SetX($securiaceQuoteVerificationTextX);
+        $pdf->MultiCell($securiaceQuoteVerificationTextWidth, 3.2, $securiaceQuoteVerification['disclaimer'], 0, 'L');
+        $securiaceQuoteVerificationContentBottom = max(
+            $pdf->GetY(),
+            $securiaceQuoteVerificationQrY + $securiaceQuoteVerificationQrSize
+        );
+        $pdf->SetY($securiaceQuoteVerificationPanelBottom + 4);
+    }
+}
+
 $securiaceQuoteRenderedNotes = false;
 
 // Batch-safe repeated context and footer.
 $securiaceQuoteGeneratedAt = function_exists('getTodaysDate') ? getTodaysDate(1) : date('j M Y');
+$securiaceQuoteSealedIssueDate = isset($datecreated)
+    ? $securiaceQuoteParseDate($datecreated)
+    : null;
+$securiaceQuoteSealedIssueDisplay = $securiaceQuoteSealedIssueDate instanceof DateTimeImmutable
+    ? $securiaceQuoteSealedIssueDate->format('j M Y')
+    : 'Issue date unavailable';
+$securiaceQuoteFooterContext = $securiaceQuoteVerification['enabled']
+    ? 'Issued ' . $securiaceQuoteSealedIssueDisplay
+    : 'Generated ' . $securiaceQuoteGeneratedAt;
 $securiaceQuoteFinalPage = $pdf->getPage();
 $securiaceQuotePageCount = $securiaceQuoteFinalPage - $securiaceQuoteStartPage + 1;
 $securiaceQuotePreviousAutoPageBreak = $pdf->getAutoPageBreak();
@@ -1377,7 +1565,7 @@ for ($page = $securiaceQuoteStartPage; $page <= $securiaceQuoteFinalPage; ++$pag
     // Let's Seal line-safe footer reserve: the provider draws its signed proof
     // line near the physical bottom edge after TCPDF has finished the document.
     $pdf->SetXY($securiaceQuoteMargin, $securiaceQuotePageHeight - 12);
-    $footerReference = 'Generated ' . $securiaceQuoteGeneratedAt . ' · ' . $securiaceQuoteCompanyName;
+    $footerReference = $securiaceQuoteFooterContext . ' · ' . $securiaceQuoteCompanyName;
     if ($securiaceQuoteNumber !== '—') {
         $footerReference .= ' · Quote ' . $securiaceQuoteNumber;
     }

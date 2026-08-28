@@ -434,6 +434,80 @@ $securiaceModernTruncate = static function ($value, $maxLength) {
         : $value;
 };
 
+// A completed-PDF sealing integration may inject this presentation DTO on a
+// second, explicit render. Ordinary WHMCS renders are unsealed and therefore
+// default to mode=none; the template never invents a seal or verification URL.
+$securiaceModernNormalizeVerification = static function ($value) use (
+    $securiaceModernPlainText,
+    $securiaceModernTruncate
+) {
+    $none = array(
+        'enabled' => false,
+        'mode' => 'none',
+        'kind' => 'invoice',
+        'short_url' => '',
+        'display_code' => '',
+        'heading' => '',
+        'body' => '',
+        'disclaimer' => '',
+    );
+    if (!is_array($value) || !isset($value['enabled']) || $value['enabled'] !== true) {
+        return $none;
+    }
+
+    $mode = isset($value['mode']) ? strtolower(trim((string) $value['mode'])) : 'sec_panel';
+    if (!in_array($mode, array('sec_panel', 'official_badge', 'provider_line', 'none'), true)) {
+        return $none;
+    }
+    if ($mode === 'none') {
+        return $none;
+    }
+    $kind = isset($value['kind']) ? strtolower(trim((string) $value['kind'])) : '';
+    if ($kind !== 'invoice') {
+        return $none;
+    }
+
+    $shortUrl = isset($value['short_url']) ? trim((string) $value['short_url']) : '';
+    if (!preg_match(
+        '#\Ahttps://my\.securiace\.com/v/([0-9A-HJKMNP-TV-Z]{26})\z#D',
+        $shortUrl,
+        $urlMatch
+    )) {
+        return $none;
+    }
+    $displayCode = isset($value['display_code'])
+        ? strtoupper($securiaceModernPlainText($value['display_code']))
+        : '';
+    $displayToken = preg_replace('/[\s-]+/u', '', $displayCode);
+    if ($displayToken !== $urlMatch[1]) {
+        return $none;
+    }
+
+    $copy = array();
+    foreach (array('heading' => 80, 'body' => 320, 'disclaimer' => 220) as $key => $limit) {
+        $copy[$key] = isset($value[$key])
+            ? $securiaceModernTruncate($securiaceModernPlainText($value[$key]), $limit)
+            : '';
+        if ($copy[$key] === '') {
+            return $none;
+        }
+    }
+
+    return array(
+        'enabled' => true,
+        'mode' => $mode,
+        'kind' => 'invoice',
+        'short_url' => $shortUrl,
+        'display_code' => $displayCode,
+        'heading' => $copy['heading'],
+        'body' => $copy['body'],
+        'disclaimer' => $copy['disclaimer'],
+    );
+};
+$securiaceModernVerification = $securiaceModernNormalizeVerification(
+    isset($securiaceVerificationPanel) ? $securiaceVerificationPanel : null
+);
+
 $securiaceModernIsUsableImage = static function ($path) {
     return is_string($path) && $path !== '' && is_readable($path) && @getimagesize($path) !== false;
 };
@@ -746,6 +820,9 @@ $securiaceModernIsBatch = $securiaceModernRequestedProfile === 'batch'
         && ADMINAREA
         && $securiaceModernBatchRequestType === 'pdfbatch'
         && $securiaceModernBatchScript === 'csvdownload.php');
+if ($securiaceModernIsBatch) {
+    $securiaceModernVerification = $securiaceModernNormalizeVerification(null);
+}
 $securiaceModernRenderedCoreQr = false;
 $securiaceModernRenderedSupport = false;
 $securiaceModernRenderedRenewals = false;
@@ -754,6 +831,15 @@ $securiaceModernRenderedAuthorization = false;
 $securiaceModernRenderedUpi = false;
 $securiaceModernRenderedBank = false;
 $securiaceModernRenderedSettlement = false;
+$securiaceModernVerificationRendered = false;
+$securiaceModernVerificationReserved = $securiaceModernVerification['enabled']
+    && $securiaceModernVerification['mode'] !== 'none';
+$securiaceModernVerificationProviderLineReserved = $securiaceModernVerification['enabled']
+    && $securiaceModernVerification['mode'] === 'provider_line';
+$securiaceModernVerificationQrPayload = '';
+$securiaceModernVerificationLinkTarget = '';
+$securiaceModernVerificationContentBottom = 0.0;
+$securiaceModernVerificationPanelBottom = 0.0;
 
 $securiaceModernStatusPalette = array(
     'paid' => array('ink' => '#0B7542', 'soft' => '#EAF6EF', 'line' => '#B8DDC8'),
@@ -1515,11 +1601,50 @@ foreach ($securiaceModernMeta as $securiaceModernMetaIndex => $securiaceModernMe
 }
 
 $securiaceModernStatePanelY = $securiaceModernMetaY - 1;
+$securiaceModernStateLabel = '';
+$securiaceModernStateHeading = '';
+$securiaceModernStateDetail = '';
+if ($securiaceModernIsBatch) {
+    $securiaceModernStateLabel = 'Batch accounting copy';
+    $securiaceModernStateHeading = $securiaceModernStatusDisplay;
+    $securiaceModernStateDetail = 'Invoice ' . $securiaceModernInvoiceNumber;
+} elseif ($securiaceModernIsPaid) {
+    $securiaceModernStateLabel = 'Payment status';
+    $securiaceModernStateHeading = $securiaceModernPaidStateHeading;
+    $securiaceModernStateDetail = $securiaceModernPaidStateDetail;
+} elseif ($securiaceModernIsPayable) {
+    $securiaceModernStateLabel = $securiaceModernIsOverdue ? 'Overdue balance' : 'Balance due';
+    $securiaceModernStateHeading = $securiaceModernBalanceDisplay;
+    $securiaceModernStateDetail = $securiaceModernIsOverdue
+        ? ($securiaceModernDaysOverdue > 0
+            ? $securiaceModernDaysOverdue . ' day' . ($securiaceModernDaysOverdue === 1 ? '' : 's') . ' overdue · pay now'
+            : 'Past due · pay now')
+        : 'Pay by ' . $securiaceModernDueDateDisplay;
+} else {
+    $securiaceModernStateLabel = ucfirst($securiaceModernStatusKey) . ' invoice';
+    $securiaceModernStateHeading = $securiaceModernStatusDisplay;
+    $securiaceModernStateDetail = 'No payment action is available for this document state.';
+}
+$securiaceModernStateInnerWidth = 60;
+$pdf->SetFont($securiaceModernFont, 'B', $securiaceModernIsPayable ? 10 : 8.5);
+$securiaceModernStateHeadingHeight = $pdf->getStringHeight(
+    $securiaceModernStateInnerWidth,
+    $securiaceModernStateHeading
+);
+$pdf->SetFont($securiaceModernFont, '', 6);
+$securiaceModernStateDetailHeight = $pdf->getStringHeight(
+    $securiaceModernStateInnerWidth,
+    $securiaceModernStateDetail
+);
+$securiaceModernStatePanelHeight = max(
+    16,
+    2 + 4 + $securiaceModernStateHeadingHeight + $securiaceModernStateDetailHeight + 2
+);
 $securiaceModernDrawCard(
     $securiaceModernStatePanelX,
     $securiaceModernStatePanelY,
     68,
-    16,
+    $securiaceModernStatePanelHeight,
     $securiaceModernStatusSoft,
     $securiaceModernStatusLine
 );
@@ -1527,43 +1652,16 @@ $pdf->SetFont($securiaceModernFont, 'B', 7.5);
 $pdf->SetTextColor($securiaceModernStatusInk[0], $securiaceModernStatusInk[1], $securiaceModernStatusInk[2]);
 $pdf->SetXY($securiaceModernStatePanelX + 4, $securiaceModernStatePanelY + 2);
 
-if ($securiaceModernIsBatch) {
-    $pdf->Cell(60, 4, 'Batch accounting copy', 0, 1, 'L');
-    $pdf->SetFont($securiaceModernFont, 'B', 8.5);
-    $pdf->SetX($securiaceModernStatePanelX + 4);
-    $pdf->Cell(60, 4.5, $securiaceModernStatusDisplay, 0, 1, 'L');
-    $pdf->SetFont($securiaceModernFont, '', 6);
-    $pdf->SetX($securiaceModernStatePanelX + 4);
-    $pdf->Cell(60, 3.5, 'Invoice ' . $securiaceModernInvoiceNumber, 0, 1, 'L');
-} elseif ($securiaceModernIsPaid) {
-    $pdf->Cell(60, 4, 'Payment status', 0, 1, 'L');
-    $pdf->SetFont($securiaceModernFont, 'B', 9);
-    $pdf->SetX($securiaceModernStatePanelX + 4);
-    $pdf->Cell(60, 4.5, $securiaceModernPaidStateHeading, 0, 1, 'L', false, '', 1);
-    $pdf->SetFont($securiaceModernFont, '', 6);
-    $pdf->SetX($securiaceModernStatePanelX + 4);
-    $pdf->Cell(60, 3.5, $securiaceModernPaidStateDetail, 0, 1, 'L', false, '', 1);
-} elseif ($securiaceModernIsPayable) {
-    $pdf->Cell(60, 4, $securiaceModernIsOverdue ? 'Overdue balance' : 'Balance due', 0, 1, 'L');
-    $pdf->SetFont($securiaceModernFont, 'B', 10);
-    $pdf->SetX($securiaceModernStatePanelX + 4);
-    $pdf->Cell(60, 5, $securiaceModernBalanceDisplay, 0, 1, 'L');
-    $pdf->SetFont($securiaceModernFont, '', 6);
-    $pdf->SetX($securiaceModernStatePanelX + 4);
-    $securiaceModernStateDeadline = $securiaceModernIsOverdue
-        ? ($securiaceModernDaysOverdue > 0
-            ? $securiaceModernDaysOverdue . ' day' . ($securiaceModernDaysOverdue === 1 ? '' : 's') . ' overdue · pay now'
-            : 'Past due · pay now')
-        : 'Pay by ' . $securiaceModernDueDateDisplay;
-    $pdf->Cell(60, 3.5, $securiaceModernStateDeadline, 0, 1, 'L', false, '', 1);
-} else {
-    $pdf->Cell(60, 4, ucfirst($securiaceModernStatusKey) . ' invoice', 0, 1, 'L');
-    $pdf->SetFont($securiaceModernFont, '', 6.5);
-    $pdf->SetX($securiaceModernStatePanelX + 4);
-    $pdf->MultiCell(60, 3.5, 'No payment action is available for this document state.', 0, 'L');
-}
+$pdf->Cell($securiaceModernStateInnerWidth, 4, $securiaceModernStateLabel, 0, 1, 'L');
+$pdf->SetFont($securiaceModernFont, 'B', $securiaceModernIsPayable ? 10 : 8.5);
+$pdf->SetX($securiaceModernStatePanelX + 4);
+$pdf->MultiCell($securiaceModernStateInnerWidth, 4, $securiaceModernStateHeading, 0, 'L');
+$pdf->SetFont($securiaceModernFont, '', 6);
+$pdf->SetX($securiaceModernStatePanelX + 4);
+$pdf->MultiCell($securiaceModernStateInnerWidth, 3.5, $securiaceModernStateDetail, 0, 'L');
+$securiaceModernStateContentBottom = $pdf->GetY();
 
-$pdf->SetY($securiaceModernStatePanelY + 21);
+$pdf->SetY($securiaceModernStatePanelY + $securiaceModernStatePanelHeight + 5);
 
 // -------------------------------------------------------------------------
 // Billing parties
@@ -1995,34 +2093,10 @@ if ($securiaceModernIsPaid) {
     $securiaceModernStateTotalDisplay = $securiaceModernBalanceDisplay;
 }
 
-$securiaceModernTotalsHeight = 8 + (count($securiaceModernTotalRows) * 6) + 7;
-$securiaceModernEnsureSpace($securiaceModernTotalsHeight + 3);
-$securiaceModernTotalsY = $pdf->GetY();
 $securiaceModernTotalsWidth = min(82, $securiaceModernUsableWidth * 0.42);
 $securiaceModernSettlementWidth = $securiaceModernUsableWidth - $securiaceModernTotalsWidth - 4;
-
-if (!$securiaceModernIsBatch) {
-$securiaceModernRenderedSettlement = true;
-$securiaceModernDrawCard(
-    $securiaceModernMargin,
-    $securiaceModernTotalsY,
-    $securiaceModernSettlementWidth,
-    $securiaceModernTotalsHeight,
-    $securiaceModernStatusSoft,
-    $securiaceModernStatusLine
-);
-$securiaceModernDrawLabel(
-    $securiaceModernIsPaid
-        ? 'Payment receipt'
-        : ($securiaceModernIsOverdue ? 'Overdue payment' : ($securiaceModernIsPayable ? 'Payment required' : 'Invoice state')),
-    $securiaceModernMargin + 4,
-    $securiaceModernTotalsY + 3,
-    $securiaceModernSettlementWidth - 8
-);
-$pdf->SetFont($securiaceModernFont, 'B', 10);
-$pdf->SetTextColor($securiaceModernStatusInk[0], $securiaceModernStatusInk[1], $securiaceModernStatusInk[2]);
-$pdf->SetXY($securiaceModernMargin + 4, $securiaceModernTotalsY + 8);
-
+$securiaceModernSettlementHeading = '';
+$securiaceModernSettlementBody = '';
 if ($securiaceModernIsPaid) {
     $securiaceModernSettlementHeading = $securiaceModernPaidStateHeading;
     if ($securiaceModernPaidBalanceCleared) {
@@ -2048,10 +2122,56 @@ if ($securiaceModernIsPaid) {
     $securiaceModernSettlementHeading = ucfirst($securiaceModernStatusKey) . ' invoice';
     $securiaceModernSettlementBody = 'No payment action is available for this document state.';
 }
-
 $securiaceModernReceiptCopyWidth = $securiaceModernIsPaid && !$securiaceModernIsBatch
     ? max(48, $securiaceModernSettlementWidth - 48)
     : $securiaceModernSettlementWidth - 8;
+$pdf->SetFont($securiaceModernFont, 'B', 10);
+$securiaceModernSettlementHeadingHeight = $pdf->getStringHeight(
+    $securiaceModernReceiptCopyWidth,
+    $securiaceModernSettlementHeading
+);
+$pdf->SetFont($securiaceModernFont, '', 7);
+$securiaceModernSettlementBodyHeight = $pdf->getStringHeight(
+    $securiaceModernReceiptCopyWidth,
+    $securiaceModernSettlementBody
+);
+$securiaceModernSettlementContentHeight = 8
+    + $securiaceModernSettlementHeadingHeight
+    + $securiaceModernSettlementBodyHeight
+    + ($securiaceModernIsPaid ? 9.5 : 3);
+if ($securiaceModernIsPaid && !$securiaceModernIsBatch) {
+    $securiaceModernSettlementContentHeight = max($securiaceModernSettlementContentHeight, 30);
+}
+$securiaceModernTotalsContentHeight = 8 + (count($securiaceModernTotalRows) * 6) + 7;
+$securiaceModernTotalsHeight = $securiaceModernIsBatch
+    ? $securiaceModernTotalsContentHeight
+    : max($securiaceModernTotalsContentHeight, $securiaceModernSettlementContentHeight);
+$securiaceModernEnsureSpace($securiaceModernTotalsHeight + 3);
+$securiaceModernTotalsY = $pdf->GetY();
+$securiaceModernSettlementContentBottom = $securiaceModernTotalsY;
+
+if (!$securiaceModernIsBatch) {
+$securiaceModernRenderedSettlement = true;
+$securiaceModernDrawCard(
+    $securiaceModernMargin,
+    $securiaceModernTotalsY,
+    $securiaceModernSettlementWidth,
+    $securiaceModernTotalsHeight,
+    $securiaceModernStatusSoft,
+    $securiaceModernStatusLine
+);
+$securiaceModernDrawLabel(
+    $securiaceModernIsPaid
+        ? 'Payment receipt'
+        : ($securiaceModernIsOverdue ? 'Overdue payment' : ($securiaceModernIsPayable ? 'Payment required' : 'Invoice state')),
+    $securiaceModernMargin + 4,
+    $securiaceModernTotalsY + 3,
+    $securiaceModernSettlementWidth - 8
+);
+$pdf->SetFont($securiaceModernFont, 'B', 10);
+$pdf->SetTextColor($securiaceModernStatusInk[0], $securiaceModernStatusInk[1], $securiaceModernStatusInk[2]);
+$pdf->SetXY($securiaceModernMargin + 4, $securiaceModernTotalsY + 8);
+
 $pdf->MultiCell($securiaceModernReceiptCopyWidth, 5, $securiaceModernSettlementHeading, 0, 'L');
 $pdf->SetFont($securiaceModernFont, '', 7);
 $pdf->SetTextColor($securiaceModernMuted[0], $securiaceModernMuted[1], $securiaceModernMuted[2]);
@@ -2061,10 +2181,7 @@ if ($securiaceModernIsPaid) {
     $securiaceModernReceiptReference = !empty($securiaceModernTransactions[0]['reference'])
         ? $securiaceModernTransactions[0]['reference']
         : '—';
-    $securiaceModernReceiptMetaY = min(
-        $securiaceModernTotalsY + $securiaceModernTotalsHeight - 8,
-        max($pdf->GetY() + 1, $securiaceModernTotalsY + 20)
-    );
+    $securiaceModernReceiptMetaY = max($pdf->GetY() + 1, $securiaceModernTotalsY + 20);
     $pdf->SetFont($securiaceModernFont, '', 5.8);
     $pdf->SetTextColor($securiaceModernMuted[0], $securiaceModernMuted[1], $securiaceModernMuted[2]);
     $pdf->SetXY($securiaceModernMargin + 4, $securiaceModernReceiptMetaY);
@@ -2086,6 +2203,7 @@ if ($securiaceModernIsPaid) {
     );
     $pdf->Cell(2, 3.5, '', 0, 0, 'L');
     $pdf->Cell($securiaceModernReceiptBalanceWidth, 3.5, $securiaceModernBalanceDisplay, 0, 1, 'L');
+    $securiaceModernSettlementContentBottom = $pdf->GetY();
 
     if (!$securiaceModernIsBatch) {
         $securiaceModernRenderedAuthorization = true;
@@ -2111,7 +2229,13 @@ if ($securiaceModernIsPaid) {
         $pdf->SetTextColor($securiaceModernMuted[0], $securiaceModernMuted[1], $securiaceModernMuted[2]);
         $pdf->SetXY($securiaceModernAuthorizationX + 14, $securiaceModernAuthorizationY + 14);
         $pdf->Cell(25, 3, 'Authorized signature', 0, 1, 'R');
+        $securiaceModernSettlementContentBottom = max(
+            $securiaceModernSettlementContentBottom,
+            $securiaceModernAuthorizationY + 17
+        );
     }
+} else {
+    $securiaceModernSettlementContentBottom = $pdf->GetY();
 }
 }
 $securiaceModernTotalsX = $securiaceModernIsBatch
@@ -2160,6 +2284,113 @@ $pdf->SetXY($securiaceModernTotalsX + 3, $securiaceModernStateBarY + 1.3);
 $pdf->Cell($securiaceModernTotalsWidth * 0.48, 4, $securiaceModernStateTotalLabel, 0, 0, 'L');
 $pdf->Cell($securiaceModernTotalsWidth * 0.46, 4, $securiaceModernStateTotalDisplay, 0, 1, 'R');
 $pdf->SetY($securiaceModernTotalsY + $securiaceModernTotalsHeight + 4);
+
+// Securiace verification presentation. The provider modes reserve space only;
+// provider-owned artwork is deliberately not duplicated by this template.
+if ($securiaceModernVerification['enabled']
+    && in_array($securiaceModernVerification['mode'], array('sec_panel', 'official_badge'), true)
+) {
+    $securiaceModernVerificationQrSize = 24;
+    $securiaceModernVerificationTextWidth = $securiaceModernUsableWidth
+        - $securiaceModernVerificationQrSize - 15;
+    $pdf->SetFont($securiaceModernFont, 'B', 10);
+    $securiaceModernVerificationHeadingHeight = $pdf->getStringHeight(
+        $securiaceModernVerificationTextWidth,
+        $securiaceModernVerification['heading']
+    );
+    $pdf->SetFont($securiaceModernFont, '', 7);
+    $securiaceModernVerificationBodyHeight = $pdf->getStringHeight(
+        $securiaceModernVerificationTextWidth,
+        $securiaceModernVerification['body']
+    );
+    $pdf->SetFont($securiaceModernFont, '', 5.8);
+    $securiaceModernVerificationDisclaimerHeight = $pdf->getStringHeight(
+        $securiaceModernVerificationTextWidth,
+        $securiaceModernVerification['disclaimer']
+    );
+    $securiaceModernVerificationPanelHeight = max(
+        32,
+        8 + $securiaceModernVerificationHeadingHeight
+            + $securiaceModernVerificationBodyHeight
+            + $securiaceModernVerificationDisclaimerHeight + 5
+    );
+    $securiaceModernEnsureSpace($securiaceModernVerificationPanelHeight + 4);
+    $securiaceModernVerificationPanelY = $pdf->GetY();
+    $securiaceModernVerificationPanelBottom = $securiaceModernVerificationPanelY
+        + $securiaceModernVerificationPanelHeight;
+
+    if ($securiaceModernVerification['mode'] === 'official_badge') {
+        $securiaceModernVerificationContentBottom = $securiaceModernVerificationPanelBottom;
+        $pdf->SetY($securiaceModernVerificationPanelBottom + 4);
+    } else {
+        $securiaceModernVerificationRendered = true;
+        $securiaceModernDrawCard(
+            $securiaceModernMargin,
+            $securiaceModernVerificationPanelY,
+            $securiaceModernUsableWidth,
+            $securiaceModernVerificationPanelHeight,
+            $securiaceModernBrandSoft,
+            $securiaceModernLine
+        );
+        $securiaceModernDrawLabel(
+            'SECURIACE DOCUMENT VERIFICATION',
+            $securiaceModernMargin + 4,
+            $securiaceModernVerificationPanelY + 3,
+            $securiaceModernVerificationTextWidth
+        );
+        $securiaceModernVerificationQrX = $securiaceModernPageWidth
+            - $securiaceModernMargin - $securiaceModernVerificationQrSize - 4;
+        $securiaceModernVerificationQrY = $securiaceModernVerificationPanelY + 4;
+        $securiaceModernVerificationQrPayload = $securiaceModernVerification['short_url'];
+        try {
+            $pdf->write2DBarcode(
+                $securiaceModernVerificationQrPayload,
+                'QRCODE,M',
+                $securiaceModernVerificationQrX,
+                $securiaceModernVerificationQrY,
+                $securiaceModernVerificationQrSize,
+                $securiaceModernVerificationQrSize,
+                array('border' => false, 'padding' => 0, 'fgcolor' => $securiaceModernBrandDark, 'bgcolor' => array(255, 255, 255)),
+                'N'
+            );
+        } catch (Throwable $securiaceModernVerificationQrException) {
+            $securiaceModernIssuerDiagnostics['warnings'][] = 'verification-qr-render-failed';
+        }
+        if (method_exists($pdf, 'Link')) {
+            $pdf->Link(
+                $securiaceModernVerificationQrX,
+                $securiaceModernVerificationQrY,
+                $securiaceModernVerificationQrSize,
+                $securiaceModernVerificationQrSize,
+                $securiaceModernVerification['short_url']
+            );
+            $securiaceModernVerificationLinkTarget = $securiaceModernVerification['short_url'];
+        }
+
+        $securiaceModernVerificationTextX = $securiaceModernMargin + 4;
+        $pdf->SetFont($securiaceModernFont, 'B', 10);
+        $pdf->SetTextColor($securiaceModernBrandDark[0], $securiaceModernBrandDark[1], $securiaceModernBrandDark[2]);
+        $pdf->SetXY($securiaceModernVerificationTextX, $securiaceModernVerificationPanelY + 8);
+        $pdf->MultiCell($securiaceModernVerificationTextWidth, 5, $securiaceModernVerification['heading'], 0, 'L');
+        $pdf->SetFont($securiaceModernFont, '', 7);
+        $pdf->SetTextColor($securiaceModernInk[0], $securiaceModernInk[1], $securiaceModernInk[2]);
+        $pdf->SetX($securiaceModernVerificationTextX);
+        $pdf->MultiCell($securiaceModernVerificationTextWidth, 3.7, $securiaceModernVerification['body'], 0, 'L');
+        $pdf->SetFont($securiaceModernFont, 'B', 6);
+        $pdf->SetTextColor($securiaceModernBrandDark[0], $securiaceModernBrandDark[1], $securiaceModernBrandDark[2]);
+        $pdf->SetX($securiaceModernVerificationTextX);
+        $pdf->Cell($securiaceModernVerificationTextWidth, 3.5, 'Code ' . $securiaceModernVerification['display_code'], 0, 1, 'L');
+        $pdf->SetFont($securiaceModernFont, '', 5.8);
+        $pdf->SetTextColor($securiaceModernMuted[0], $securiaceModernMuted[1], $securiaceModernMuted[2]);
+        $pdf->SetX($securiaceModernVerificationTextX);
+        $pdf->MultiCell($securiaceModernVerificationTextWidth, 3.2, $securiaceModernVerification['disclaimer'], 0, 'L');
+        $securiaceModernVerificationContentBottom = max(
+            $pdf->GetY(),
+            $securiaceModernVerificationQrY + $securiaceModernVerificationQrSize
+        );
+        $pdf->SetY($securiaceModernVerificationPanelBottom + 4);
+    }
+}
 
 // -------------------------------------------------------------------------
 // Terms, bank details, and status-aware payment/authorization panel
@@ -2616,6 +2847,9 @@ if (!$securiaceModernIsBatch && $securiaceModernNotesText !== '' && !$securiaceM
 $securiaceModernGeneratedAt = function_exists('getTodaysDate')
     ? getTodaysDate(1)
     : date('j M Y');
+$securiaceModernFooterContext = $securiaceModernVerification['enabled']
+    ? 'Issued ' . $securiaceModernIssueDateDisplay
+    : 'Generated ' . $securiaceModernGeneratedAt;
 $securiaceModernFinalPage = $pdf->getPage();
 $securiaceModernPageCount = $securiaceModernFinalPage - $securiaceModernStartPage + 1;
 $securiaceModernPreviousAutoPageBreak = $pdf->getAutoPageBreak();
@@ -2646,7 +2880,7 @@ for ($securiaceModernPage = $securiaceModernStartPage; $securiaceModernPage <= $
     // Let's Seal line-safe footer reserve: the provider draws its signed proof
     // line near the physical bottom edge after TCPDF has finished the document.
     $pdf->SetXY($securiaceModernMargin, $securiaceModernPageHeight - 12);
-    $pdf->Cell($securiaceModernUsableWidth * 0.7, 4, 'Generated ' . $securiaceModernGeneratedAt . ' · ' . $securiaceModernCompanyName, 0, 0, 'L');
+    $pdf->Cell($securiaceModernUsableWidth * 0.7, 4, $securiaceModernFooterContext . ' · ' . $securiaceModernCompanyName, 0, 0, 'L');
     $securiaceModernRelativePage = $securiaceModernPage - $securiaceModernStartPage + 1;
     $pdf->Cell($securiaceModernUsableWidth * 0.3, 4, 'Page ' . $securiaceModernRelativePage . ' of ' . $securiaceModernPageCount, 0, 1, 'R');
 }

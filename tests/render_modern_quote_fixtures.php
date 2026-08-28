@@ -92,6 +92,21 @@ function assertQuoteFixtureValue(string $fixture, string $field, $actual, $expec
     }
 }
 
+/** @return array<string, mixed> */
+function quoteVerificationFixture(string $mode): array
+{
+    return array(
+        'enabled' => $mode !== 'none',
+        'mode' => $mode,
+        'kind' => 'quote',
+        'short_url' => 'https://my.securiace.com/v/01ARZ3NDEKTSV4RRFFQ69G5FAV',
+        'display_code' => '01AR-Z3ND-EKTS-V4RR-FFQ6-9G5F-AV',
+        'heading' => 'Sealed quote',
+        'body' => 'Verify the issuer and confirm that this quote has not changed since issuance.',
+        'disclaimer' => 'The seal does not extend or confirm the quote’s current validity.',
+    );
+}
+
 /** @param array<string, mixed> $overrides @return array<string, mixed> */
 function quoteFixture(array $overrides = array()): array
 {
@@ -302,6 +317,18 @@ function renderQuoteFixture(string $templatePath, string $outputDirectory, strin
         'issuer_registrations' => $securiaceQuoteSellerRegistrations,
         'issuer_sources' => $securiaceQuoteIssuerDiagnostics['sources'],
         'payment_details_rendered' => $securiaceQuotePaymentDetailsRendered,
+        'verification_enabled' => $securiaceQuoteVerification['enabled'],
+        'verification_mode' => $securiaceQuoteVerification['mode'],
+        'verification_kind' => $securiaceQuoteVerification['kind'],
+        'verification_rendered' => $securiaceQuoteVerificationRendered,
+        'verification_reserved' => $securiaceQuoteVerificationReserved,
+        'verification_provider_line_reserved' => $securiaceQuoteVerificationProviderLineReserved,
+        'verification_url' => $securiaceQuoteVerification['short_url'],
+        'verification_qr_payload' => $securiaceQuoteVerificationQrPayload,
+        'verification_link_target' => $securiaceQuoteVerificationLinkTarget,
+        'verification_content_bottom' => $securiaceQuoteVerificationContentBottom,
+        'verification_panel_bottom' => $securiaceQuoteVerificationPanelBottom,
+        'footer_context' => $securiaceQuoteFooterContext,
         'issuer_warnings' => $securiaceQuoteIssuerDiagnostics['warnings'],
         'stamped_pages' => $securiaceQuoteStampedPages,
         'output' => $outputPath,
@@ -332,6 +359,30 @@ $veryLongSubject = str_repeat(
 
 $fixtures = array(
     'standard' => quoteFixture(),
+    'verification-sec-panel' => quoteFixture(array(
+        'securiaceVerificationPanel' => quoteVerificationFixture('sec_panel'),
+    )),
+    'verification-official-badge' => quoteFixture(array(
+        'securiaceVerificationPanel' => quoteVerificationFixture('official_badge'),
+    )),
+    'verification-provider-line' => quoteFixture(array(
+        'securiaceVerificationPanel' => quoteVerificationFixture('provider_line'),
+    )),
+    'verification-none' => quoteFixture(array(
+        'securiaceVerificationPanel' => quoteVerificationFixture('none'),
+    )),
+    'verification-invalid-token' => quoteFixture(array(
+        'securiaceVerificationPanel' => array_replace(
+            quoteVerificationFixture('sec_panel'),
+            array('short_url' => 'https://my.securiace.com/v/PREDICTABLE-QUOTE-1234')
+        ),
+    )),
+    'verification-wrong-kind' => quoteFixture(array(
+        'securiaceVerificationPanel' => array_replace(
+            quoteVerificationFixture('sec_panel'),
+            array('kind' => 'invoice')
+        ),
+    )),
     'guest' => quoteFixture(array(
         'quotenumber' => 'Q-2026-00219',
         'userid' => 0,
@@ -455,6 +506,17 @@ $fixtures = array(
         'tax1' => '₹ 34,200.00 INR',
         'total' => '₹ 224,200.00 INR',
     )),
+    'verification-sec-panel-letter' => quoteFixture(array(
+        '_paper' => 'LETTER',
+        'quotenumber' => 'Q-2026-00234',
+        'subject' => 'Sealed multi-page infrastructure transformation quote',
+        'proposal' => '<h2>Programme overview</h2><p>' . str_repeat('This proposal coordinates infrastructure, security, migration, observability, acceptance, and operational handover. ', 24) . '</p>',
+        'lineitems' => $longItems,
+        'subtotal' => '₹ 190,000.00 INR',
+        'tax1' => '₹ 34,200.00 INR',
+        'total' => '₹ 224,200.00 INR',
+        'securiaceVerificationPanel' => quoteVerificationFixture('sec_panel'),
+    )),
     'profile-helper-invalid-result' => quoteFixture(array(
         'quotenumber' => 'Q-2026-00229',
         'companyname' => 'Resolver Invalid Profile',
@@ -514,7 +576,17 @@ $expectations = array(
             'payment.upi.payee_name' => 'whmcs.company_name',
         ),
         'payment_details_rendered' => false,
+        'verification_enabled' => false,
+        'verification_mode' => 'none',
+        'verification_rendered' => false,
+        'verification_reserved' => false,
     ),
+    'verification-sec-panel' => array('verification_enabled' => true, 'verification_mode' => 'sec_panel', 'verification_kind' => 'quote', 'verification_rendered' => true, 'verification_reserved' => true, 'verification_provider_line_reserved' => false, 'verification_url' => 'https://my.securiace.com/v/01ARZ3NDEKTSV4RRFFQ69G5FAV', 'verification_qr_payload' => 'https://my.securiace.com/v/01ARZ3NDEKTSV4RRFFQ69G5FAV', 'verification_link_target' => 'https://my.securiace.com/v/01ARZ3NDEKTSV4RRFFQ69G5FAV', 'footer_context' => 'Issued 5 Aug 2026'),
+    'verification-official-badge' => array('verification_enabled' => true, 'verification_mode' => 'official_badge', 'verification_kind' => 'quote', 'verification_rendered' => false, 'verification_reserved' => true, 'verification_provider_line_reserved' => false),
+    'verification-provider-line' => array('verification_enabled' => true, 'verification_mode' => 'provider_line', 'verification_kind' => 'quote', 'verification_rendered' => false, 'verification_reserved' => true, 'verification_provider_line_reserved' => true),
+    'verification-none' => array('verification_enabled' => false, 'verification_mode' => 'none', 'verification_kind' => 'quote', 'verification_rendered' => false, 'verification_reserved' => false, 'verification_provider_line_reserved' => false),
+    'verification-invalid-token' => array('verification_enabled' => false, 'verification_mode' => 'none', 'verification_kind' => 'quote', 'verification_rendered' => false, 'verification_reserved' => false),
+    'verification-wrong-kind' => array('verification_enabled' => false, 'verification_mode' => 'none', 'verification_kind' => 'quote', 'verification_rendered' => false, 'verification_reserved' => false),
     'guest' => array('number' => 'Q-2026-00219', 'currency_code' => 'INR', 'item_count' => 1, 'shows_discount' => false),
     'sanitized-rich-content' => array('number' => 'Q-2026-00220', 'currency_code' => 'INR', 'item_count' => 2),
     'entity-description' => array('number' => 'Q-2026-00221', 'currency_code' => 'INR', 'item_count' => 1, 'first_description' => "Security R&D <managed>\nDiscovery and implementation"),
@@ -563,6 +635,7 @@ $expectations = array(
         'shows_discount' => false,
     ),
     'long-letter' => array('number' => 'Q-2026-00222', 'currency_code' => 'INR', 'item_count' => 42, 'shows_discount' => true),
+    'verification-sec-panel-letter' => array('number' => 'Q-2026-00234', 'verification_enabled' => true, 'verification_mode' => 'sec_panel', 'verification_kind' => 'quote', 'verification_rendered' => true, 'verification_reserved' => true, 'footer_context' => 'Issued 5 Aug 2026'),
     'profile-helper-invalid-result' => array(
         'number' => 'Q-2026-00229',
         'issuer_name' => 'Resolver Invalid Profile',
@@ -600,7 +673,14 @@ foreach ($fixtures as $name => $fixture) {
     if ($result['stamped_pages'] !== range(1, $result['pages'])) {
         throw new RuntimeException($name . ' did not stamp every page in its own PDF.');
     }
-    if ($name === 'long-letter' && $result['pages'] < 2) {
+    if ($result['verification_rendered']
+        && $result['verification_content_bottom'] > $result['verification_panel_bottom']
+    ) {
+        throw new RuntimeException($name . ' verification copy overlaps its measured panel.');
+    }
+    if (in_array($name, array('long-letter', 'verification-sec-panel-letter'), true)
+        && $result['pages'] < 2
+    ) {
         throw new RuntimeException('Long quote fixture did not exercise multi-page rendering.');
     }
     if ($name === 'screenshot-regression') {

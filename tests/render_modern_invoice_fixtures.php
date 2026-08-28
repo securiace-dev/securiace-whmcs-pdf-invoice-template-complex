@@ -359,6 +359,22 @@ function renderFixture(string $templatePath, string $outputDirectory, string $na
             'balance_numeric' => $securiaceModernBalanceNumeric,
             'paid_state_heading' => $securiaceModernPaidStateHeading,
             'paid_state_detail' => $securiaceModernPaidStateDetail,
+            'state_content_bottom' => $securiaceModernStateContentBottom,
+            'state_panel_bottom' => $securiaceModernStatePanelY + $securiaceModernStatePanelHeight,
+            'settlement_content_bottom' => $securiaceModernSettlementContentBottom,
+            'settlement_panel_bottom' => $securiaceModernTotalsY + $securiaceModernTotalsHeight,
+            'verification_enabled' => $securiaceModernVerification['enabled'],
+            'verification_mode' => $securiaceModernVerification['mode'],
+            'verification_kind' => $securiaceModernVerification['kind'],
+            'verification_rendered' => $securiaceModernVerificationRendered,
+            'verification_reserved' => $securiaceModernVerificationReserved,
+            'verification_provider_line_reserved' => $securiaceModernVerificationProviderLineReserved,
+            'verification_url' => $securiaceModernVerification['short_url'],
+            'verification_qr_payload' => $securiaceModernVerificationQrPayload,
+            'verification_link_target' => $securiaceModernVerificationLinkTarget,
+            'verification_content_bottom' => $securiaceModernVerificationContentBottom,
+            'verification_panel_bottom' => $securiaceModernVerificationPanelBottom,
+            'footer_context' => $securiaceModernFooterContext,
             'renewal_date' => isset($securiaceModernRenewals[0]['date'])
                 ? $securiaceModernRenewals[0]['date']
                 : null,
@@ -451,6 +467,9 @@ function renderBatchFixtures(string $templatePath, string $outputDirectory, arra
             'rendered_upi' => $securiaceModernRenderedUpi,
             'rendered_bank' => $securiaceModernRenderedBank,
             'rendered_settlement' => $securiaceModernRenderedSettlement,
+            'verification_enabled' => $securiaceModernVerification['enabled'],
+            'verification_rendered' => $securiaceModernVerificationRendered,
+            'verification_reserved' => $securiaceModernVerificationReserved,
         );
     }
 
@@ -480,6 +499,21 @@ function assertFixtureValue(string $fixture, string $field, $actual, $expected):
             . ', received ' . var_export($actual, true)
         );
     }
+}
+
+/** @return array<string, mixed> */
+function invoiceVerificationFixture(string $mode): array
+{
+    return array(
+        'enabled' => $mode !== 'none',
+        'mode' => $mode,
+        'kind' => 'invoice',
+        'short_url' => 'https://my.securiace.com/v/01ARZ3NDEKTSV4RRFFQ69G5FAV',
+        'display_code' => '01AR-Z3ND-EKTS-V4RR-FFQ6-9G5F-AV',
+        'heading' => 'Sealed and unchanged',
+        'body' => 'This invoice was cryptographically sealed by Securiace Technologies. Scan or open the verification link to confirm the issuer and that this PDF has not changed.',
+        'disclaimer' => 'The seal confirms document integrity and issuer control. It does not by itself confirm current payment status.',
+    );
 }
 
 /** @param array<string, mixed> $overrides @return array<string, string> */
@@ -697,6 +731,30 @@ $fixtures = array(
         'datepaid' => '5 Aug 2026',
         'balance' => '₹ 199.00 INR',
         'transactions' => array(array_replace($paidTransaction, array('amount' => '₹ 9,791.00 INR'))),
+    )),
+    'verification-sec-panel' => invoiceFixture(array(
+        'securiaceVerificationPanel' => invoiceVerificationFixture('sec_panel'),
+    )),
+    'verification-official-badge' => invoiceFixture(array(
+        'securiaceVerificationPanel' => invoiceVerificationFixture('official_badge'),
+    )),
+    'verification-provider-line' => invoiceFixture(array(
+        'securiaceVerificationPanel' => invoiceVerificationFixture('provider_line'),
+    )),
+    'verification-none' => invoiceFixture(array(
+        'securiaceVerificationPanel' => invoiceVerificationFixture('none'),
+    )),
+    'verification-invalid-token' => invoiceFixture(array(
+        'securiaceVerificationPanel' => array_replace(
+            invoiceVerificationFixture('sec_panel'),
+            array('short_url' => 'https://my.securiace.com/v/PREDICTABLE-INVOICE-123')
+        ),
+    )),
+    'verification-wrong-kind' => invoiceFixture(array(
+        'securiaceVerificationPanel' => array_replace(
+            invoiceVerificationFixture('sec_panel'),
+            array('kind' => 'quote')
+        ),
     )),
     'reconciled-adjustment' => invoiceFixture(array(
         'invoiceid' => 300000126,
@@ -959,6 +1017,17 @@ $fixtures = array(
         'balance' => '₹ 19,824.00 INR',
         'notes' => str_repeat('This fixture verifies page continuation, dense line items, long names and stable footer placement. ', 8),
     )),
+    'verification-sec-panel-letter' => invoiceFixture(array(
+        '_paper' => 'LETTER',
+        'invoiceid' => 300000149,
+        'invoicenum' => 'INV-2026-00149',
+        'invoiceitems' => $longItems,
+        'subtotal' => '₹ 16,800.00 INR',
+        'tax' => '₹ 3,024.00 INR',
+        'total' => '₹ 19,824.00 INR',
+        'balance' => '₹ 19,824.00 INR',
+        'securiaceVerificationPanel' => invoiceVerificationFixture('sec_panel'),
+    )),
 );
 
 $expectations = array(
@@ -1004,12 +1073,22 @@ $expectations = array(
             'PAN · ABCDE1234F',
             'MSME · UDYAM-MH-00-0000000',
         ),
+        'verification_enabled' => false,
+        'verification_mode' => 'none',
+        'verification_rendered' => false,
+        'verification_reserved' => false,
     ),
     'unpaid' => array('is_payable' => true, 'has_upi' => true, 'has_bank' => true, 'bank_branch' => 'Example Branch', 'rendered_upi' => true, 'rendered_bank' => true, 'rendered_support' => true, 'settlement_mismatch' => false, 'document_title' => 'Invoice'),
     'partial' => array('is_payable' => true, 'has_upi' => true, 'settlement_mismatch' => false, 'document_title' => 'Invoice'),
     'refunded' => array('is_payable' => false, 'has_upi' => false, 'rendered_support' => false, 'settlement_mismatch' => false, 'document_title' => 'Invoice'),
     'proforma' => array('is_payable' => true, 'has_upi' => true, 'rendered_upi' => true, 'settlement_mismatch' => false, 'document_title' => 'Proforma Invoice', 'document_kicker' => 'PROFORMA INVOICE', 'invoice_number' => 'PI/300000124', 'proforma_reference' => 'PI/300000124', 'gst_active' => true, 'numbering_valid' => true),
     'paid-adjusted' => array('is_payable' => false, 'has_upi' => false, 'settlement_mismatch' => true, 'document_title' => 'Invoice', 'paid_state_heading' => 'Paid status needs review', 'paid_state_detail' => 'Reported balance ₹ 199.00 INR'),
+    'verification-sec-panel' => array('verification_enabled' => true, 'verification_mode' => 'sec_panel', 'verification_kind' => 'invoice', 'verification_rendered' => true, 'verification_reserved' => true, 'verification_provider_line_reserved' => false, 'verification_url' => 'https://my.securiace.com/v/01ARZ3NDEKTSV4RRFFQ69G5FAV', 'verification_qr_payload' => 'https://my.securiace.com/v/01ARZ3NDEKTSV4RRFFQ69G5FAV', 'verification_link_target' => 'https://my.securiace.com/v/01ARZ3NDEKTSV4RRFFQ69G5FAV', 'footer_context' => 'Issued 5 Aug 2026'),
+    'verification-official-badge' => array('verification_enabled' => true, 'verification_mode' => 'official_badge', 'verification_kind' => 'invoice', 'verification_rendered' => false, 'verification_reserved' => true, 'verification_provider_line_reserved' => false),
+    'verification-provider-line' => array('verification_enabled' => true, 'verification_mode' => 'provider_line', 'verification_kind' => 'invoice', 'verification_rendered' => false, 'verification_reserved' => true, 'verification_provider_line_reserved' => true),
+    'verification-none' => array('verification_enabled' => false, 'verification_mode' => 'none', 'verification_kind' => 'invoice', 'verification_rendered' => false, 'verification_reserved' => false, 'verification_provider_line_reserved' => false),
+    'verification-invalid-token' => array('verification_enabled' => false, 'verification_mode' => 'none', 'verification_kind' => 'invoice', 'verification_rendered' => false, 'verification_reserved' => false),
+    'verification-wrong-kind' => array('verification_enabled' => false, 'verification_mode' => 'none', 'verification_kind' => 'invoice', 'verification_rendered' => false, 'verification_reserved' => false),
     'reconciled-adjustment' => array('is_payable' => true, 'has_upi' => true, 'settlement_mismatch' => false, 'document_title' => 'Invoice', 'reconciliation_delta' => 9990.0, 'renewal_date' => '2 Aug 2027'),
     'overdue' => array('is_payable' => true, 'has_upi' => true, 'rendered_upi' => true, 'settlement_mismatch' => false, 'document_title' => 'Proforma Invoice', 'invoice_number' => 'PI/300000123', 'status_key' => 'overdue', 'is_overdue' => true, 'days_overdue' => 2, 'issue_date_display' => '4 Jul 2026', 'due_date_display' => '3 Aug 2026'),
     'cancelled' => array('is_payable' => false, 'has_upi' => false, 'settlement_mismatch' => false, 'document_title' => 'Invoice'),
@@ -1039,6 +1118,7 @@ $expectations = array(
     'whmcs9-credit-note' => array('is_payable' => true, 'has_upi' => true, 'transaction_reference' => 'Credit note · CN-00132', 'document_title' => 'Invoice'),
     'invalid-config' => array('is_payable' => true, 'has_upi' => false, 'settlement_mismatch' => false, 'document_title' => 'Invoice'),
     'long-letter' => array('is_payable' => true, 'has_upi' => true, 'settlement_mismatch' => false, 'document_title' => 'Invoice'),
+    'verification-sec-panel-letter' => array('verification_enabled' => true, 'verification_mode' => 'sec_panel', 'verification_kind' => 'invoice', 'verification_rendered' => true, 'verification_reserved' => true, 'verification_provider_line_reserved' => false, 'footer_context' => 'Issued 5 Aug 2026'),
 );
 
 if ($templateMode === 'legacy') {
@@ -1063,8 +1143,24 @@ try {
         }
         if ($templateMode === 'modern') {
             assertFixtureValue($name, 'template_pages', $result['pages'], $result['template_pages']);
+            if ($result['state_content_bottom'] > $result['state_panel_bottom']) {
+                throw new RuntimeException($name . ' state copy overlaps the measured status panel.');
+            }
+            if ($result['rendered_settlement']
+                && $result['settlement_content_bottom'] > $result['settlement_panel_bottom']
+            ) {
+                throw new RuntimeException($name . ' receipt/state copy overlaps the measured settlement panel.');
+            }
+            if ($result['verification_rendered']
+                && $result['verification_content_bottom'] > $result['verification_panel_bottom']
+            ) {
+                throw new RuntimeException($name . ' verification copy overlaps its measured panel.');
+            }
         }
-        if ($templateMode === 'modern' && $name === 'long-letter' && $result['pages'] < 2) {
+        if ($templateMode === 'modern'
+            && in_array($name, array('long-letter', 'verification-sec-panel-letter'), true)
+            && $result['pages'] < 2
+        ) {
             throw new RuntimeException('Long Letter fixture should span at least two pages.');
         }
         $results[$name] = $result;
@@ -1096,6 +1192,9 @@ try {
                 'rendered_bank',
                 'rendered_settlement',
             ) as $suppressedField) {
+                assertFixtureValue($batchRange['name'], $suppressedField, $batchRange[$suppressedField], false);
+            }
+            foreach (array('verification_enabled', 'verification_rendered', 'verification_reserved') as $suppressedField) {
                 assertFixtureValue($batchRange['name'], $suppressedField, $batchRange[$suppressedField], false);
             }
         }

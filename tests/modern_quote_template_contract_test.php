@@ -52,6 +52,10 @@ $requiredContracts = array(
     '$securiaceQuoteRenderErrorObserved === false',
     'Let\'s Seal line-safe footer reserve',
     '$securiaceQuotePageHeight - 12',
+    '$securiaceQuoteVerification',
+    "'sec_panel'",
+    "'official_badge'",
+    "'provider_line'",
 );
 foreach ($requiredContracts as $requiredContract) {
     if (strpos($template, $requiredContract) === false) {
@@ -61,7 +65,6 @@ foreach ($requiredContracts as $requiredContract) {
 
 $invoiceOnlyContracts = array(
     '$stage',
-    'write2DBarcode',
     'UPI payment',
     'Payment transactions',
     'Amount paid',

@@ -68,6 +68,12 @@ $requiredContracts = array(
     '$securiaceModernRenderErrorObserved === false',
     'Let\'s Seal line-safe footer reserve',
     '$securiaceModernPageHeight - 12',
+    '$securiaceModernVerification',
+    "'sec_panel'",
+    "'official_badge'",
+    "'provider_line'",
+    '$securiaceModernStatePanelHeight',
+    '$securiaceModernSettlementContentHeight',
 );
 
 foreach ($requiredContracts as $requiredContract) {
@@ -89,7 +95,6 @@ $forbiddenContracts = array(
     'Electronic record · IT Act 2000',
     'verification_secret',
     'SECURIACE_INVOICE_VERIFY_SECRET',
-    '$securiaceModernVerification',
     'hash_hmac(',
 );
 foreach ($forbiddenContracts as $forbiddenContract) {
