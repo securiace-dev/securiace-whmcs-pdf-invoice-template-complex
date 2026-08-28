@@ -21,9 +21,10 @@ $requiredHtml = array(
     'data-outstanding-only',
     '<table class="transaction-table"',
     '<th scope="col">Date</th>',
-    'Authenticated invoice record',
-    'Electronic record · IT Act 2000',
-    'width="62" height="62"',
+    'class="paid-panel"',
+    'Payment received',
+    'Paid in full',
+    'No balance due',
 );
 
 foreach ($requiredHtml as $required) {
@@ -32,7 +33,14 @@ foreach ($requiredHtml as $required) {
     }
 }
 
-$forbiddenClaims = array('Digitally verified', 'IT Act 2000 compliant');
+$forbiddenClaims = array(
+    'Digitally verified',
+    'IT Act 2000 compliant',
+    'Authenticated invoice record',
+    'Electronic record · IT Act 2000',
+    'class="verified-panel"',
+    'class="verified-icon"',
+);
 foreach ($forbiddenClaims as $forbidden) {
     if (stripos($html, $forbidden) !== false) {
         throw new RuntimeException('Preview contains an unsupported claim: ' . $forbidden);

@@ -50,6 +50,8 @@ $requiredContracts = array(
     'A completed quote page must not inherit',
     '$securiaceQuoteInitialHttpStatus >= 500',
     '$securiaceQuoteRenderErrorObserved === false',
+    'Let\'s Seal line-safe footer reserve',
+    '$securiaceQuotePageHeight - 12',
 );
 foreach ($requiredContracts as $requiredContract) {
     if (strpos($template, $requiredContract) === false) {

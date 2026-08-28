@@ -57,7 +57,7 @@ paid and payable invoices harder to misread.
 - Batch exports stamp only the pages created for the current invoice instead of
   overwriting footers belonging to earlier invoices in the same TCPDF object.
 - Admin batch exports use a lean accounting profile: no settlement callout,
-  protected bank details, UPI, QR, terms/notes, renewals, verification artwork,
+  protected bank details, UPI, QR, terms/notes, renewals, proof artwork,
   stamp/signature, or support cards. Invoice facts and transaction references
   remain because they are reconciliation evidence.
 
@@ -83,7 +83,7 @@ paid and payable invoices harder to misread.
   confirmation from an authorised contact, and every footer carries the quote
   number for detached-page traceability.
 - Quotes intentionally contain no UPI action, bank-remittance call to action,
-  payment receipt, transaction history, invoice verification, or paid balance.
+  payment receipt, transaction history, signed-document claims, or paid balance.
 - Customer notes are omitted so internal commentary is not leaked; essential
   client-facing scope and terms belong in the proposal body.
 - The template never rewrites authored commercial or tax terms. For a currently
@@ -152,11 +152,7 @@ handoff.
    screen must report the helpers and snapshot table as available. See
    [`docs/PDF-SNAPSHOT-OPERATIONS.md`](docs/PDF-SNAPSHOT-OPERATIONS.md).
 
-5. Provide the verification secret through the
-   `SECURIACE_INVOICE_VERIFY_SECRET` environment variable. Do not commit bank
-   account values, the secret, signatures, or production client data.
-
-6. Place optional visual assets in WHMCS:
+5. Place optional visual assets in WHMCS:
 
    ```text
    WHMCS_ROOT/assets/img/logo.png
@@ -168,7 +164,7 @@ handoff.
    the company name replaces the logo, and absent signature/stamp images do not
    stop PDF generation.
 
-7. In WHMCS General Settings, select **Securiace PDF Documents** as the System
+6. In WHMCS General Settings, select **Securiace PDF Documents** as the System
    Theme and clear the template cache. Generate and download one paid and one
    unpaid test invoice in staging, then send each as an email attachment before
    production activation.
@@ -202,16 +198,15 @@ The public example exposes this contract:
 
 - company email, phone, PAN, and MSME registration;
 - bank account details and UPI ID;
-- HMAC verification secret;
 - ambiguous numeric-date order (`DMY` by default, or `MDY`);
-- electronic-record label, jurisdiction, reviewed late-fee copy, and TDS note;
+- jurisdiction, reviewed late-fee copy, and TDS note;
 - explicit GST activation date/title gates and opt-in commercial currencies.
 
-The verification ID is a stable keyed integrity identifier over immutable
-invoice fields when a secret is configured. It is not a cryptographic PDF
-signature and should not be represented as one. The visible IT Act wording is
-an electronic-record label, not an automatic legal-compliance certification.
-Have tax and legal copy reviewed for the deployed business entity.
+The invoice and quote templates do not claim that a rendered document is
+cryptographically signed. They reserve a quiet footer area for a post-render
+provider line, but the provider must seal and independently verify the completed
+PDF bytes outside the template before any signed-document claim is shown. Have
+tax and legal copy reviewed for the deployed business entity.
 
 ## Verification
 
@@ -239,8 +234,8 @@ collections, draft, zero-total, proforma, paid-with-adjustment,
 unreconciled-total, format-2 EUR, invalid-configuration, and dense multi-page
 Letter fixtures.
 It asserts payment-action gating, derived overdue state, long localized date
-normalization, proforma/final references, seller registrations, stable
-verification IDs, DMY renewal parsing, reconciliation behavior, PDF file
+normalization, proforma/final references, seller registrations, payment-state
+presentation, DMY renewal parsing, reconciliation behavior, PDF file
 headers, and page-count stability.
 
 The fixture renderer requires the PHP GD extension only to create temporary test
@@ -315,7 +310,8 @@ test remains part of the repository gate.
 
 - Keep production configuration under `WHMCS_ROOT/includes`, not in the public
   template repository.
-- Use a high-entropy environment secret for authenticated verification IDs.
+- Do not describe payment-state artwork as a certificate, digital signature, or
+  verification result.
 - The QR is rendered directly into the PDF; no predictable temporary QR file is
   created.
 - The template escapes invoice descriptions before passing HTML to TCPDF.

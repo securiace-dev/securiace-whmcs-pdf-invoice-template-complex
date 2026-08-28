@@ -360,7 +360,6 @@ function renderFixture(string $templatePath, string $outputDirectory, string $na
             'renewal_date' => isset($securiaceModernRenewals[0]['date'])
                 ? $securiaceModernRenewals[0]['date']
                 : null,
-            'verification_id' => $securiaceModernVerificationId,
         ));
     }
     $pdf->Output($outputPath, 'F');
@@ -618,9 +617,7 @@ function invoiceFixture(array $overrides = array()): array
             ),
             'bank_currencies' => array('INR'),
             'upi_id' => 'billing@example.invalid',
-            'verification_secret' => 'fixture-only-secret',
             'date_order' => 'DMY',
-            'show_it_act_label' => true,
             'jurisdiction' => 'Example Jurisdiction',
             'late_fee_text' => '',
             'tds_note' => 'If applicable, deduct TDS under Section 194J and provide Form 16A.',
@@ -1100,12 +1097,6 @@ try {
         }
 
         $secondPaid = renderFixture($templatePath, $outputDirectory, 'paid-repeat', $fixtures['paid'], $templateMode);
-        assertFixtureValue(
-            'paid-repeat',
-            'verification_id',
-            $secondPaid['verification_id'],
-            $results['paid']['verification_id']
-        );
         @unlink($secondPaid['path']);
     }
 

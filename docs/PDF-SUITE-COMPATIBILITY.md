@@ -99,7 +99,7 @@ theme template.
 - Standard admin `csvdownload.php?type=pdfbatch` output is detected explicitly.
   Its accounting profile keeps invoice identity, parties, line items, totals,
   status, and transaction references while omitting settlement/support cards,
-  bank/UPI/QR data, notes, renewals, verification artwork, and authorization
+  bank/UPI/QR data, notes, renewals, proof artwork, and authorization
   images.
 - Browser previews use fictional data and are review artifacts. Runtime values
   come only from WHMCS and protected server configuration.

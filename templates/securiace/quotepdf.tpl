@@ -1374,7 +1374,9 @@ for ($page = $securiaceQuoteStartPage; $page <= $securiaceQuoteFinalPage; ++$pag
     }
     $pdf->SetFont($securiaceQuoteFont, '', 5.8);
     $pdf->SetTextColor($securiaceQuoteMuted[0], $securiaceQuoteMuted[1], $securiaceQuoteMuted[2]);
-    $pdf->SetXY($securiaceQuoteMargin, $securiaceQuotePageHeight - 10);
+    // Let's Seal line-safe footer reserve: the provider draws its signed proof
+    // line near the physical bottom edge after TCPDF has finished the document.
+    $pdf->SetXY($securiaceQuoteMargin, $securiaceQuotePageHeight - 12);
     $footerReference = 'Generated ' . $securiaceQuoteGeneratedAt . ' · ' . $securiaceQuoteCompanyName;
     if ($securiaceQuoteNumber !== '—') {
         $footerReference .= ' · Quote ' . $securiaceQuoteNumber;
