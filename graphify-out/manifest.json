@@ -60,13 +60,13 @@
     "semantic_hash": ""
   },
   "tests/modern_invoice_design_contract_test.php": {
-    "mtime": 1786402075.3681703,
-    "ast_hash": "6ef562892ff571ed6c881c6a6d1b42e9",
+    "mtime": 1787904527.0751295,
+    "ast_hash": "4b37bf5ba12b49610a8e25c982584185",
     "semantic_hash": ""
   },
   "tests/modern_quote_template_contract_test.php": {
-    "mtime": 1786402076.3856416,
-    "ast_hash": "ba339218c69fece3afc85fc4ddaa6455",
+    "mtime": 1787904527.075669,
+    "ast_hash": "874710f5ec427ff3817a9ce159da9788",
     "semantic_hash": ""
   },
   "tests/pdf_profile_resolver_test.php": {
@@ -90,13 +90,13 @@
     "semantic_hash": ""
   },
   "tests/render_modern_invoice_fixtures.php": {
-    "mtime": 1786166149.9276023,
-    "ast_hash": "61335a1281d9431d5ca9222acfede418",
+    "mtime": 1787904696.2118518,
+    "ast_hash": "f5ae1aff93608dc5520a94f972a1b4b0",
     "semantic_hash": ""
   },
   "tests/render_modern_quote_fixtures.php": {
-    "mtime": 1786166149.927973,
-    "ast_hash": "c44ebd592b218fff08231a28082f3c9b",
+    "mtime": 1787904667.7261646,
+    "ast_hash": "a253766882f0480d1d792f3a1c2cdf86",
     "semantic_hash": ""
   },
   "tests/whmcs_invoice_template_repair_test.php": {
@@ -120,8 +120,8 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1786401965.3357728,
-    "ast_hash": "6eec177869b57bd69d4839b78adef17a",
+    "mtime": 1787904460.1233916,
+    "ast_hash": "a5a2a76dd3e74050e469d38e0d0632e0",
     "semantic_hash": ""
   },
   "docs/HANDOFF.md": {
@@ -182,6 +182,16 @@
   "templates/securiace/theme.yaml": {
     "mtime": 1786401968.5291657,
     "ast_hash": "bb91c2c3b4a78a8586d2c4adc50c8798",
+    "semantic_hash": ""
+  },
+  "AGENTS.md": {
+    "mtime": 1787904460.1229339,
+    "ast_hash": "faef94ac126773487d3a8b98bcc4cd85",
+    "semantic_hash": ""
+  },
+  "docs/THEME-CLONE.md": {
+    "mtime": 1787904460.1235921,
+    "ast_hash": "4b36cbe56436df9bbf60d3e320da4ed5",
     "semantic_hash": ""
   }
 }

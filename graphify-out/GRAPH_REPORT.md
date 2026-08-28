@@ -1,16 +1,16 @@
-# Graph Report - securiace-whmcs-pdf-invoice-template-complex  (2026-08-11)
+# Graph Report - securiace-whmcs-pdf-invoice-template-complex  (2026-08-28)
 
 ## Corpus Check
-- 33 files · ~27,137 words
+- 35 files · ~27,324 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 178 nodes · 153 edges · 32 communities (30 shown, 2 thin omitted)
+- 182 nodes · 155 edges · 34 communities (30 shown, 4 thin omitted)
 - Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 3 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `36c269f1`
+- Built from commit: `642a71e4`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -30,11 +30,13 @@
 - [[_COMMUNITY_Community 13|Community 13]]
 - [[_COMMUNITY_Community 14|Community 14]]
 - [[_COMMUNITY_Community 30|Community 30]]
+- [[_COMMUNITY_Community 32|Community 32]]
+- [[_COMMUNITY_Community 33|Community 33]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `SecuriacePdfProfileSnapshotService` - 16 edges
 2. `Living handoff` - 14 edges
-3. `Securiace WHMCS PDF Document Templates` - 13 edges
+3. `Securiace WHMCS PDF Document Templates (legacy)` - 13 edges
 4. `Dynamic WHMCS PDF suite modernization` - 10 edges
 5. `Invoice UI/UX and Runtime Audit` - 9 edges
 6. `Invoice naming and numbering decision` - 7 edges
@@ -54,7 +56,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (32 total, 2 thin omitted)
+## Communities (34 total, 4 thin omitted)
 
 ### Community 0 - "Community 0"
 Cohesion: 0.10
@@ -109,9 +111,9 @@ Cohesion: 0.25
 Nodes (7): Package contract, Purpose, Required acceptance matrix, Rollback, Staging installation, Upgrade-safe PDF theme operations, WHMCS upgrade gate
 
 ## Knowledge Gaps
-- **84 isolated node(s):** `DateTimeImmutable`, `states`, `stateButtons`, `paidOnly`, `outstandingOnly` (+79 more)
+- **86 isolated node(s):** `DateTimeImmutable`, `states`, `stateButtons`, `paidOnly`, `outstandingOnly` (+81 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **2 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **4 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
@@ -119,7 +121,7 @@ _Questions this graph is uniquely positioned to answer:_
 - **Are the 3 inferred relationships involving `SecuriacePdfProfileSnapshotService` (e.g. with `securiace_pdf_profile_activate()` and `securiace_pdf_profile_output()`) actually correct?**
   _`SecuriacePdfProfileSnapshotService` has 3 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `DateTimeImmutable`, `states`, `stateButtons` to the rest of the system?**
-  _84 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _86 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
   _Cohesion score 0.10476190476190476 - nodes in this community are weakly interconnected._
 - **Should `Community 1` be split into smaller, more focused modules?**

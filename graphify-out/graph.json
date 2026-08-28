@@ -677,7 +677,7 @@
       "label": "renderBatchFixtures()",
       "file_type": "code",
       "source_file": "tests/render_modern_invoice_fixtures.php",
-      "source_location": "L385",
+      "source_location": "L391",
       "_origin": "ast",
       "id": "tests_render_modern_invoice_fixtures_renderbatchfixtures",
       "community": 2,
@@ -687,7 +687,7 @@
       "label": "assertFixtureValue()",
       "file_type": "code",
       "source_file": "tests/render_modern_invoice_fixtures.php",
-      "source_location": "L464",
+      "source_location": "L474",
       "_origin": "ast",
       "id": "tests_render_modern_invoice_fixtures_assertfixturevalue",
       "community": 2,
@@ -697,7 +697,7 @@
       "label": "invoiceSnapshotRow()",
       "file_type": "code",
       "source_file": "tests/render_modern_invoice_fixtures.php",
-      "source_location": "L475",
+      "source_location": "L485",
       "_origin": "ast",
       "id": "tests_render_modern_invoice_fixtures_invoicesnapshotrow",
       "community": 2,
@@ -707,7 +707,7 @@
       "label": "invoiceFixture()",
       "file_type": "code",
       "source_file": "tests/render_modern_invoice_fixtures.php",
-      "source_location": "L507",
+      "source_location": "L517",
       "_origin": "ast",
       "id": "tests_render_modern_invoice_fixtures_invoicefixture",
       "community": 2,
@@ -874,6 +874,26 @@
       "norm_label": "living handoff"
     },
     {
+      "label": "AGENTS.md",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "agents",
+      "community": 32,
+      "norm_label": "agents.md"
+    },
+    {
+      "label": "Agent notes (legacy PDF repo)",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "agents_agent_notes_legacy_pdf_repo",
+      "community": 32,
+      "norm_label": "agent notes (legacy pdf repo)"
+    },
+    {
       "label": "README.md",
       "file_type": "document",
       "source_file": "README.md",
@@ -884,20 +904,20 @@
       "norm_label": "readme.md"
     },
     {
-      "label": "Securiace WHMCS PDF Document Templates",
+      "label": "Securiace WHMCS PDF Document Templates (legacy)",
       "file_type": "document",
       "source_file": "README.md",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "readme_securiace_whmcs_pdf_document_templates",
+      "id": "readme_securiace_whmcs_pdf_document_templates_legacy",
       "community": 4,
-      "norm_label": "securiace whmcs pdf document templates"
+      "norm_label": "securiace whmcs pdf document templates (legacy)"
     },
     {
       "label": "Modern invoice behavior",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L20",
+      "source_location": "L26",
       "_origin": "ast",
       "id": "readme_modern_invoice_behavior",
       "community": 4,
@@ -907,7 +927,7 @@
       "label": "Modern quote behavior",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L58",
+      "source_location": "L64",
       "_origin": "ast",
       "id": "readme_modern_quote_behavior",
       "community": 4,
@@ -917,7 +937,7 @@
       "label": "Browser preview",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L91",
+      "source_location": "L97",
       "_origin": "ast",
       "id": "readme_browser_preview",
       "community": 4,
@@ -927,7 +947,7 @@
       "label": "Install the modern invoice template",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L117",
+      "source_location": "L123",
       "_origin": "ast",
       "id": "readme_install_the_modern_invoice_template",
       "community": 4,
@@ -937,7 +957,7 @@
       "label": "Install the modern quote template",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L174",
+      "source_location": "L180",
       "_origin": "ast",
       "id": "readme_install_the_modern_quote_template",
       "community": 4,
@@ -947,7 +967,7 @@
       "label": "Protected configuration",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L193",
+      "source_location": "L199",
       "_origin": "ast",
       "id": "readme_protected_configuration",
       "community": 4,
@@ -957,7 +977,7 @@
       "label": "Verification",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L210",
+      "source_location": "L216",
       "_origin": "ast",
       "id": "readme_verification",
       "community": 4,
@@ -967,7 +987,7 @@
       "label": "Compatibility",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L273",
+      "source_location": "L279",
       "_origin": "ast",
       "id": "readme_compatibility",
       "community": 4,
@@ -977,7 +997,7 @@
       "label": "Release streams",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L287",
+      "source_location": "L293",
       "_origin": "ast",
       "id": "readme_release_streams",
       "community": 4,
@@ -987,7 +1007,7 @@
       "label": "Legacy runtime repair",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L300",
+      "source_location": "L306",
       "_origin": "ast",
       "id": "readme_legacy_runtime_repair",
       "community": 4,
@@ -997,7 +1017,7 @@
       "label": "Security and privacy",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L308",
+      "source_location": "L314",
       "_origin": "ast",
       "id": "readme_security_and_privacy",
       "community": 4,
@@ -1007,7 +1027,7 @@
       "label": "License",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L321",
+      "source_location": "L327",
       "_origin": "ast",
       "id": "readme_license",
       "community": 4,
@@ -1512,6 +1532,26 @@
       "id": "docs_pdf_suite_compatibility_release_branch_policy",
       "community": 6,
       "norm_label": "release-branch policy"
+    },
+    {
+      "label": "THEME-CLONE.md",
+      "file_type": "document",
+      "source_file": "docs/THEME-CLONE.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_theme_clone",
+      "community": 33,
+      "norm_label": "theme-clone.md"
+    },
+    {
+      "label": "Theme transfer \u2014 pull cloud work to Mac",
+      "file_type": "document",
+      "source_file": "docs/THEME-CLONE.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_theme_clone_theme_transfer_pull_cloud_work_to_mac",
+      "community": 33,
+      "norm_label": "theme transfer \u2014 pull cloud work to mac"
     },
     {
       "label": "UPGRADE-SAFE-THEME-OPERATIONS.md",
@@ -2507,132 +2547,142 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "agents",
+      "target": "agents_agent_notes_legacy_pdf_repo",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "README.md",
       "source_location": "L1",
       "weight": 1.0,
-      "confidence_score": 1.0,
       "source": "readme",
-      "target": "readme_securiace_whmcs_pdf_document_templates"
+      "target": "readme_securiace_whmcs_pdf_document_templates_legacy",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "README.md",
-      "source_location": "L91",
+      "source_location": "L97",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "readme_securiace_whmcs_pdf_document_templates",
-      "target": "readme_browser_preview"
+      "source": "readme_securiace_whmcs_pdf_document_templates_legacy",
+      "target": "readme_browser_preview",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "README.md",
-      "source_location": "L270",
+      "source_location": "L279",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "readme_securiace_whmcs_pdf_document_templates",
-      "target": "readme_compatibility"
+      "source": "readme_securiace_whmcs_pdf_document_templates_legacy",
+      "target": "readme_compatibility",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "README.md",
-      "source_location": "L117",
+      "source_location": "L123",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "readme_securiace_whmcs_pdf_document_templates",
-      "target": "readme_install_the_modern_invoice_template"
+      "source": "readme_securiace_whmcs_pdf_document_templates_legacy",
+      "target": "readme_install_the_modern_invoice_template",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "README.md",
-      "source_location": "L173",
+      "source_location": "L180",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "readme_securiace_whmcs_pdf_document_templates",
-      "target": "readme_install_the_modern_quote_template"
+      "source": "readme_securiace_whmcs_pdf_document_templates_legacy",
+      "target": "readme_install_the_modern_quote_template",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "README.md",
-      "source_location": "L297",
+      "source_location": "L306",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "readme_securiace_whmcs_pdf_document_templates",
-      "target": "readme_legacy_runtime_repair"
+      "source": "readme_securiace_whmcs_pdf_document_templates_legacy",
+      "target": "readme_legacy_runtime_repair",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "README.md",
-      "source_location": "L318",
+      "source_location": "L327",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "readme_securiace_whmcs_pdf_document_templates",
-      "target": "readme_license"
+      "source": "readme_securiace_whmcs_pdf_document_templates_legacy",
+      "target": "readme_license",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "README.md",
-      "source_location": "L20",
+      "source_location": "L26",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "readme_securiace_whmcs_pdf_document_templates",
-      "target": "readme_modern_invoice_behavior"
+      "source": "readme_securiace_whmcs_pdf_document_templates_legacy",
+      "target": "readme_modern_invoice_behavior",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "README.md",
-      "source_location": "L58",
+      "source_location": "L64",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "readme_securiace_whmcs_pdf_document_templates",
-      "target": "readme_modern_quote_behavior"
+      "source": "readme_securiace_whmcs_pdf_document_templates_legacy",
+      "target": "readme_modern_quote_behavior",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "README.md",
-      "source_location": "L190",
+      "source_location": "L199",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "readme_securiace_whmcs_pdf_document_templates",
-      "target": "readme_protected_configuration"
+      "source": "readme_securiace_whmcs_pdf_document_templates_legacy",
+      "target": "readme_protected_configuration",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "README.md",
-      "source_location": "L284",
+      "source_location": "L293",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "readme_securiace_whmcs_pdf_document_templates",
-      "target": "readme_release_streams"
+      "source": "readme_securiace_whmcs_pdf_document_templates_legacy",
+      "target": "readme_release_streams",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "README.md",
-      "source_location": "L305",
+      "source_location": "L314",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "readme_securiace_whmcs_pdf_document_templates",
-      "target": "readme_security_and_privacy"
+      "source": "readme_securiace_whmcs_pdf_document_templates_legacy",
+      "target": "readme_security_and_privacy",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "README.md",
-      "source_location": "L207",
+      "source_location": "L216",
       "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "readme_securiace_whmcs_pdf_document_templates",
-      "target": "readme_verification"
+      "source": "readme_securiace_whmcs_pdf_document_templates_legacy",
+      "target": "readme_verification",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -3087,6 +3137,16 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "docs/THEME-CLONE.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "docs_theme_clone",
+      "target": "docs_theme_clone_theme_transfer_pull_cloud_work_to_mac",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "docs/UPGRADE-SAFE-THEME-OPERATIONS.md",
       "source_location": "L1",
       "weight": 1.0,
@@ -3326,5 +3386,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "36c269f1c5124bb0f5793b0c4eb09da4daa5f669"
+  "built_at_commit": "642a71e42d02095258b48d43c7146997e34d6bd7"
 }
