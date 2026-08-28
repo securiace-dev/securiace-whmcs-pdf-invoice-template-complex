@@ -29,7 +29,7 @@ Snapshots contain only:
 - the final document title, GST activation state, issue date, and WHMCS final
   number needed to detect a later mismatch.
 
-Bank accounts, UPI IDs, QR payloads, verification secrets, client details,
+Bank accounts, UPI IDs, QR payloads, signing credentials, client details,
 invoice items, transaction details, and free-form notes are forbidden. The
 reader validates a SHA-256 checksum and rejects unsupported schemas, payment
 keys, invalid titles, or malformed identity data before applying a snapshot.

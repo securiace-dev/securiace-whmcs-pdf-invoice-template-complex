@@ -1,7 +1,7 @@
-# Graph Report - securiace-whmcs-pdf-invoice-template-complex  (2026-08-28)
+# Graph Report - whmcs-pdf-letsseal-visual  (2026-08-28)
 
 ## Corpus Check
-- 35 files · ~27,324 words
+- 35 files · ~27,375 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `642a71e4`
+- Built from commit: `f0024a75`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -29,8 +29,8 @@
 - [[_COMMUNITY_Community 12|Community 12]]
 - [[_COMMUNITY_Community 13|Community 13]]
 - [[_COMMUNITY_Community 14|Community 14]]
+- [[_COMMUNITY_Community 20|Community 20]]
 - [[_COMMUNITY_Community 30|Community 30]]
-- [[_COMMUNITY_Community 32|Community 32]]
 - [[_COMMUNITY_Community 33|Community 33]]
 
 ## God Nodes (most connected - your core abstractions)

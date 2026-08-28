@@ -8,7 +8,7 @@ Scope: the supplied paid and unpaid invoice screenshots, the repaired legacy
 ## Outcome
 
 The redesign keeps the existing invoice identity, parties, item details, totals,
-payment terms, bank details, UPI path, verification, signature/stamp, renewal
+payment terms, bank details, UPI path, signature/stamp, renewal
 information, and transaction history. It changes their hierarchy and makes
 payment content status-aware. The approved browser direction is now implemented
 as a second, separately named WHMCS PDF template; the repaired legacy template
@@ -24,7 +24,7 @@ from WHMCS configuration or protected deployment assets.
 | --- | --- | --- | --- |
 | Critical | Paid line items and transaction history show zero while Grand Total and Amount Paid show a non-zero value. | The document contradicts itself and cannot be reconciled by a customer or accountant. | Use one source of truth for line totals, invoice total, balance, and transaction total; surface a reconciliation failure during testing instead of silently inventing an amount paid. |
 | Critical | A paid invoice includes a prominent `UPI - Scan to Pay` action. | Creates a duplicate-payment risk. | Remove remittance instructions from paid output and keep payment receipt plus transaction evidence. Show the amount-bound QR only for a payable INR invoice/proforma, including an overdue document that remains unpaid. |
-| High | The verification badge is compressed into a small, heavily bordered box and its timestamp collides visually with the border. | Verification is hard to read and looks less trustworthy despite being an important paid-invoice feature. | Use a quiet verification panel with a stable verification ID, explicit status, and generation metadata on separate lines. Preserve the verified state. |
+| High | The paid-state panel was presented as an authenticated record even though the template did not apply or verify a PDF signature. | Customers could mistake payment-state artwork for cryptographic proof. | Limit the panel to payment facts. Reserve footer space for a separately applied and independently verified post-render signature line. |
 | High | Paid and unpaid invoices use unrelated accent systems (lime green versus purple) and every totals row is a saturated banner. | Status colors compete with amounts and make the document look inconsistent across its lifecycle. | Keep aubergine as the brand accent; reserve green/amber/red for semantic status and balance information. |
 | High | A single renewal and one transaction are forced onto a sparse second page. | Wastes paper and separates supporting evidence from the financial summary. | Fit short renewal and transaction records on page one; paginate only when content length requires it. |
 | High | Fixed-height party boxes leave excess whitespace for short addresses and risk clipping long addresses. | Poor scanning in common cases and possible data loss in edge cases. | Use content-driven panels with minimum heights and flow layout. |
@@ -62,10 +62,9 @@ from WHMCS configuration or protected deployment assets.
 7. Empty `$invoicenum` is treated as proof of a proforma invoice. WHMCS documents
    that this custom number is only set when proforma or sequential numbering is
    enabled, so `$invoiceid` must remain a valid official invoice number fallback.
-8. Verification currently includes the current generation timestamp in its hash,
-   so the verification ID changes on every download. Preserve verification while
-   deriving its ID from immutable invoice fields; keep `generated at` as separate
-   metadata.
+8. A template-computed identifier cannot authenticate the final PDF bytes.
+   Remove the local verification claim; a signing service must receive the
+   completed PDF and its result must pass independent verification before use.
 9. Bank, UPI, and company details are declared in a configuration block and then
    repeated as literals later. The second template must consume each value from a
    single configuration source.
@@ -85,7 +84,7 @@ from WHMCS configuration or protected deployment assets.
 | Primary financial emphasis | Balance due | Payment received |
 | UPI QR | Visible only for payable INR invoices/proformas; amount-bound and reference-bound | Hidden to prevent duplicate payment |
 | Bank details | Visible as an alternate payment route | Hidden because settlement evidence replaces remittance instructions |
-| Verification | Not shown as completed | Visible with stable verification ID |
+| Signature status | No template-generated claim | No template-generated claim; post-render sealing is a separate delivery concern |
 | Signature/stamp | Omitted unless business policy explicitly signs proforma/unpaid documents | Visible using protected production assets |
 | Transactions | Empty state or partial-payment records | Full payment records |
 | Renewals | Service period remains in the line item | Upcoming renewal summary is shown when known |
@@ -165,10 +164,10 @@ in the browser prototype:
    it.
 6. A paid record with an inconsistent positive balance could still expose UPI.
    All paid states now block payment actions regardless of balance corruption.
-7. A keyed HMAC was previously described as a digital signature and automatic
-   IT Act compliance. The implementation accurately labels it an authenticated
-   invoice record and electronic-record identifier. It does not claim to apply
-   a cryptographic PDF signature or certify legal compliance.
+7. A keyed HMAC was previously presented as an authenticated invoice record and
+   paired with an IT Act label. Both were removed because neither proves the
+   final PDF signature or legal status. Paid documents now show payment facts
+   only; a post-render service owns any future signature evidence.
 8. WHMCS 8 and 9 do not pass the same transaction contract. The renderer now
    normalizes WHMCS 8 `transid` and WHMCS 9 `referenceId`, `typeLabel`, and
    credit/debit-note fields before presentation.
@@ -182,7 +181,7 @@ in the browser prototype:
     cards, a rounded commercial table, receipt-integrated authorization assets,
     quiet transaction/renewal records, and a painted paper background.
 12. Admin batch PDFs now use a lean accounting profile. They retain financial and
-    transaction evidence but omit bank/UPI/QR data, notes, renewals, verification
+    transaction evidence but omit bank/UPI/QR data, notes, renewals, proof
     artwork, settlement callouts, and authorization images.
 
 The integration renderer covers paid, unpaid, partial, overdue, refunded,

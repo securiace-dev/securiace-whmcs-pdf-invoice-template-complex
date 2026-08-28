@@ -72,9 +72,7 @@ $securiaceModernDefaults = array(
     ),
     'bank_currencies' => array('INR'),
     'upi_id' => '',
-    'verification_secret' => getenv('SECURIACE_INVOICE_VERIFY_SECRET') ?: '',
     'date_order' => 'DMY',
-    'show_it_act_label' => true,
     'jurisdiction' => '',
     'overdue_interest' => '',
     'late_fee_text' => '',
@@ -131,7 +129,7 @@ if (!isset($securiaceModernConfig['bank']) || !is_array($securiaceModernConfig['
 
 $securiaceModernConfigStringKeys = array(
     'company_email', 'company_phone', 'company_pan', 'company_msme', 'upi_id',
-    'verification_secret', 'date_order', 'jurisdiction', 'overdue_interest',
+    'date_order', 'jurisdiction', 'overdue_interest',
     'late_fee_text', 'tds_note', 'gst_effective_date', 'gst_final_title'
 );
 foreach ($securiaceModernConfigStringKeys as $securiaceModernConfigStringKey) {
@@ -686,6 +684,18 @@ $securiaceModernReconciliationDeltaNumeric = $securiaceModernTotalNumeric - $sec
 
 $securiaceModernIsPaid = $securiaceModernStatusKey === 'paid';
 $securiaceModernIsRefunded = $securiaceModernStatusKey === 'refunded';
+$securiaceModernPaidBalanceCleared = $securiaceModernIsPaid
+    && abs($securiaceModernBalanceNumeric) <= 0.00001;
+$securiaceModernPaidStateHeading = '';
+$securiaceModernPaidStateDetail = '';
+if ($securiaceModernIsPaid) {
+    $securiaceModernPaidStateHeading = $securiaceModernPaidBalanceCleared
+        ? 'Paid in full'
+        : 'Paid status needs review';
+    $securiaceModernPaidStateDetail = $securiaceModernPaidBalanceCleared
+        ? 'No balance due · Invoice ' . $securiaceModernInvoiceNumber
+        : 'Reported balance ' . $securiaceModernBalanceDisplay;
+}
 $securiaceModernNoPaymentStatuses = array('paid', 'cancelled', 'collections', 'draft', 'refunded');
 $securiaceModernIsPayable = $securiaceModernBalanceNumeric > 0.00001
     && !in_array($securiaceModernStatusKey, $securiaceModernNoPaymentStatuses, true);
@@ -1286,26 +1296,6 @@ foreach ($securiaceModernIssuerProfile['registrations'] as $securiaceModernRegis
     }
 }
 
-// Stable verification: immutable invoice fields only. The generation timestamp
-// is displayed separately and never changes the verification ID.
-$securiaceModernVerificationInput = implode('|', array(
-    $securiaceModernInvoiceId,
-    $securiaceModernInvoiceNumber,
-    number_format($securiaceModernTotalNumeric, 3, '.', ''),
-    isset($datecreated) ? (string) $datecreated : '',
-    isset($duedate) ? (string) $duedate : '',
-    isset($clientsdetails['id']) ? (string) $clientsdetails['id'] : '',
-    isset($clientsdetails['email']) ? (string) $clientsdetails['email'] : '',
-    $securiaceModernCompanyName,
-));
-$securiaceModernVerificationSecret = trim((string) $securiaceModernConfig['verification_secret']);
-$securiaceModernVerificationHash = $securiaceModernVerificationSecret !== ''
-    ? hash_hmac('sha256', $securiaceModernVerificationInput, $securiaceModernVerificationSecret)
-    : hash('sha256', $securiaceModernVerificationInput);
-$securiaceModernVerificationId = strtoupper(substr($securiaceModernVerificationHash, 0, 12))
-    . ' · ' . strtoupper(substr($securiaceModernVerificationHash, 12, 8));
-$securiaceModernHasAuthenticatedVerification = $securiaceModernVerificationSecret !== '';
-
 $securiaceModernTransactionTotal = 0.0;
 $securiaceModernHasTransactionStatus = false;
 foreach ($securiaceModernTransactions as $securiaceModernTransaction) {
@@ -1546,14 +1536,13 @@ if ($securiaceModernIsBatch) {
     $pdf->SetX($securiaceModernStatePanelX + 4);
     $pdf->Cell(60, 3.5, 'Invoice ' . $securiaceModernInvoiceNumber, 0, 1, 'L');
 } elseif ($securiaceModernIsPaid) {
-    $pdf->Cell(60, 4, $securiaceModernHasAuthenticatedVerification ? 'Authenticated invoice record' : 'Invoice checksum', 0, 1, 'L');
+    $pdf->Cell(60, 4, 'Payment status', 0, 1, 'L');
+    $pdf->SetFont($securiaceModernFont, 'B', 9);
+    $pdf->SetX($securiaceModernStatePanelX + 4);
+    $pdf->Cell(60, 4.5, $securiaceModernPaidStateHeading, 0, 1, 'L', false, '', 1);
     $pdf->SetFont($securiaceModernFont, '', 6);
     $pdf->SetX($securiaceModernStatePanelX + 4);
-    $pdf->Cell(60, 3.5, 'ID ' . $securiaceModernVerificationId, 0, 1, 'L');
-    if ($securiaceModernHasAuthenticatedVerification && !empty($securiaceModernConfig['show_it_act_label'])) {
-        $pdf->SetX($securiaceModernStatePanelX + 4);
-        $pdf->Cell(60, 3.5, 'Electronic record · IT Act 2000', 0, 1, 'L');
-    }
+    $pdf->Cell(60, 3.5, $securiaceModernPaidStateDetail, 0, 1, 'L', false, '', 1);
 } elseif ($securiaceModernIsPayable) {
     $pdf->Cell(60, 4, $securiaceModernIsOverdue ? 'Overdue balance' : 'Balance due', 0, 1, 'L');
     $pdf->SetFont($securiaceModernFont, 'B', 10);
@@ -2035,11 +2024,15 @@ $pdf->SetTextColor($securiaceModernStatusInk[0], $securiaceModernStatusInk[1], $
 $pdf->SetXY($securiaceModernMargin + 4, $securiaceModernTotalsY + 8);
 
 if ($securiaceModernIsPaid) {
-    $securiaceModernSettlementHeading = 'Payment received in full';
-    $securiaceModernSettlementBody = 'Settled'
-        . ($securiaceModernPaidDateDisplay !== '—' ? ' on ' . $securiaceModernPaidDateDisplay : '')
-        . '. See transaction history for the payment method.';
-    if ($securiaceModernSettlementMismatch) {
+    $securiaceModernSettlementHeading = $securiaceModernPaidStateHeading;
+    if ($securiaceModernPaidBalanceCleared) {
+        $securiaceModernSettlementBody = 'Settled'
+            . ($securiaceModernPaidDateDisplay !== '—' ? ' on ' . $securiaceModernPaidDateDisplay : '')
+            . '. See transaction history for the payment method.';
+    } else {
+        $securiaceModernSettlementBody = 'WHMCS reports this invoice as Paid but retains a non-zero balance. Review the account record.';
+    }
+    if ($securiaceModernSettlementMismatch && $securiaceModernPaidBalanceCleared) {
         $securiaceModernSettlementBody .= "\nIncludes account credit or an administrative adjustment.";
     }
 } elseif ($securiaceModernIsPayable) {
@@ -2650,7 +2643,9 @@ for ($securiaceModernPage = $securiaceModernStartPage; $securiaceModernPage <= $
 
     $pdf->SetFont($securiaceModernFont, '', 5.8);
     $pdf->SetTextColor($securiaceModernMuted[0], $securiaceModernMuted[1], $securiaceModernMuted[2]);
-    $pdf->SetXY($securiaceModernMargin, $securiaceModernPageHeight - 10);
+    // Let's Seal line-safe footer reserve: the provider draws its signed proof
+    // line near the physical bottom edge after TCPDF has finished the document.
+    $pdf->SetXY($securiaceModernMargin, $securiaceModernPageHeight - 12);
     $pdf->Cell($securiaceModernUsableWidth * 0.7, 4, 'Generated ' . $securiaceModernGeneratedAt . ' · ' . $securiaceModernCompanyName, 0, 0, 'L');
     $securiaceModernRelativePage = $securiaceModernPage - $securiaceModernStartPage + 1;
     $pdf->Cell($securiaceModernUsableWidth * 0.3, 4, 'Page ' . $securiaceModernRelativePage . ' of ' . $securiaceModernPageCount, 0, 1, 'R');

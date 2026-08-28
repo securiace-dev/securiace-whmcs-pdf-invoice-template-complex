@@ -25,7 +25,6 @@ const states = {
     transactionId: "DEMO-NEFT-2849",
     transactionAmount: "₹7,750.00",
     transactionCount: "1 record",
-    verificationId: "8F3C912A6D44 · 1B70C9D2",
     renewalService: "Domain renewal · northstar.example",
     renewalDate: "8 Aug 2031",
     renewalTiming: "Scheduled",

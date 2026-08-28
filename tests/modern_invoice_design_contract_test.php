@@ -16,7 +16,12 @@ $requiredContracts = array(
     '$securiaceModernDrawItemsHeader',
     '$securiaceModernPreparedItems',
     '$securiaceModernSplitTextForHeight',
-    'Payment received in full',
+    'Payment status',
+    'Paid in full',
+    'No balance due',
+    'Paid status needs review',
+    'Reported balance',
+    'WHMCS reports this invoice as Paid but retains a non-zero balance.',
     'Authorized signature',
     'Pay by bank transfer',
     'Payment instructions',
@@ -61,6 +66,8 @@ $requiredContracts = array(
     'A completed invoice page must not inherit',
     '$securiaceModernInitialHttpStatus >= 500',
     '$securiaceModernRenderErrorObserved === false',
+    'Let\'s Seal line-safe footer reserve',
+    '$securiaceModernPageHeight - 12',
 );
 
 foreach ($requiredContracts as $requiredContract) {
@@ -77,6 +84,13 @@ $forbiddenContracts = array(
     'Securiace Technologies',
     'Overdue interest may apply at',
     "trim((string) \$taxCode) !== '' ? 'TAX INVOICE' : 'INVOICE'",
+    'Authenticated invoice record',
+    'Invoice checksum',
+    'Electronic record · IT Act 2000',
+    'verification_secret',
+    'SECURIACE_INVOICE_VERIFY_SECRET',
+    '$securiaceModernVerification',
+    'hash_hmac(',
 );
 foreach ($forbiddenContracts as $forbiddenContract) {
     if (stripos($template, $forbiddenContract) !== false) {

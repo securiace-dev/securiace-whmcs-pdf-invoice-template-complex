@@ -5,7 +5,7 @@
  *   WHMCS_ROOT/includes/securiace-invoice-config.php
  *
  * Keep the deployed file outside version control. The public template contains
- * no bank account details, signature material, or verification secret.
+ * no bank account details or signature material.
  */
 return array(
     'company_email' => 'billing@example.com',
@@ -23,10 +23,8 @@ return array(
     // Used when a Pay To bank section does not declare Currencies explicitly.
     'bank_currencies' => array('INR'),
     'upi_id' => 'billing@example',
-    'verification_secret' => getenv('SECURIACE_INVOICE_VERIFY_SECRET') ?: '',
     // Ambiguous numeric service periods: DMY for India/UK, MDY for US.
     'date_order' => 'DMY',
-    'show_it_act_label' => true,
     'jurisdiction' => '',
     // Optional reviewed policy override. Empty uses conservative WHMCS-derived copy.
     'late_fee_text' => '',

@@ -357,10 +357,11 @@ function renderFixture(string $templatePath, string $outputDirectory, string $na
             'reconciliation_delta' => $securiaceModernReconciliationDeltaNumeric,
             'total_numeric' => $securiaceModernTotalNumeric,
             'balance_numeric' => $securiaceModernBalanceNumeric,
+            'paid_state_heading' => $securiaceModernPaidStateHeading,
+            'paid_state_detail' => $securiaceModernPaidStateDetail,
             'renewal_date' => isset($securiaceModernRenewals[0]['date'])
                 ? $securiaceModernRenewals[0]['date']
                 : null,
-            'verification_id' => $securiaceModernVerificationId,
         ));
     }
     $pdf->Output($outputPath, 'F');
@@ -618,9 +619,7 @@ function invoiceFixture(array $overrides = array()): array
             ),
             'bank_currencies' => array('INR'),
             'upi_id' => 'billing@example.invalid',
-            'verification_secret' => 'fixture-only-secret',
             'date_order' => 'DMY',
-            'show_it_act_label' => true,
             'jurisdiction' => 'Example Jurisdiction',
             'late_fee_text' => '',
             'tds_note' => 'If applicable, deduct TDS under Section 194J and provide Form 16A.',
@@ -999,6 +998,8 @@ $expectations = array(
             'payment.upi' => 'pay_to.upi_id',
             'payment.upi.payee_name' => 'whmcs.company_name',
         ),
+        'paid_state_heading' => 'Paid in full',
+        'paid_state_detail' => 'No balance due · Invoice INV-2026-00123',
         'seller_registrations' => array(
             'PAN · ABCDE1234F',
             'MSME · UDYAM-MH-00-0000000',
@@ -1008,7 +1009,7 @@ $expectations = array(
     'partial' => array('is_payable' => true, 'has_upi' => true, 'settlement_mismatch' => false, 'document_title' => 'Invoice'),
     'refunded' => array('is_payable' => false, 'has_upi' => false, 'rendered_support' => false, 'settlement_mismatch' => false, 'document_title' => 'Invoice'),
     'proforma' => array('is_payable' => true, 'has_upi' => true, 'rendered_upi' => true, 'settlement_mismatch' => false, 'document_title' => 'Proforma Invoice', 'document_kicker' => 'PROFORMA INVOICE', 'invoice_number' => 'PI/300000124', 'proforma_reference' => 'PI/300000124', 'gst_active' => true, 'numbering_valid' => true),
-    'paid-adjusted' => array('is_payable' => false, 'has_upi' => false, 'settlement_mismatch' => true, 'document_title' => 'Invoice'),
+    'paid-adjusted' => array('is_payable' => false, 'has_upi' => false, 'settlement_mismatch' => true, 'document_title' => 'Invoice', 'paid_state_heading' => 'Paid status needs review', 'paid_state_detail' => 'Reported balance ₹ 199.00 INR'),
     'reconciled-adjustment' => array('is_payable' => true, 'has_upi' => true, 'settlement_mismatch' => false, 'document_title' => 'Invoice', 'reconciliation_delta' => 9990.0, 'renewal_date' => '2 Aug 2027'),
     'overdue' => array('is_payable' => true, 'has_upi' => true, 'rendered_upi' => true, 'settlement_mismatch' => false, 'document_title' => 'Proforma Invoice', 'invoice_number' => 'PI/300000123', 'status_key' => 'overdue', 'is_overdue' => true, 'days_overdue' => 2, 'issue_date_display' => '4 Jul 2026', 'due_date_display' => '3 Aug 2026'),
     'cancelled' => array('is_payable' => false, 'has_upi' => false, 'settlement_mismatch' => false, 'document_title' => 'Invoice'),
@@ -1100,12 +1101,6 @@ try {
         }
 
         $secondPaid = renderFixture($templatePath, $outputDirectory, 'paid-repeat', $fixtures['paid'], $templateMode);
-        assertFixtureValue(
-            'paid-repeat',
-            'verification_id',
-            $secondPaid['verification_id'],
-            $results['paid']['verification_id']
-        );
         @unlink($secondPaid['path']);
     }
 

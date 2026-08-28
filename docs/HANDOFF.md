@@ -132,8 +132,10 @@ issuer/payment identifiers or snapshot counts here.
 - PAN and Udyam/MSME render when valid. GSTIN remains hidden before GST mode is
   explicitly active.
 - Snapshot payloads contain immutable issuer/document identity only. They never
-  contain bank, UPI, client, transaction, credential, or verification-secret
-  values.
+  contain bank, UPI, client, transaction, credential, or signing-secret values.
+- Invoice paid-state artwork now reports payment facts only. Invoice and quote
+  footers reserve space for a provider-applied post-render proof line; the
+  templates themselves make no cryptographic-signature or legal-status claim.
 - Invalid config/helper/snapshot results and optional QR/artwork failures degrade
   to safe text/identity output and retain only redacted diagnostic codes.
 - Completed invoice and quote PDF templates recover HTTP 200 when rendering
