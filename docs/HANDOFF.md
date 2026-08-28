@@ -32,6 +32,14 @@ protected config, shared profile helper, snapshot validator, optional artwork,
 and TCPDF barcode renderer. A failure in any optional integration must produce a
 safe fallback PDF plus a redacted diagnostic code, never an HTTP 5xx.
 
+A later regression showed that Whoops can set HTTP 500 during WHMCS init for
+unrelated warnings (for example duplicate module hook constants) before any PDF
+template runs. TCPDF `E_DEPRECATED` noise after template return does not always
+re-set status, so recovering 5xx only when `error_get_last()` is a TCPDF
+deprecation is insufficient. Completed invoice and quote templates must recover
+HTTP 200 whenever rendering finished successfully, independent of the last PHP
+error identity, while still suppressing TCPDF deprecations inside the template.
+
 Every snapshot-affecting deployment must render at least one controlled final
 invoice after a snapshot row exists. Deployment evidence must record hashes for
 the active invoice template, quote template, profile helper, snapshot validator,
@@ -40,14 +48,24 @@ exercise snapshot consumption.
 
 ## Current environment handoff
 
-The repository now ships the approved PDF overrides in the minimal
-`templates/securiace` child theme. Production remains on its recorded active
-theme until an operator installs, validates, and selects the child theme using
-`docs/UPGRADE-SAFE-THEME-OPERATIONS.md`; repository packaging alone is not
-evidence of production activation.
+The repository ships the approved PDF overrides in the minimal
+`templates/securiace` child theme. Production activation is operator-owned:
+install the package, select **Securiace PDF Documents** as the System Theme,
+and clear the template cache per `docs/UPGRADE-SAFE-THEME-OPERATIONS.md`.
+Repository packaging alone is not evidence of production activation.
 
 At this handoff closure, production has been verified with:
 
+- System Theme `securiace` (parent `twenty-one`) active for PDF and client-area
+  inheritance;
+- active `templates/securiace/invoicepdf.tpl` matching commit
+  `4f75b2e4eaaf3b49e65c4fba3d3c3fc43070df45` at SHA-256
+  `c1ddbac8f9ba3ae104a2c8239330faf05a33102ba2beccac4e9a8fbcf835f89c`;
+- active `templates/securiace/quotepdf.tpl` matching the same commit at SHA-256
+  `cf79a7541eab13cd3974c64c0c1f9231805984571eaf48666b0a683e79c5a129`;
+- completed invoice/quote templates recovering HTTP 200 after successful
+  render so Whoops init poison and TCPDF deprecations cannot strand downloads
+  on HTTP 5xx;
 - `securiace-pdf-profile.php` copied into the WHMCS `includes` area and readable
   by the WHMCS runtime;
 - the deployed helper matching the repository SHA-256 contract marker above
@@ -58,15 +76,11 @@ At this handoff closure, production has been verified with:
 - issuer snapshot storage available at the expected schema version;
 - the protected configuration available;
 - redacted diagnostics reporting no source warnings or conflicts;
-- the active `templates/twenty-one/quotepdf.tpl` matching quote-fix commit
-  `21273df891b0cff34bacc4b719ad0c01f7fde40b` at SHA-256
-  `8be7a5b40a06ac17c57a035d6f53eff0ff2a0aed9355ace61027886caaee317b`;
-- the prior quote template and hash-guarded rollback retained at
-  `/var/backups/securiace-whmcs-pdf/20260806T091534Z-quote-21273df/`; and
-- and a production-native render of the affected zero-date quote returning a valid
-  one-page PDF under the WHMCS site user, with the fallback date and redesigned
-  hierarchy visually verified before all temporary client-data artifacts were
-  removed.
+- hash-guarded rollback for the 2026-08-11 status/theme remediation retained at
+  `/var/backups/securiace-whmcs-pdf/20260811T-pdf-5xx-remediation-4f75b2e/`; and
+- production-native `pdfInvoice` / `genQuotePDF` smokes returning valid PDF
+  payloads at HTTP 200 after remediation, with unauthenticated `/dl.php`
+  invoice and quote routes redirecting to login (302) rather than 5xx.
 
 This section is current environment context, not a substitute for live checks.
 Future deployers must refresh it when any listed state changes. Do not add live
@@ -122,6 +136,9 @@ issuer/payment identifiers or snapshot counts here.
   values.
 - Invalid config/helper/snapshot results and optional QR/artwork failures degrade
   to safe text/identity output and retain only redacted diagnostic codes.
+- Completed invoice and quote PDF templates recover HTTP 200 when rendering
+  finishes successfully, so unrelated Whoops init warnings or TCPDF deprecations
+  cannot leave a valid PDF download on HTTP 5xx.
 
 ## Update triggers
 

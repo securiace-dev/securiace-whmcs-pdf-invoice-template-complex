@@ -11,6 +11,8 @@
  * updates the quote to Delivered, so a stage badge can be factually stale.
  */
 
+$securiaceQuoteInitialHttpStatus = function_exists('http_response_code') ? http_response_code() : false;
+$securiaceQuoteRenderErrorObserved = false;
 $securiaceQuoteIsTcpdfDeprecation = static function ($error) {
     if (!is_array($error) || !isset($error['type'], $error['file'])) {
         return false;
@@ -28,6 +30,7 @@ $securiaceQuotePreviousErrorHandler = null;
 $securiaceQuotePreviousErrorHandler = set_error_handler(
     static function ($severity, $message, $file, $line) use (
         &$securiaceQuotePreviousErrorHandler,
+        &$securiaceQuoteRenderErrorObserved,
         $securiaceQuoteIsTcpdfDeprecation
     ) {
         if ($securiaceQuoteIsTcpdfDeprecation(array(
@@ -36,6 +39,7 @@ $securiaceQuotePreviousErrorHandler = set_error_handler(
         ))) {
             return true;
         }
+        $securiaceQuoteRenderErrorObserved = true;
         if (is_callable($securiaceQuotePreviousErrorHandler)) {
             return call_user_func(
                 $securiaceQuotePreviousErrorHandler,
@@ -1383,11 +1387,17 @@ $pdf->SetAutoPageBreak($securiaceQuotePreviousAutoPageBreak, $securiaceQuotePrev
 $pdf->setPage($securiaceQuoteFinalPage);
 
 restore_error_handler();
-$securiaceQuoteLastPhpError = error_get_last();
+// Whoops may already have set HTTP 500 during init for unrelated warnings
+// (for example duplicate hook constants). TCPDF may also leave E_DEPRECATED
+// noise after this include returns. A completed quote page must not inherit
+// that poison, but may clear only a 5xx present before rendering; a new
+// rendering error must remain visible.
 $securiaceQuoteHttpStatus = function_exists('http_response_code') ? http_response_code() : false;
-if (is_int($securiaceQuoteHttpStatus)
+if (is_int($securiaceQuoteInitialHttpStatus)
+    && $securiaceQuoteInitialHttpStatus >= 500
+    && is_int($securiaceQuoteHttpStatus)
     && $securiaceQuoteHttpStatus >= 500
-    && $securiaceQuoteIsTcpdfDeprecation($securiaceQuoteLastPhpError)
+    && $securiaceQuoteRenderErrorObserved === false
 ) {
     http_response_code(200);
 }

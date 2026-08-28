@@ -1,6 +1,12 @@
-# Securiace WHMCS PDF Document Templates
+# Securiace WHMCS PDF Document Templates (legacy)
 
-This repository contains a maintained WHMCS TCPDF document suite:
+> **Canonical home moved.** New theme, brand, and PDF work lives on branch
+> [`securiace-whmcs-theme`](https://github.com/securiace-dev/securiace-whmcs-pdf-invoice-template-complex/tree/securiace-whmcs-theme)
+> (clone instructions: [`docs/THEME-CLONE.md`](docs/THEME-CLONE.md)).
+> After Mac publish, the org repo will be
+> `securiace-dev/securiace-whmcs-theme`.
+
+This repository retains the historical WHMCS TCPDF document suite snapshot:
 
 - `invoicepdf.tpl` is the repaired legacy template retained as the rollback
   option. Its PHP 8 undefined-constant and helper-collision failures are fixed

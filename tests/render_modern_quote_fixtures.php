@@ -258,10 +258,14 @@ function renderQuoteFixture(string $templatePath, string $outputDirectory, strin
             throw new ErrorException($message, 0, $severity, $file, $line);
         }
     );
+    http_response_code(500);
     try {
         include $templatePath;
     } finally {
         restore_error_handler();
+    }
+    if (http_response_code() !== 200) {
+        throw new RuntimeException('A successful quote render did not clear an inherited HTTP 5xx status.');
     }
 
     $outputPath = rtrim($outputDirectory, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $name . '.pdf';
