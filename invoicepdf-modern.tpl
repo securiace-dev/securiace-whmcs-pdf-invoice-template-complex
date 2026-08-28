@@ -684,6 +684,18 @@ $securiaceModernReconciliationDeltaNumeric = $securiaceModernTotalNumeric - $sec
 
 $securiaceModernIsPaid = $securiaceModernStatusKey === 'paid';
 $securiaceModernIsRefunded = $securiaceModernStatusKey === 'refunded';
+$securiaceModernPaidBalanceCleared = $securiaceModernIsPaid
+    && abs($securiaceModernBalanceNumeric) <= 0.00001;
+$securiaceModernPaidStateHeading = '';
+$securiaceModernPaidStateDetail = '';
+if ($securiaceModernIsPaid) {
+    $securiaceModernPaidStateHeading = $securiaceModernPaidBalanceCleared
+        ? 'Paid in full'
+        : 'Paid status needs review';
+    $securiaceModernPaidStateDetail = $securiaceModernPaidBalanceCleared
+        ? 'No balance due · Invoice ' . $securiaceModernInvoiceNumber
+        : 'Reported balance ' . $securiaceModernBalanceDisplay;
+}
 $securiaceModernNoPaymentStatuses = array('paid', 'cancelled', 'collections', 'draft', 'refunded');
 $securiaceModernIsPayable = $securiaceModernBalanceNumeric > 0.00001
     && !in_array($securiaceModernStatusKey, $securiaceModernNoPaymentStatuses, true);
@@ -1527,10 +1539,10 @@ if ($securiaceModernIsBatch) {
     $pdf->Cell(60, 4, 'Payment status', 0, 1, 'L');
     $pdf->SetFont($securiaceModernFont, 'B', 9);
     $pdf->SetX($securiaceModernStatePanelX + 4);
-    $pdf->Cell(60, 4.5, 'Paid in full', 0, 1, 'L');
+    $pdf->Cell(60, 4.5, $securiaceModernPaidStateHeading, 0, 1, 'L', false, '', 1);
     $pdf->SetFont($securiaceModernFont, '', 6);
     $pdf->SetX($securiaceModernStatePanelX + 4);
-    $pdf->Cell(60, 3.5, 'No balance due · Invoice ' . $securiaceModernInvoiceNumber, 0, 1, 'L', false, '', 1);
+    $pdf->Cell(60, 3.5, $securiaceModernPaidStateDetail, 0, 1, 'L', false, '', 1);
 } elseif ($securiaceModernIsPayable) {
     $pdf->Cell(60, 4, $securiaceModernIsOverdue ? 'Overdue balance' : 'Balance due', 0, 1, 'L');
     $pdf->SetFont($securiaceModernFont, 'B', 10);
@@ -2012,11 +2024,15 @@ $pdf->SetTextColor($securiaceModernStatusInk[0], $securiaceModernStatusInk[1], $
 $pdf->SetXY($securiaceModernMargin + 4, $securiaceModernTotalsY + 8);
 
 if ($securiaceModernIsPaid) {
-    $securiaceModernSettlementHeading = 'Payment received in full';
-    $securiaceModernSettlementBody = 'Settled'
-        . ($securiaceModernPaidDateDisplay !== '—' ? ' on ' . $securiaceModernPaidDateDisplay : '')
-        . '. See transaction history for the payment method.';
-    if ($securiaceModernSettlementMismatch) {
+    $securiaceModernSettlementHeading = $securiaceModernPaidStateHeading;
+    if ($securiaceModernPaidBalanceCleared) {
+        $securiaceModernSettlementBody = 'Settled'
+            . ($securiaceModernPaidDateDisplay !== '—' ? ' on ' . $securiaceModernPaidDateDisplay : '')
+            . '. See transaction history for the payment method.';
+    } else {
+        $securiaceModernSettlementBody = 'WHMCS reports this invoice as Paid but retains a non-zero balance. Review the account record.';
+    }
+    if ($securiaceModernSettlementMismatch && $securiaceModernPaidBalanceCleared) {
         $securiaceModernSettlementBody .= "\nIncludes account credit or an administrative adjustment.";
     }
 } elseif ($securiaceModernIsPayable) {

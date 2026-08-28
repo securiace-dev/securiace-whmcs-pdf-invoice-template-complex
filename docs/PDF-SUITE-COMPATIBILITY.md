@@ -133,8 +133,9 @@ Automated fixture coverage includes:
 4. Copy the modern invoice to `invoicepdf.tpl` and modern quote to `quotepdf.tpl`
    through temporary files followed by atomic rename. Preserve the existing owner,
    group, and mode.
-5. Do not copy repository example secrets. Keep bank, UPI, registration, and HMAC
-   values in `WHMCS_ROOT/includes/securiace-invoice-config.php` and the environment.
+5. Do not copy repository example values into production. Keep bank, UPI, and
+   registration values in `WHMCS_ROOT/includes/securiace-invoice-config.php`.
+   Keep any future signing credential outside the PDF templates and this file.
 6. Clear only WHMCS compiled-template/cache artifacts documented for the running
    version; do not delete broad application or upload directories.
 7. Generate and download paid, unpaid, partial, registered-client quote, and guest
