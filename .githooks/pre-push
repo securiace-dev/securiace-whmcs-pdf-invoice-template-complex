@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# pre-push hook: require version, CHANGELOG and STATE to agree.
+set -euo pipefail
+ROOT="$(git rev-parse --show-toplevel)"
+if [ -x "$ROOT/scripts/check-continuity.sh" ]; then
+    bash "$ROOT/scripts/check-continuity.sh"
+elif [ -f "$ROOT/scripts/check-continuity.sh" ]; then
+    bash "$ROOT/scripts/check-continuity.sh"
+else
+    echo "scripts/check-continuity.sh missing" >&2
+    exit 1
+fi

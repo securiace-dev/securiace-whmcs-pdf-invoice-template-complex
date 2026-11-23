@@ -1,0 +1,6 @@
+---
+description: Project agent instructions (single source)
+alwaysApply: true
+---
+
+Follow `AGENTS.md` at the repository root as the source of truth for purpose, architecture, commands, gates, hard rules, branch conventions and the definition of done. Then read `docs/STATE.md` before editing. Update `docs/STATE.md` at the end of the session. Do not copy those rules into other files.
