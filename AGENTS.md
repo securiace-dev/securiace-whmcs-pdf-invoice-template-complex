@@ -64,3 +64,33 @@ restack according to the repository workflow.
 Theme-transfer background is in [`docs/THEME-CLONE.md`](docs/THEME-CLONE.md).
 Use reviewed local Git operations for any transfer; do not use a remote
 curl-to-shell bootstrap.
+
+## Gates and conventions (added by continuity pass)
+
+`docs/HANDOFF.md` stays the long operator handoff; `docs/STATE.md` is the short current-state file. Docs-only PRs declare `Handoff-Impact: none - <reason>`. Addon version: `'version'` in `modules/addons/securiace_pdf_profile/securiace_pdf_profile.php` (`1.0.0`); a change must also update the contract markers in `docs/HANDOFF.md` (checked by `tests/handoff_contract_test.php`). No CHANGELOG exists; do not invent one.
+
+```bash
+for t in tests/*_test.php; do php "$t" || break; done
+node --check preview/app.js && node --check quote-preview/app.js
+bash scripts/check-continuity.sh
+```
+
+Public repo: no issuer, customer, bank, UPI, tax values or secrets. Branch `feat|fix|docs|chore/<scope>` from `origin/main`; PR against `main`. This desk may merge module PRs after review; leave `whmcs-prod-new` PRs for WHMCS-Prod; never commit directly to `main`.
+
+## Continuity (tool-agnostic)
+
+This repo follows the desk continuity standard (`CONTINUITY-STANDARD.md` in desk-os). Claude Code, Codex, agy, OpenCode, Cursor and any future tool start here.
+
+- **Entry point:** this file (`AGENTS.md`). `CLAUDE.md`, `GEMINI.md` and `.cursor/rules/agents.mdc` only point here.
+- **Session state:** `docs/STATE.md` — current version, what is in flight, next steps, last-session summary. Rewrite it at the end of every session (IST timestamps).
+- **Decisions:** `docs/decisions/` (ADR files). Add one when the owner or an architecture choice is made. Do not rewrite old ADRs.
+- **Agreement gate:** `bash scripts/check-continuity.sh` must pass before push (`docs/continuity.conf`). It fails if the version, CHANGELOG and STATE disagree.
+- **Checkpoints:** small commits; push the feature or WIP branch before you stop; leave no uncommitted work in the worktree; never switch or dirty the user's primary checkout. Use a new worktree from `origin/<default-branch>`.
+- **Desk checklists:** `SESSION-START.md` and `SESSION-END.md` in desk-os (`/workspace/whmcs-modules/desk-os/` or `~/Projects/whmcs-modules/desk-os/`).
+- Enable hooks in each clone or worktree: `git config core.hooksPath .githooks`.
+
+### Hard rules (fleet)
+
+- No secrets in chat or commits. Never print the live admin folder name (write `ADMIN_PATH`). Never circumvent ionCube. Never touch the WHMCS core licence.
+- Production is read-only for this desk. No live deploy. `whmcs-prod-new` merges belong to WHMCS-Prod; deploys belong to CntbOps after Mr. Y's own pick.
+- Local checks only; no paid GitHub Actions. Use `gh-account` (unset `GIT_CONFIG_*` first). Repos stay private unless the owner says otherwise.
